@@ -4,6 +4,10 @@ use crate::modifiers::Modifier;
 pub enum WeaponKind {
     Sword,
     GreatSword,
+    Axe,
+    BattleAxe,
+    Hammer,
+    WarHammer,
 }
 
 #[derive(Debug)]
@@ -22,6 +26,26 @@ impl Weapon {
                 parry_modifier: Modifier::new(-1),
             },
             WeaponKind::GreatSword => Weapon {
+                dmg_modifier: Modifier::new(5),
+                attack_modifier: Modifier::new(-3),
+                parry_modifier: Modifier::new(-4),
+            },
+            WeaponKind::Axe => Weapon {
+                dmg_modifier: Modifier::new(3),
+                attack_modifier: Modifier::new(0),
+                parry_modifier: Modifier::new(-2),
+            },
+            WeaponKind::BattleAxe => Weapon {
+                dmg_modifier: Modifier::new(5),
+                attack_modifier: Modifier::new(-3),
+                parry_modifier: Modifier::new(-4),
+            },
+            WeaponKind::Hammer => Weapon {
+                dmg_modifier: Modifier::new(3),
+                attack_modifier: Modifier::new(0),
+                parry_modifier: Modifier::new(-2),
+            },
+            WeaponKind::WarHammer => Weapon {
                 dmg_modifier: Modifier::new(5),
                 attack_modifier: Modifier::new(-3),
                 parry_modifier: Modifier::new(-4),
