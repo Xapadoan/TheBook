@@ -22,8 +22,8 @@ impl FightResult {
 }
 
 impl Fight {
-    pub fn new(blue_corner: Warrior, red_corner: Warrior) -> Fight {
-        Fight {
+    pub fn new(blue_corner: Warrior, red_corner: Warrior) -> Self {
+        Self {
             blue_corner,
             red_corner,
         }

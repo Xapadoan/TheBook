@@ -1,18 +1,23 @@
 use the_book::tournament::Tournament;
 use the_book::warrior::Warrior;
+use the_book::weapon::axe::Axe;
+use the_book::weapon::battle_axe::BattleAxe;
+use the_book::weapon::great_sword::GreatSword;
+use the_book::weapon::hammer::Hammer;
+use the_book::weapon::sword::Sword;
+use the_book::weapon::war_hammer::WarHammer;
 use the_book::weapon::Weapon;
-use the_book::weapon::WeaponKind;
 
 fn main() {
     let mut tournament = Tournament::new(vec![
-        Warrior::new("Masarma", Weapon::new(WeaponKind::GreatSword)),
-        Warrior::new("Lehtobel", Weapon::new(WeaponKind::Sword)),
-        Warrior::new("Tendark", Weapon::new(WeaponKind::BattleAxe)),
-        Warrior::new("Arcen", Weapon::new(WeaponKind::Sword)),
-        Warrior::new("Morbiff", Weapon::new(WeaponKind::Axe)),
-        Warrior::new("Nithu", Weapon::new(WeaponKind::WarHammer)),
-        Warrior::new("Finul", Weapon::new(WeaponKind::Hammer)),
-        Warrior::new("Chei", Weapon::new(WeaponKind::Hammer)),
+        Warrior::new("Masarma", Weapon::GreatSword(GreatSword::new())),
+        Warrior::new("Lehtobel", Weapon::Sword(Sword::new())),
+        Warrior::new("Tendark", Weapon::BattleAxe(BattleAxe::new())),
+        Warrior::new("Arcen", Weapon::Sword(Sword::new())),
+        Warrior::new("Morbiff", Weapon::Axe(Axe::new())),
+        Warrior::new("Nithu", Weapon::WarHammer(WarHammer::new())),
+        Warrior::new("Finul", Weapon::Hammer(Hammer::new())),
+        Warrior::new("Chei", Weapon::Hammer(Hammer::new())),
     ]);
 
     tournament.fight_round(0);

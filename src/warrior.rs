@@ -1,5 +1,7 @@
 use crate::dice::Dice;
 use crate::dice::RollResult;
+use crate::fight_mechanics::CriticalHit;
+use crate::fight_mechanics::{ApplyAttackModifier, ApplyParryModifier, RollDamage, TakeDamage};
 use crate::weapon::Weapon;
 
 #[derive(Debug)]
@@ -31,7 +33,7 @@ impl Warrior {
     }
 
     // Fast exit make code more readable ?
-    pub fn attack(&mut self, target: &mut Warrior) {
+    pub fn attack(&mut self, target: &mut Self) {
         println!("{} attacks {}", self.name, target.name);
         match self.attack_test() {
             RollResult::CriticalFailure => println!("{} missed miserably", self.name),
@@ -39,7 +41,7 @@ impl Warrior {
             RollResult::Success => match target.parry_test() {
                 RollResult::CriticalSuccess => {
                     self.take_damage(self.weapon.roll_damage());
-                    println!("{} parried perfectly", target.name)
+                    // println!("{} parried perfectly", target.name)
                 }
                 RollResult::Success => println!("{} parried", target.name),
                 RollResult::Failure => {
@@ -52,7 +54,7 @@ impl Warrior {
                 }
             },
             RollResult::CriticalSuccess => {
-                target.take_damage(self.weapon.roll_damage() * 3);
+                self.weapon.critical_hit(target);
                 println!("{} got hit really hard", target.name)
             }
         }
@@ -68,15 +70,17 @@ impl Warrior {
         Dice::D6.test_roll(success_threshold)
     }
 
+    pub fn is_alive(&self) -> bool {
+        self.health > 0
+    }
+}
+
+impl TakeDamage for Warrior {
     fn take_damage(&mut self, dmg: u8) {
         if self.health > dmg {
             self.health -= dmg;
         } else {
             self.health = 0;
         }
-    }
-
-    pub fn is_alive(&self) -> bool {
-        self.health > 0
     }
 }

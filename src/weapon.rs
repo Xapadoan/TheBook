@@ -1,5 +1,19 @@
-use crate::dice::Dice;
-use crate::modifiers::Modifier;
+use crate::fight_mechanics::{
+    ApplyAttackModifier, ApplyParryModifier, CriticalHit, RollDamage, TakeDamage,
+};
+use axe::Axe;
+use battle_axe::BattleAxe;
+use great_sword::GreatSword;
+use hammer::Hammer;
+use sword::Sword;
+use war_hammer::WarHammer;
+
+pub mod axe;
+pub mod battle_axe;
+pub mod great_sword;
+pub mod hammer;
+pub mod sword;
+pub mod war_hammer;
 
 pub enum WeaponKind {
     Sword,
@@ -11,57 +25,63 @@ pub enum WeaponKind {
 }
 
 #[derive(Debug)]
-pub struct Weapon {
-    dmg_modifier: Modifier,
-    attack_modifier: Modifier,
-    parry_modifier: Modifier,
+pub enum Weapon {
+    Sword(Sword),
+    Hammer(Hammer),
+    Axe(Axe),
+    BattleAxe(BattleAxe),
+    GreatSword(GreatSword),
+    WarHammer(WarHammer),
 }
 
-impl Weapon {
-    pub fn new(kind: WeaponKind) -> Weapon {
-        match kind {
-            WeaponKind::Sword => Weapon {
-                dmg_modifier: Modifier::new(3),
-                attack_modifier: Modifier::new(0),
-                parry_modifier: Modifier::new(-1),
-            },
-            WeaponKind::GreatSword => Weapon {
-                dmg_modifier: Modifier::new(5),
-                attack_modifier: Modifier::new(-3),
-                parry_modifier: Modifier::new(-4),
-            },
-            WeaponKind::Axe => Weapon {
-                dmg_modifier: Modifier::new(3),
-                attack_modifier: Modifier::new(0),
-                parry_modifier: Modifier::new(-2),
-            },
-            WeaponKind::BattleAxe => Weapon {
-                dmg_modifier: Modifier::new(5),
-                attack_modifier: Modifier::new(-3),
-                parry_modifier: Modifier::new(-4),
-            },
-            WeaponKind::Hammer => Weapon {
-                dmg_modifier: Modifier::new(3),
-                attack_modifier: Modifier::new(0),
-                parry_modifier: Modifier::new(-2),
-            },
-            WeaponKind::WarHammer => Weapon {
-                dmg_modifier: Modifier::new(5),
-                attack_modifier: Modifier::new(-3),
-                parry_modifier: Modifier::new(-4),
-            },
+impl RollDamage for Weapon {
+    fn roll_damage(&self) -> u8 {
+        match self {
+            Weapon::Sword(sword) => sword.roll_damage(),
+            Weapon::Hammer(hammer) => hammer.roll_damage(),
+            Weapon::Axe(axe) => axe.roll_damage(),
+            Weapon::BattleAxe(battle_axe) => battle_axe.roll_damage(),
+            Weapon::GreatSword(great_sword) => great_sword.roll_damage(),
+            Weapon::WarHammer(war_hammer) => war_hammer.roll_damage(),
         }
     }
+}
 
-    pub fn roll_damage(&self) -> u8 {
-        self.dmg_modifier.apply(Dice::D6.roll())
+impl ApplyAttackModifier for Weapon {
+    fn apply_attack_modifier(&self, base: u8) -> u8 {
+        match self {
+            Weapon::Sword(sword) => sword.apply_attack_modifier(base),
+            Weapon::Hammer(hammer) => hammer.apply_attack_modifier(base),
+            Weapon::Axe(axe) => axe.apply_attack_modifier(base),
+            Weapon::BattleAxe(battle_axe) => battle_axe.apply_attack_modifier(base),
+            Weapon::GreatSword(great_sword) => great_sword.apply_attack_modifier(base),
+            Weapon::WarHammer(war_hammer) => war_hammer.apply_attack_modifier(base),
+        }
     }
+}
 
-    pub fn apply_attack_modifier(&self, base: u8) -> u8 {
-        self.attack_modifier.apply(base)
+impl ApplyParryModifier for Weapon {
+    fn apply_parry_modifier(&self, base: u8) -> u8 {
+        match self {
+            Weapon::Sword(sword) => sword.apply_parry_modifier(base),
+            Weapon::Hammer(hammer) => hammer.apply_parry_modifier(base),
+            Weapon::Axe(axe) => axe.apply_parry_modifier(base),
+            Weapon::BattleAxe(battle_axe) => battle_axe.apply_parry_modifier(base),
+            Weapon::GreatSword(great_sword) => great_sword.apply_parry_modifier(base),
+            Weapon::WarHammer(war_hammer) => war_hammer.apply_parry_modifier(base),
+        }
     }
+}
 
-    pub fn apply_parry_modifier(&self, base: u8) -> u8 {
-        self.parry_modifier.apply(base)
+impl<T: TakeDamage> CriticalHit<T> for Weapon {
+    fn critical_hit(&self, target: &mut T) {
+        match self {
+            Weapon::Sword(sword) => sword.critical_hit(target),
+            Weapon::Hammer(hammer) => hammer.critical_hit(target),
+            Weapon::Axe(sword) => sword.critical_hit(target),
+            Weapon::BattleAxe(sword) => sword.critical_hit(target),
+            Weapon::GreatSword(sword) => sword.critical_hit(target),
+            Weapon::WarHammer(sword) => sword.critical_hit(target),
+        }
     }
 }
