@@ -1,6 +1,6 @@
 pub mod critical_hit_option;
 
-use critical_hit_option::CriticalConsequence;
+use critical_hit_option::CriticalHitConsequence;
 
 pub trait TakeDamage {
     fn take_damage(&mut self, damage: u8);
@@ -11,7 +11,7 @@ pub trait RollDamage {
 }
 
 pub trait CriticalHit {
-    fn critical_hit(&self) -> CriticalConsequence;
+    fn critical_hit(&self) -> CriticalHitConsequence;
 }
 
 pub trait ApplyAttackModifier {

@@ -33,12 +33,12 @@ enum CriticalHitKind {
     VitalOrganCrushed,
 }
 
-pub struct CriticalConsequence {
+pub struct CriticalHitConsequence {
     kind: CriticalHitKind,
     dmg_modifier: Modifier,
 }
 
-impl CriticalConsequence {
+impl CriticalHitConsequence {
     pub fn modify_damages(&self, base: u8) -> u8 {
         self.dmg_modifier.apply(base)
     }
@@ -158,65 +158,65 @@ impl CriticalConsequence {
     }
 }
 
-pub fn roll_sharp_critical() -> CriticalConsequence {
+pub fn roll_sharp_critical() -> CriticalHitConsequence {
     match Dice::D20.roll() {
-        1 | 2 => CriticalConsequence {
+        1 | 2 => CriticalHitConsequence {
             kind: CriticalHitKind::DeepIncision,
             dmg_modifier: Modifier::new(1),
         },
-        3 | 4 => CriticalConsequence {
+        3 | 4 => CriticalHitConsequence {
             kind: CriticalHitKind::ReallyDeepIncision,
             dmg_modifier: Modifier::new(2),
         },
-        5 | 6 => CriticalConsequence {
+        5 | 6 => CriticalHitConsequence {
             kind: CriticalHitKind::ImpressiveWoundAndArmorDamage,
             dmg_modifier: Modifier::new(3),
         },
-        7 | 8 => CriticalConsequence {
+        7 | 8 => CriticalHitConsequence {
             kind: CriticalHitKind::PreciseHitAndArmorDamage,
             dmg_modifier: Modifier::new(4),
         },
-        9 | 10 => CriticalConsequence {
+        9 | 10 => CriticalHitConsequence {
             kind: CriticalHitKind::AccurateHeavyBlowAndArmorDamage,
             dmg_modifier: Modifier::new(5),
         },
-        11 => CriticalConsequence {
+        11 => CriticalHitConsequence {
             kind: CriticalHitKind::PartOfTheArmorIsDestroyed,
             dmg_modifier: Modifier::new(0),
         },
-        12 => CriticalConsequence {
+        12 => CriticalHitConsequence {
             kind: CriticalHitKind::GougedEye,
             dmg_modifier: Modifier::new(5),
         },
-        13 => CriticalConsequence {
+        13 => CriticalHitConsequence {
             kind: CriticalHitKind::SeveredHand,
             dmg_modifier: Modifier::new(6),
         },
-        14 => CriticalConsequence {
+        14 => CriticalHitConsequence {
             kind: CriticalHitKind::SeveredFoot,
             dmg_modifier: Modifier::new(6),
         },
-        15 => CriticalConsequence {
+        15 => CriticalHitConsequence {
             kind: CriticalHitKind::SeveredArm,
             dmg_modifier: Modifier::new(7),
         },
-        16 => CriticalConsequence {
+        16 => CriticalHitConsequence {
             kind: CriticalHitKind::SeveredLeg,
             dmg_modifier: Modifier::new(8),
         },
-        17 => CriticalConsequence {
+        17 => CriticalHitConsequence {
             kind: CriticalHitKind::GenitalsDamage,
             dmg_modifier: Modifier::new(5),
         },
-        18 => CriticalConsequence {
+        18 => CriticalHitConsequence {
             kind: CriticalHitKind::VitalOrganDamage,
             dmg_modifier: Modifier::new(9),
         },
-        19 => CriticalConsequence {
+        19 => CriticalHitConsequence {
             kind: CriticalHitKind::HeartInjury,
             dmg_modifier: Modifier::new(MAX),
         },
-        20 => CriticalConsequence {
+        20 => CriticalHitConsequence {
             kind: CriticalHitKind::SeriousHeadInjury,
             dmg_modifier: Modifier::new(MAX),
         },
@@ -224,65 +224,65 @@ pub fn roll_sharp_critical() -> CriticalConsequence {
     }
 }
 
-pub fn roll_blunt_critical() -> CriticalConsequence {
+pub fn roll_blunt_critical() -> CriticalHitConsequence {
     match Dice::D20.roll() {
-        1 | 2 => CriticalConsequence {
+        1 | 2 => CriticalHitConsequence {
             kind: CriticalHitKind::ImpressiveBruise,
             dmg_modifier: Modifier::new(1),
         },
-        3 | 4 => CriticalConsequence {
+        3 | 4 => CriticalHitConsequence {
             kind: CriticalHitKind::ImpressiveBruiseAndLimbDislocation,
             dmg_modifier: Modifier::new(2),
         },
-        5 | 6 => CriticalConsequence {
+        5 | 6 => CriticalHitConsequence {
             kind: CriticalHitKind::RibFacture,
             dmg_modifier: Modifier::new(3),
         },
-        7 | 8 => CriticalConsequence {
+        7 | 8 => CriticalHitConsequence {
             kind: CriticalHitKind::PreciseHitAndArmorDamage,
             dmg_modifier: Modifier::new(4),
         },
-        9 | 10 => CriticalConsequence {
+        9 | 10 => CriticalHitConsequence {
             kind: CriticalHitKind::AccurateHeavyBlowAndArmorDamage,
             dmg_modifier: Modifier::new(5),
         },
-        11 => CriticalConsequence {
+        11 => CriticalHitConsequence {
             kind: CriticalHitKind::PartOfTheArmorIsDestroyed,
             dmg_modifier: Modifier::new(0),
         },
-        12 => CriticalConsequence {
+        12 => CriticalHitConsequence {
             kind: CriticalHitKind::KneeDislocation,
             dmg_modifier: Modifier::new(3),
         },
-        13 => CriticalConsequence {
+        13 => CriticalHitConsequence {
             kind: CriticalHitKind::BrokenHand,
             dmg_modifier: Modifier::new(3),
         },
-        14 => CriticalConsequence {
+        14 => CriticalHitConsequence {
             kind: CriticalHitKind::SmashedFoot,
             dmg_modifier: Modifier::new(3),
         },
-        15 => CriticalConsequence {
+        15 => CriticalHitConsequence {
             kind: CriticalHitKind::BrokenArm,
             dmg_modifier: Modifier::new(4),
         },
-        16 => CriticalConsequence {
+        16 => CriticalHitConsequence {
             kind: CriticalHitKind::BrokenLeg,
             dmg_modifier: Modifier::new(5),
         },
-        17 => CriticalConsequence {
+        17 => CriticalHitConsequence {
             kind: CriticalHitKind::CrushedGenitals,
             dmg_modifier: Modifier::new(5),
         },
-        18 => CriticalConsequence {
+        18 => CriticalHitConsequence {
             kind: CriticalHitKind::KnockedOut,
             dmg_modifier: Modifier::new(0),
         },
-        19 => CriticalConsequence {
+        19 => CriticalHitConsequence {
             kind: CriticalHitKind::OpenSkullFacture,
             dmg_modifier: Modifier::new(MAX),
         },
-        20 => CriticalConsequence {
+        20 => CriticalHitConsequence {
             kind: CriticalHitKind::VitalOrganCrushed,
             dmg_modifier: Modifier::new(MAX),
         },
