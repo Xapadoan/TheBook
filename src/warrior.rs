@@ -41,7 +41,7 @@ impl Warrior {
             RollResult::Success => match target.parry_test() {
                 RollResult::CriticalSuccess => {
                     self.take_damage(self.weapon.roll_damage());
-                    // println!("{} parried perfectly", target.name)
+                    println!("{} parried perfectly", target.name);
                 }
                 RollResult::Success => println!("{} parried", target.name),
                 RollResult::Failure => {
@@ -54,8 +54,10 @@ impl Warrior {
                 }
             },
             RollResult::CriticalSuccess => {
-                self.weapon.critical_hit(target);
-                println!("{} got hit really hard", target.name)
+                let crit_consequence = self.weapon.critical_hit();
+                let damage = crit_consequence.modify_damages(self.weapon.roll_damage());
+                target.take_damage(damage);
+                crit_consequence.show(&self, target)
             }
         }
     }

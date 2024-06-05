@@ -1,6 +1,5 @@
-use crate::fight_mechanics::{
-    ApplyAttackModifier, ApplyParryModifier, CriticalHit, RollDamage, TakeDamage,
-};
+use crate::fight_mechanics::critical_hit_option::{roll_blunt_critical, CriticalConsequence};
+use crate::fight_mechanics::{ApplyAttackModifier, ApplyParryModifier, CriticalHit, RollDamage};
 use crate::{dice::Dice, modifiers::Modifier};
 
 #[derive(Debug)]
@@ -20,9 +19,9 @@ impl Hammer {
     }
 }
 
-impl<T: TakeDamage> CriticalHit<T> for Hammer {
-    fn critical_hit(&self, target: &mut T) {
-        println!("Crit with hammer")
+impl CriticalHit for Hammer {
+    fn critical_hit(&self) -> CriticalConsequence {
+        roll_blunt_critical()
     }
 }
 

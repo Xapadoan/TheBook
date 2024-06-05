@@ -1,5 +1,6 @@
 use crate::fight_mechanics::{
-    ApplyAttackModifier, ApplyParryModifier, CriticalHit, RollDamage, TakeDamage,
+    critical_hit_option::CriticalConsequence, ApplyAttackModifier, ApplyParryModifier, CriticalHit,
+    RollDamage,
 };
 use axe::Axe;
 use battle_axe::BattleAxe;
@@ -73,15 +74,15 @@ impl ApplyParryModifier for Weapon {
     }
 }
 
-impl<T: TakeDamage> CriticalHit<T> for Weapon {
-    fn critical_hit(&self, target: &mut T) {
+impl CriticalHit for Weapon {
+    fn critical_hit(&self) -> CriticalConsequence {
         match self {
-            Weapon::Sword(sword) => sword.critical_hit(target),
-            Weapon::Hammer(hammer) => hammer.critical_hit(target),
-            Weapon::Axe(sword) => sword.critical_hit(target),
-            Weapon::BattleAxe(sword) => sword.critical_hit(target),
-            Weapon::GreatSword(sword) => sword.critical_hit(target),
-            Weapon::WarHammer(sword) => sword.critical_hit(target),
+            Weapon::Sword(sword) => sword.critical_hit(),
+            Weapon::Hammer(hammer) => hammer.critical_hit(),
+            Weapon::Axe(sword) => sword.critical_hit(),
+            Weapon::BattleAxe(sword) => sword.critical_hit(),
+            Weapon::GreatSword(sword) => sword.critical_hit(),
+            Weapon::WarHammer(sword) => sword.critical_hit(),
         }
     }
 }
