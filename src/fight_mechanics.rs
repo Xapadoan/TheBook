@@ -2,6 +2,9 @@ pub mod critical_hit_option;
 
 use critical_hit_option::CriticalHitConsequence;
 
+pub trait IsAlive {
+    fn is_alive(&self) -> bool;
+}
 pub trait TakeDamage {
     fn take_damage(&mut self, damage: u8);
 }

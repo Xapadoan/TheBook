@@ -1,6 +1,7 @@
 use crate::dice::Dice;
 use crate::dice::RollResult;
 use crate::fight_mechanics::CriticalHit;
+use crate::fight_mechanics::IsAlive;
 use crate::fight_mechanics::{ApplyAttackModifier, ApplyParryModifier, RollDamage, TakeDamage};
 use crate::weapon::Weapon;
 
@@ -71,8 +72,10 @@ impl Warrior {
         let success_threshold = self.weapon.apply_parry_modifier(self.parry);
         Dice::D6.test_roll(success_threshold)
     }
+}
 
-    pub fn is_alive(&self) -> bool {
+impl IsAlive for Warrior {
+    fn is_alive(&self) -> bool {
         self.health > 0
     }
 }

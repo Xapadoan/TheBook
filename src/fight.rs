@@ -1,4 +1,5 @@
 use crate::warrior::Warrior;
+use crate::fight_mechanics::IsAlive;
 
 #[derive(Debug)]
 pub struct Fight {
