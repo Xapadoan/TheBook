@@ -1,4 +1,6 @@
 use crate::dice::Dice;
+use super::fight_action::{ApplyFightActionResult, ShowFightActionResult};
+use super::{RollDamage, TakeDamage};
 use crate::modifiers::Modifier;
 use crate::warrior::Warrior;
 use std::i8::MAX;
@@ -42,8 +44,10 @@ impl CriticalHitConsequence {
     pub fn modify_damages(&self, base: u8) -> u8 {
         self.dmg_modifier.apply(base)
     }
+}
 
-    pub fn show(&self, assailant: &Warrior, victim: &Warrior) {
+impl ShowFightActionResult for CriticalHitConsequence {
+    fn show_fight_action_result(&self, assailant: &Warrior, victim: &Warrior) {
         match self.kind {
             CriticalHitKind::AccurateHeavyBlowAndArmorDamage => {
                 println!(
@@ -155,6 +159,13 @@ impl CriticalHitConsequence {
                 );
             }
         }
+    }
+}
+
+impl ApplyFightActionResult for CriticalHitConsequence {
+    fn apply_fight_action_result(&self, assailant: &mut Warrior, victim: &mut Warrior) {
+        let damage = self.modify_damages(assailant.roll_damage());
+        victim.take_damage(damage);
     }
 }
 

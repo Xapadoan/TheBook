@@ -1,4 +1,4 @@
-use crate::fight_mechanics::critical_hit_option::{roll_blunt_critical, roll_sharp_critical, CriticalHitConsequence};
+use crate::fight_mechanics::critical_hit::{roll_blunt_critical, roll_sharp_critical, CriticalHitConsequence};
 use crate::fight_mechanics::{
     ApplyAttackModifier, ApplyParryModifier, CriticalHit,
     RollDamage,

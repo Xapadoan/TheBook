@@ -1,7 +1,13 @@
 use crate::dice::Dice;
 use crate::dice::RollResult;
+use crate::fight_mechanics::fight_action::ApplyFightActionResult;
+use crate::fight_mechanics::fight_action::ShowFightActionResult;
+use crate::fight_mechanics::critical_hit::CriticalHitConsequence;
+use crate::fight_mechanics::parry::ParryAttemptResult;
+use crate::fight_mechanics::attack::AttackAttemptResult;
 use crate::fight_mechanics::CriticalHit;
 use crate::fight_mechanics::IsAlive;
+use crate::fight_mechanics::{ParryAttempt, AttackAttempt};
 use crate::fight_mechanics::{ApplyAttackModifier, ApplyParryModifier, RollDamage, TakeDamage};
 use crate::weapon::Weapon;
 
@@ -33,44 +39,41 @@ impl Warrior {
         println!("Hi ! I'm {}", self.name);
     }
 
-    // Fast exit make code more readable ?
     pub fn attack(&mut self, target: &mut Self) {
         println!("{} attacks {}", self.name, target.name);
-        match self.attack_test() {
-            RollResult::CriticalFailure => println!("{} missed miserably", self.name),
-            RollResult::Failure => println!("{} missed", self.name),
-            RollResult::Success => match target.parry_test() {
-                RollResult::CriticalSuccess => {
-                    self.take_damage(self.weapon.roll_damage());
-                    println!("{} parried perfectly", target.name);
-                }
-                RollResult::Success => println!("{} parried", target.name),
-                RollResult::Failure => {
-                    target.take_damage(self.weapon.roll_damage());
-                    println!("{} was hit", target.name)
-                }
-                RollResult::CriticalFailure => {
-                    target.take_damage(self.weapon.roll_damage() * 3);
-                    println!("{} failed to parry miserably", target.name)
-                }
-            },
-            RollResult::CriticalSuccess => {
-                let crit_consequence = self.weapon.critical_hit();
-                let damage = crit_consequence.modify_damages(self.weapon.roll_damage());
-                target.take_damage(damage);
-                crit_consequence.show(&self, target)
-            }
+        let attack_attempt_result = self.attack_attempt();
+        attack_attempt_result.show_fight_action_result(self, target);
+        attack_attempt_result.apply_fight_action_result(self, target);
+    }
+}
+
+impl AttackAttempt for Warrior {
+    fn attack_attempt(&self) -> AttackAttemptResult {
+        let success_threshold = self.weapon.apply_attack_modifier(self.attack);
+        match Dice::D6.test_roll(success_threshold) {
+            RollResult::CriticalSuccess => AttackAttemptResult::CriticalSuccess,
+            RollResult::Success => AttackAttemptResult::Success,
+            RollResult::Failure => AttackAttemptResult::Failure,
+            RollResult::CriticalFailure => AttackAttemptResult::CriticalFailure
         }
     }
+}
 
-    fn attack_test(&self) -> RollResult {
-        let success_threshold = self.weapon.apply_attack_modifier(self.attack);
-        Dice::D20.test_roll(success_threshold)
-    }
-
-    fn parry_test(&self) -> RollResult {
+impl ParryAttempt for Warrior {
+    fn parry_attempt(&self) -> ParryAttemptResult {
         let success_threshold = self.weapon.apply_parry_modifier(self.parry);
-        Dice::D6.test_roll(success_threshold)
+        match Dice::D6.test_roll(success_threshold) {
+            RollResult::CriticalSuccess => ParryAttemptResult::CriticalSuccess,
+            RollResult::Success => ParryAttemptResult::Success,
+            RollResult::Failure => ParryAttemptResult::Failure,
+            RollResult::CriticalFailure => ParryAttemptResult::CriticalFailure
+        }
+    }
+}
+
+impl CriticalHit for Warrior {
+    fn critical_hit(&self) -> CriticalHitConsequence {
+        self.weapon.critical_hit()
     }
 }
 
@@ -87,5 +90,11 @@ impl TakeDamage for Warrior {
         } else {
             self.health = 0;
         }
+    }
+}
+
+impl RollDamage for Warrior {
+    fn roll_damage(&self) -> u8 {
+        self.weapon.roll_damage()
     }
 }
