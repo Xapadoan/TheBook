@@ -57,17 +57,17 @@ impl Fight {
         }
 
         if turn < 255 {
-            if !self.blue_corner.is_dead() {
-                let winner_name = self.blue_corner.name().clone();
-                return FightResult {
-                    winner: Some(self.blue_corner),
-                    end_reason: format!("{} winned", winner_name),
-                };
-            }
-            if !self.red_corner.is_dead() {
+            if self.blue_corner.is_dead() || self.blue_corner.is_unconscious() {
                 let winner_name = self.red_corner.name().clone();
                 return FightResult {
                     winner: Some(self.red_corner),
+                    end_reason: format!("{} winned", winner_name),
+                };
+            }
+            if self.red_corner.is_dead() || self.red_corner.is_unconscious() {
+                let winner_name = self.blue_corner.name().clone();
+                return FightResult {
+                    winner: Some(self.blue_corner),
                     end_reason: format!("{} winned", winner_name),
                 };
             }

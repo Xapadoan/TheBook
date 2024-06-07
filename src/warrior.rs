@@ -144,6 +144,7 @@ impl IsDead for Warrior {
     }
 
     fn set_dead(&mut self) {
+        println!("{} dies", self.name);
         self.is_dead = true;
     }
 }
@@ -154,6 +155,7 @@ impl IsUnconscious for Warrior {
     }
 
     fn set_unconscious(&mut self) {
+        println!("{} falls unconscious", self.name);
         self.is_unconscious = true;
     }
 }
@@ -163,7 +165,6 @@ impl TakeDamage for Warrior {
         if self.health > dmg {
             self.health -= dmg;
             if self.health < 5 {
-                println!("{} fell unconscious", self.name);
                 self.set_unconscious();
             }
         } else {
