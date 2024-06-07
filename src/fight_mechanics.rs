@@ -6,7 +6,7 @@ pub mod attack;
 pub mod assaults_miss;
 pub mod parries_miss;
 
-use critical_hit::CriticalHitConsequence;
+use critical_hit::CriticalHitResult;
 use assaults_miss::AssaultsMiss;
 use critical_parry::CriticalParryResult;
 use parries_miss::ParriesMiss;
@@ -27,7 +27,7 @@ pub trait RollDamage {
 }
 
 pub trait CriticalHit {
-    fn critical_hit(&self) -> CriticalHitConsequence;
+    fn critical_hit(&self) -> CriticalHitResult;
 }
 
 pub trait CriticalParry {

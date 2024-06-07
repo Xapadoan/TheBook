@@ -1,8 +1,8 @@
 use crate::dice::Dice;
 use crate::dice::RollResult;
+use crate::fight_mechanics::critical_hit::CriticalHitResult;
 use crate::fight_mechanics::fight_action::ApplyFightActionResult;
 use crate::fight_mechanics::fight_action::ShowFightActionResult;
-use crate::fight_mechanics::critical_hit::CriticalHitConsequence;
 use crate::fight_mechanics::assaults_miss::AssaultsMiss;
 use crate::fight_mechanics::parries_miss::ParriesMiss;
 use crate::fight_mechanics::parry::ParryAttemptResult;
@@ -123,7 +123,7 @@ impl ParryAttempt for Warrior {
 }
 
 impl CriticalHit for Warrior {
-    fn critical_hit(&self) -> CriticalHitConsequence {
+    fn critical_hit(&self) -> CriticalHitResult {
         self.weapon.critical_hit()
     }
 }

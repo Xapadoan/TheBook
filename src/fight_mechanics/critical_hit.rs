@@ -1,11 +1,10 @@
 use crate::dice::Dice;
 use super::fight_action::{ApplyFightActionResult, ShowFightActionResult};
 use super::{RollDamage, TakeDamage};
-use crate::modifiers::Modifier;
 use crate::warrior::Warrior;
-use std::i8::MAX;
+use std::u8::MAX;
 
-enum CriticalHitKind {
+pub enum CriticalHitResult {
     DeepIncision,
     ReallyDeepIncision,
     ImpressiveWoundAndArmorDamage,
@@ -35,123 +34,112 @@ enum CriticalHitKind {
     VitalOrganCrushed,
 }
 
-pub struct CriticalHitConsequence {
-    kind: CriticalHitKind,
-    dmg_modifier: Modifier,
-}
-
-impl CriticalHitConsequence {
-    pub fn modify_damages(&self, base: u8) -> u8 {
-        self.dmg_modifier.apply(base)
-    }
-}
-
-impl ShowFightActionResult for CriticalHitConsequence {
+impl ShowFightActionResult for CriticalHitResult {
     fn show_fight_action_result(&self, assailant: &Warrior, victim: &Warrior) {
-        match self.kind {
-            CriticalHitKind::AccurateHeavyBlowAndArmorDamage => {
+        match self {
+            CriticalHitResult::AccurateHeavyBlowAndArmorDamage => {
                 println!(
                     "{} hit {} heavily, damaging his armor",
                     assailant.name(),
                     victim.name()
                 );
             }
-            CriticalHitKind::BrokenArm => {
+            CriticalHitResult::BrokenArm => {
                 println!("{} broke {}'s arm", assailant.name(), victim.name());
             }
-            CriticalHitKind::BrokenHand => {
+            CriticalHitResult::BrokenHand => {
                 println!("{} broke {}'s arm", assailant.name(), victim.name());
             }
-            CriticalHitKind::BrokenLeg => {
+            CriticalHitResult::BrokenLeg => {
                 println!("{} broke {}'s leg", assailant.name(), victim.name());
             }
-            CriticalHitKind::CrushedGenitals => {
+            CriticalHitResult::CrushedGenitals => {
                 println!("{} crushed {}'s genitals", assailant.name(), victim.name());
             }
-            CriticalHitKind::DeepIncision => {
+            CriticalHitResult::DeepIncision => {
                 println!("{} cut {} deeply", assailant.name(), victim.name());
             }
-            CriticalHitKind::GenitalsDamage => {
+            CriticalHitResult::GenitalsDamage => {
                 println!("{} hit {}'s genitals", assailant.name(), victim.name());
             }
-            CriticalHitKind::GougedEye => {
+            CriticalHitResult::GougedEye => {
                 println!("{} gouged {}'s eye", assailant.name(), victim.name());
             }
-            CriticalHitKind::HeartInjury => {
+            CriticalHitResult::HeartInjury => {
                 println!("{} pierced {}'s heart", assailant.name(), victim.name());
             }
-            CriticalHitKind::ImpressiveBruise => {
+            CriticalHitResult::ImpressiveBruise => {
                 println!("{} bruised {} heavily", assailant.name(), victim.name());
             }
-            CriticalHitKind::ImpressiveBruiseAndLimbDislocation => {
+            CriticalHitResult::ImpressiveBruiseAndLimbDislocation => {
                 println!(
                     "{} bruised {} heavily, dislocating a limb",
                     assailant.name(),
                     victim.name()
                 );
             }
-            CriticalHitKind::ImpressiveWoundAndArmorDamage => {
+            CriticalHitResult::ImpressiveWoundAndArmorDamage => {
                 println!(
                     "{} wounded {} deeply, damaging his armor",
                     assailant.name(),
                     victim.name()
                 );
             }
-            CriticalHitKind::KneeDislocation => {
+            CriticalHitResult::KneeDislocation => {
                 println!("{} dislocated {}'s knee", assailant.name(), victim.name());
             }
-            CriticalHitKind::KnockedOut => {
+            CriticalHitResult::KnockedOut => {
                 println!("{} knocked {} out", assailant.name(), victim.name());
             }
-            CriticalHitKind::OpenSkullFacture => {
+            CriticalHitResult::OpenSkullFacture => {
                 println!("{} opened {}'s skull wide", assailant.name(), victim.name());
             }
-            CriticalHitKind::PartOfTheArmorIsDestroyed => {
+            CriticalHitResult::PartOfTheArmorIsDestroyed => {
                 println!(
                     "{} destroyed a part of {}'s armor",
                     assailant.name(),
                     victim.name()
                 );
             }
-            CriticalHitKind::PreciseHitAndArmorDamage => {
+            CriticalHitResult::PreciseHitAndArmorDamage => {
                 println!(
                     "{} hit {} precisely, damaging his armor",
                     assailant.name(),
                     victim.name()
                 );
             }
-            CriticalHitKind::ReallyDeepIncision => {
+            CriticalHitResult::ReallyDeepIncision => {
                 println!("{} cut {} really deep", assailant.name(), victim.name());
             }
-            CriticalHitKind::RibFacture => {
+            CriticalHitResult::RibFacture => {
                 println!("{} fractured {}'s rib", assailant.name(), victim.name());
             }
-            CriticalHitKind::SeriousHeadInjury => {
+            CriticalHitResult::SeriousHeadInjury => {
                 println!("{} cut through {}'s head", assailant.name(), victim.name());
             }
-            CriticalHitKind::SeveredArm => {
+            CriticalHitResult::SeveredArm => {
                 println!("{} severed {}'s arm", assailant.name(), victim.name());
             }
-            CriticalHitKind::SeveredFoot => {
+            CriticalHitResult::SeveredFoot => {
                 println!("{} severed {}'s foot", assailant.name(), victim.name());
             }
-            CriticalHitKind::SeveredHand => {
+            CriticalHitResult::SeveredHand => {
                 println!("{} severed {}'s hand", assailant.name(), victim.name());
             }
-            CriticalHitKind::SeveredLeg => {
+            CriticalHitResult::SeveredLeg => {
                 println!("{} severed {}'s leg", assailant.name(), victim.name());
             }
-            CriticalHitKind::SmashedFoot => {
+            CriticalHitResult::SmashedFoot => {
                 println!("{} smashed {}'s foot", assailant.name(), victim.name());
             }
-            CriticalHitKind::VitalOrganCrushed => {
+            CriticalHitResult::VitalOrganCrushed => {
                 println!(
                     "{} crushed one of {}'s vital organs",
                     assailant.name(),
                     victim.name()
                 );
             }
-            CriticalHitKind::VitalOrganDamage => {
+            CriticalHitResult::VitalOrganDamage => {
                 println!(
                     "{} damaged one of {}'s vital organs",
                     assailant.name(),
@@ -162,141 +150,130 @@ impl ShowFightActionResult for CriticalHitConsequence {
     }
 }
 
-impl ApplyFightActionResult for CriticalHitConsequence {
+impl ApplyFightActionResult for CriticalHitResult {
     fn apply_fight_action_result(&self, assailant: &mut Warrior, victim: &mut Warrior) {
-        let damage = self.modify_damages(assailant.roll_damage());
+        let mut damage = assailant.roll_damage();
+        match self {
+            CriticalHitResult::DeepIncision => damage += 1,
+            CriticalHitResult::ReallyDeepIncision => damage += 2,
+            CriticalHitResult::ImpressiveWoundAndArmorDamage => {
+                println!("[WARN] damage to armor is not implemented");
+                damage += 3;
+            },
+            CriticalHitResult::PreciseHitAndArmorDamage => {
+                println!("[WARN] damage to armor is not implemented");
+                damage += 4;
+            },
+            CriticalHitResult::AccurateHeavyBlowAndArmorDamage => {
+                println!("[WARN] damage to armor is not implemented");
+                damage += 5;
+            },
+            CriticalHitResult::PartOfTheArmorIsDestroyed => println!("[WARN] damage to armor is not implemented"),
+            CriticalHitResult::GougedEye => {
+                println!("[WARN] deep wounds not implemented");
+                damage += 5;
+            },
+            CriticalHitResult::SeveredHand => {
+                println!("[WARN] deep wounds not implemented");
+                damage += 6;
+            },
+            CriticalHitResult::SeveredFoot => {
+                println!("[WARN] deep wounds not implemented");
+                damage += 6;
+            },
+            CriticalHitResult::SeveredArm => {
+                println!("[WARN] deep wounds not implemented");
+                damage += 7;
+            },
+            CriticalHitResult::SeveredLeg => {
+                println!("[WARN] deep wounds not implemented");
+                damage += 8;
+            },
+            CriticalHitResult::GenitalsDamage => {
+                println!("[WARN] duration damage is not implemented");
+                damage += 5;
+            },
+            CriticalHitResult::VitalOrganDamage => {
+                println!("[WARN] duration damage is not implemented");
+                damage += 9;
+            },
+            CriticalHitResult::HeartInjury => damage = MAX,
+            CriticalHitResult::SeriousHeadInjury => damage = MAX,
+            CriticalHitResult::ImpressiveBruise => damage += 1,
+            CriticalHitResult::ImpressiveBruiseAndLimbDislocation => damage += 2,
+            CriticalHitResult::RibFacture => damage += 3,
+            CriticalHitResult::KneeDislocation => {
+                println!("[WARN] deep wounds not implemented");
+                damage += 3;
+            },
+            CriticalHitResult::BrokenHand => {
+                println!("[WARN] deep wounds not implemented");
+                damage += 3;
+            },
+            CriticalHitResult::SmashedFoot => {
+                println!("[WARN] deep wounds not implemented");
+                damage += 3;
+            },
+            CriticalHitResult::BrokenArm => {
+                println!("[WARN] deep wounds not implemented");
+                damage += 4;
+            },
+            CriticalHitResult::BrokenLeg => {
+                println!("[WARN] deep wounds not implemented");
+                damage += 5;
+            },
+            CriticalHitResult::CrushedGenitals => {
+                println!("[WARN] deep wounds not implemented");
+                damage += 5;
+            },
+            CriticalHitResult::KnockedOut => {
+                println!("[WARN] consciusness not implemented");
+            },
+            CriticalHitResult::OpenSkullFacture => damage = MAX,
+            CriticalHitResult::VitalOrganCrushed => damage = MAX,
+        }
         victim.take_damage(damage);
     }
 }
 
-pub fn roll_sharp_critical() -> CriticalHitConsequence {
+pub fn roll_sharp_critical() -> CriticalHitResult {
     match Dice::D20.roll() {
-        1 | 2 => CriticalHitConsequence {
-            kind: CriticalHitKind::DeepIncision,
-            dmg_modifier: Modifier::new(1),
-        },
-        3 | 4 => CriticalHitConsequence {
-            kind: CriticalHitKind::ReallyDeepIncision,
-            dmg_modifier: Modifier::new(2),
-        },
-        5 | 6 => CriticalHitConsequence {
-            kind: CriticalHitKind::ImpressiveWoundAndArmorDamage,
-            dmg_modifier: Modifier::new(3),
-        },
-        7 | 8 => CriticalHitConsequence {
-            kind: CriticalHitKind::PreciseHitAndArmorDamage,
-            dmg_modifier: Modifier::new(4),
-        },
-        9 | 10 => CriticalHitConsequence {
-            kind: CriticalHitKind::AccurateHeavyBlowAndArmorDamage,
-            dmg_modifier: Modifier::new(5),
-        },
-        11 => CriticalHitConsequence {
-            kind: CriticalHitKind::PartOfTheArmorIsDestroyed,
-            dmg_modifier: Modifier::new(0),
-        },
-        12 => CriticalHitConsequence {
-            kind: CriticalHitKind::GougedEye,
-            dmg_modifier: Modifier::new(5),
-        },
-        13 => CriticalHitConsequence {
-            kind: CriticalHitKind::SeveredHand,
-            dmg_modifier: Modifier::new(6),
-        },
-        14 => CriticalHitConsequence {
-            kind: CriticalHitKind::SeveredFoot,
-            dmg_modifier: Modifier::new(6),
-        },
-        15 => CriticalHitConsequence {
-            kind: CriticalHitKind::SeveredArm,
-            dmg_modifier: Modifier::new(7),
-        },
-        16 => CriticalHitConsequence {
-            kind: CriticalHitKind::SeveredLeg,
-            dmg_modifier: Modifier::new(8),
-        },
-        17 => CriticalHitConsequence {
-            kind: CriticalHitKind::GenitalsDamage,
-            dmg_modifier: Modifier::new(5),
-        },
-        18 => CriticalHitConsequence {
-            kind: CriticalHitKind::VitalOrganDamage,
-            dmg_modifier: Modifier::new(9),
-        },
-        19 => CriticalHitConsequence {
-            kind: CriticalHitKind::HeartInjury,
-            dmg_modifier: Modifier::new(MAX),
-        },
-        20 => CriticalHitConsequence {
-            kind: CriticalHitKind::SeriousHeadInjury,
-            dmg_modifier: Modifier::new(MAX),
-        },
+        1 | 2 => CriticalHitResult::DeepIncision,
+        3 | 4 => CriticalHitResult::ReallyDeepIncision,
+        5 | 6 => CriticalHitResult::ImpressiveWoundAndArmorDamage,
+        7 | 8 => CriticalHitResult::PreciseHitAndArmorDamage,
+        9 | 10 => CriticalHitResult::AccurateHeavyBlowAndArmorDamage,
+        11 => CriticalHitResult::PartOfTheArmorIsDestroyed,
+        12 => CriticalHitResult::GougedEye,
+        13 => CriticalHitResult::SeveredHand,
+        14 => CriticalHitResult::SeveredFoot,
+        15 => CriticalHitResult::SeveredArm,
+        16 => CriticalHitResult::SeveredLeg,
+        17 => CriticalHitResult::GenitalsDamage,
+        18 => CriticalHitResult::VitalOrganDamage,
+        19 => CriticalHitResult::HeartInjury,
+        20 => CriticalHitResult::SeriousHeadInjury,
         other => panic!("D20 roll resulted in {other}"),
     }
 }
 
-pub fn roll_blunt_critical() -> CriticalHitConsequence {
+pub fn roll_blunt_critical() -> CriticalHitResult {
     match Dice::D20.roll() {
-        1 | 2 => CriticalHitConsequence {
-            kind: CriticalHitKind::ImpressiveBruise,
-            dmg_modifier: Modifier::new(1),
-        },
-        3 | 4 => CriticalHitConsequence {
-            kind: CriticalHitKind::ImpressiveBruiseAndLimbDislocation,
-            dmg_modifier: Modifier::new(2),
-        },
-        5 | 6 => CriticalHitConsequence {
-            kind: CriticalHitKind::RibFacture,
-            dmg_modifier: Modifier::new(3),
-        },
-        7 | 8 => CriticalHitConsequence {
-            kind: CriticalHitKind::PreciseHitAndArmorDamage,
-            dmg_modifier: Modifier::new(4),
-        },
-        9 | 10 => CriticalHitConsequence {
-            kind: CriticalHitKind::AccurateHeavyBlowAndArmorDamage,
-            dmg_modifier: Modifier::new(5),
-        },
-        11 => CriticalHitConsequence {
-            kind: CriticalHitKind::PartOfTheArmorIsDestroyed,
-            dmg_modifier: Modifier::new(0),
-        },
-        12 => CriticalHitConsequence {
-            kind: CriticalHitKind::KneeDislocation,
-            dmg_modifier: Modifier::new(3),
-        },
-        13 => CriticalHitConsequence {
-            kind: CriticalHitKind::BrokenHand,
-            dmg_modifier: Modifier::new(3),
-        },
-        14 => CriticalHitConsequence {
-            kind: CriticalHitKind::SmashedFoot,
-            dmg_modifier: Modifier::new(3),
-        },
-        15 => CriticalHitConsequence {
-            kind: CriticalHitKind::BrokenArm,
-            dmg_modifier: Modifier::new(4),
-        },
-        16 => CriticalHitConsequence {
-            kind: CriticalHitKind::BrokenLeg,
-            dmg_modifier: Modifier::new(5),
-        },
-        17 => CriticalHitConsequence {
-            kind: CriticalHitKind::CrushedGenitals,
-            dmg_modifier: Modifier::new(5),
-        },
-        18 => CriticalHitConsequence {
-            kind: CriticalHitKind::KnockedOut,
-            dmg_modifier: Modifier::new(0),
-        },
-        19 => CriticalHitConsequence {
-            kind: CriticalHitKind::OpenSkullFacture,
-            dmg_modifier: Modifier::new(MAX),
-        },
-        20 => CriticalHitConsequence {
-            kind: CriticalHitKind::VitalOrganCrushed,
-            dmg_modifier: Modifier::new(MAX),
-        },
+        1 | 2 => CriticalHitResult::ImpressiveBruise,
+        3 | 4 => CriticalHitResult::ImpressiveBruiseAndLimbDislocation,
+        5 | 6 => CriticalHitResult::RibFacture,
+        7 | 8 => CriticalHitResult::PreciseHitAndArmorDamage,
+        9 | 10 => CriticalHitResult::AccurateHeavyBlowAndArmorDamage,
+        11 => CriticalHitResult::PartOfTheArmorIsDestroyed,
+        12 => CriticalHitResult::KneeDislocation,
+        13 => CriticalHitResult::BrokenHand,
+        14 => CriticalHitResult::SmashedFoot,
+        15 => CriticalHitResult::BrokenArm,
+        16 => CriticalHitResult::BrokenLeg,
+        17 => CriticalHitResult::CrushedGenitals,
+        18 => CriticalHitResult::KnockedOut,
+        19 => CriticalHitResult::OpenSkullFacture,
+        20 => CriticalHitResult::VitalOrganCrushed,
         other => panic!("D20 roll resulted in {other}"),
     }
 }

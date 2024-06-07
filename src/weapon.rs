@@ -1,4 +1,4 @@
-use crate::fight_mechanics::critical_hit::{roll_blunt_critical, roll_sharp_critical, CriticalHitConsequence};
+use crate::fight_mechanics::critical_hit::{roll_blunt_critical, roll_sharp_critical, CriticalHitResult};
 use crate::fight_mechanics::{
     ApplyAttackModifier, ApplyParryModifier, CriticalHit,
     RollDamage,
@@ -67,7 +67,7 @@ impl Weapon {
 }
 
 impl CriticalHit for Weapon {
-    fn critical_hit(&self) -> CriticalHitConsequence {
+    fn critical_hit(&self) -> CriticalHitResult {
         if self.is_sharp {
             return roll_sharp_critical()
         } else {
