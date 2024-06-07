@@ -1,4 +1,4 @@
-use super::fight_action::{ApplyFightActionResult, ShowFightActionResult};
+use super::{fight_action::{ApplyFightActionResult, ShowFightActionResult}, CriticalParry};
 use crate::warrior::Warrior;
 use super::{TakeDamage, RollDamage};
 pub enum ParryAttemptResult {
@@ -25,7 +25,11 @@ impl ApplyFightActionResult for ParryAttemptResult {
             ParryAttemptResult::CriticalFailure => victim.take_damage(assailant.roll_damage() * 2),
             ParryAttemptResult::Failure => victim.take_damage(assailant.roll_damage()),
             ParryAttemptResult::Success => {},
-            ParryAttemptResult::CriticalSuccess => assailant.take_damage(assailant.roll_damage())
+            ParryAttemptResult::CriticalSuccess => {
+                let critical_parry_result = victim.critical_parry();
+                critical_parry_result.show_fight_action_result(assailant, victim);
+                critical_parry_result.apply_fight_action_result(assailant, victim);
+            }
         }
     }
 }

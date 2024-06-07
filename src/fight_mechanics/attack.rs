@@ -1,4 +1,4 @@
-use super::fight_action::{ApplyFightActionResult, ShowFightActionResult};
+use super::{fight_action::{ApplyFightActionResult, ShowFightActionResult}, parry::ParryAttemptResult, CanMissParries};
 use crate::warrior::Warrior;
 use super::{ParryAttempt, CriticalHit};
 
@@ -26,11 +26,20 @@ impl ApplyFightActionResult for AttackAttemptResult {
             AttackAttemptResult::CriticalFailure => {},
             AttackAttemptResult::Failure => {},
             AttackAttemptResult::Success => {
+                if victim.must_miss_parry() {
+                    victim.miss_parry();
+                    ParryAttemptResult::Failure.show_fight_action_result(assailant, victim);
+                    ParryAttemptResult::Failure.apply_fight_action_result(assailant, victim);
+                    return;
+                }
                 let parry_attempt_result = victim.parry_attempt();
                 parry_attempt_result.show_fight_action_result(assailant, victim);
                 parry_attempt_result.apply_fight_action_result(assailant, victim);
             },
             AttackAttemptResult::CriticalSuccess => {
+                if victim.must_miss_parry() {
+                    victim.miss_parry();
+                }
                 let crit_consequence = assailant.critical_hit();
                 crit_consequence.show_fight_action_result(assailant, victim);
                 crit_consequence.apply_fight_action_result(assailant, victim);

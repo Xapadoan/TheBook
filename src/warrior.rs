@@ -3,11 +3,16 @@ use crate::dice::RollResult;
 use crate::fight_mechanics::fight_action::ApplyFightActionResult;
 use crate::fight_mechanics::fight_action::ShowFightActionResult;
 use crate::fight_mechanics::critical_hit::CriticalHitConsequence;
+use crate::fight_mechanics::assaults_miss::AssaultsMiss;
+use crate::fight_mechanics::parries_miss::ParriesMiss;
 use crate::fight_mechanics::parry::ParryAttemptResult;
 use crate::fight_mechanics::attack::AttackAttemptResult;
+use crate::fight_mechanics::CanMissAssaults;
+use crate::fight_mechanics::CanMissParries;
 use crate::fight_mechanics::CriticalHit;
+use crate::fight_mechanics::CriticalParry;
 use crate::fight_mechanics::IsAlive;
-use crate::fight_mechanics::{ParryAttempt, AttackAttempt};
+use crate::fight_mechanics::{ParryAttempt, AttackAttempt, TemporaryHandicap};
 use crate::fight_mechanics::{ApplyAttackModifier, ApplyParryModifier, RollDamage, TakeDamage};
 use crate::weapon::Weapon;
 
@@ -18,6 +23,8 @@ pub struct Warrior {
     attack: u8,
     parry: u8,
     weapon: Weapon,
+    assaults_miss: Option<AssaultsMiss>,
+    parries_miss: Option<ParriesMiss>,
 }
 
 impl Warrior {
@@ -28,6 +35,8 @@ impl Warrior {
             attack: 8,
             parry: 10,
             weapon,
+            assaults_miss: None,
+            parries_miss: None,
         }
     }
 
@@ -40,10 +49,52 @@ impl Warrior {
     }
 
     pub fn attack(&mut self, target: &mut Self) {
+        if self.must_miss_assault() {
+            self.miss_assault();
+            return;
+        }
         println!("{} attacks {}", self.name, target.name);
         let attack_attempt_result = self.attack_attempt();
         attack_attempt_result.show_fight_action_result(self, target);
         attack_attempt_result.apply_fight_action_result(self, target);
+    }
+}
+
+impl CanMissParries for Warrior {
+    fn must_miss_parry(&self) -> bool {
+        self.parries_miss.is_some()
+    }
+
+    fn miss_parry(&mut self) {
+        let misses = self.parries_miss.as_mut().unwrap();
+        misses.decrement_count();
+        println!("{} cannot parry because {}", self.name, misses.reason());
+        if misses.count() == 0 {
+            self.parries_miss = None;
+        }
+    }
+
+    fn will_miss_parries(&mut self, misses: ParriesMiss) {
+        self.parries_miss = Some(misses);
+    }
+}
+
+impl CanMissAssaults for Warrior {
+    fn must_miss_assault(&self) -> bool {
+        self.assaults_miss.is_some()
+    }
+
+    fn miss_assault(&mut self) {
+        let misses = self.assaults_miss.as_mut().unwrap();
+        misses.decrement_count();
+        println!("{} cannot attack because {}", self.name, misses.reason());
+        if misses.count() == 0 {
+            self.assaults_miss = None;
+        }
+    }
+
+    fn will_miss_assault(&mut self, misses: AssaultsMiss) {
+        self.assaults_miss = Some(misses)
     }
 }
 
@@ -76,6 +127,8 @@ impl CriticalHit for Warrior {
         self.weapon.critical_hit()
     }
 }
+
+impl CriticalParry for Warrior {}
 
 impl IsAlive for Warrior {
     fn is_alive(&self) -> bool {
