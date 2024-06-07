@@ -15,8 +15,14 @@ use attack::AttackAttemptResult;
 
 use crate::dice::Dice;
 
-pub trait IsAlive {
-    fn is_alive(&self) -> bool;
+pub trait IsDead {
+    fn is_dead(&self) -> bool;
+    fn set_dead(&mut self);
+}
+
+pub trait IsUnconscious {
+    fn is_unconscious(&self) -> bool;
+    fn set_unconscious(&mut self);
 }
 pub trait TakeDamage {
     fn take_damage(&mut self, damage: u8);

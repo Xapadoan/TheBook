@@ -1,6 +1,6 @@
 use crate::dice::Dice;
 use super::fight_action::{ApplyFightActionResult, ShowFightActionResult};
-use super::{RollDamage, TakeDamage};
+use super::{IsUnconscious, RollDamage, TakeDamage};
 use crate::warrior::Warrior;
 use std::u8::MAX;
 
@@ -226,9 +226,7 @@ impl ApplyFightActionResult for CriticalHitResult {
                 println!("[WARN] deep wounds not implemented");
                 damage += 5;
             },
-            CriticalHitResult::KnockedOut => {
-                println!("[WARN] consciusness not implemented");
-            },
+            CriticalHitResult::KnockedOut => victim.set_unconscious(),
             CriticalHitResult::OpenSkullFacture => damage = MAX,
             CriticalHitResult::VitalOrganCrushed => damage = MAX,
         }

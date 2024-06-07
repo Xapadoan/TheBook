@@ -1,5 +1,5 @@
 use crate::warrior::Warrior;
-use crate::fight_mechanics::IsAlive;
+use crate::fight_mechanics::{IsDead, IsUnconscious};
 
 #[derive(Debug)]
 pub struct Fight {
@@ -40,23 +40,31 @@ impl Fight {
         self.blue_corner.present_self();
         self.red_corner.present_self();
 
-        while self.blue_corner.is_alive() && self.red_corner.is_alive() && turn < 255 {
+        let mut end_fight = false;
+        while !end_fight {
             println!("=== {turn} ===");
             self.blue_corner.attack(&mut self.red_corner);
             self.red_corner.attack(&mut self.blue_corner);
             println!("\n");
             turn += 1;
+            if self.blue_corner.is_dead() || self.blue_corner.is_unconscious() {
+                end_fight = true;
+            } else if self.red_corner.is_dead() || self.red_corner.is_unconscious() {
+                end_fight = true;
+            } else if turn >= 255 {
+                end_fight = true;
+            }
         }
 
         if turn < 255 {
-            if self.blue_corner.is_alive() {
+            if !self.blue_corner.is_dead() {
                 let winner_name = self.blue_corner.name().clone();
                 return FightResult {
                     winner: Some(self.blue_corner),
                     end_reason: format!("{} winned", winner_name),
                 };
             }
-            if self.red_corner.is_alive() {
+            if !self.red_corner.is_dead() {
                 let winner_name = self.red_corner.name().clone();
                 return FightResult {
                     winner: Some(self.red_corner),

@@ -11,7 +11,8 @@ use crate::fight_mechanics::CanMissAssaults;
 use crate::fight_mechanics::CanMissParries;
 use crate::fight_mechanics::CriticalHit;
 use crate::fight_mechanics::CriticalParry;
-use crate::fight_mechanics::IsAlive;
+use crate::fight_mechanics::IsDead;
+use crate::fight_mechanics::IsUnconscious;
 use crate::fight_mechanics::{ParryAttempt, AttackAttempt, TemporaryHandicap};
 use crate::fight_mechanics::{ApplyAttackModifier, ApplyParryModifier, RollDamage, TakeDamage};
 use crate::weapon::Weapon;
@@ -25,6 +26,8 @@ pub struct Warrior {
     weapon: Weapon,
     assaults_miss: Option<AssaultsMiss>,
     parries_miss: Option<ParriesMiss>,
+    is_dead: bool,
+    is_unconscious: bool,
 }
 
 impl Warrior {
@@ -37,6 +40,8 @@ impl Warrior {
             weapon,
             assaults_miss: None,
             parries_miss: None,
+            is_dead: false,
+            is_unconscious: false,
         }
     }
 
@@ -49,6 +54,9 @@ impl Warrior {
     }
 
     pub fn attack(&mut self, target: &mut Self) {
+        if self.is_dead() || self.is_unconscious() {
+            return;
+        }
         if self.must_miss_assault() {
             self.miss_assault();
             return;
@@ -130,9 +138,23 @@ impl CriticalHit for Warrior {
 
 impl CriticalParry for Warrior {}
 
-impl IsAlive for Warrior {
-    fn is_alive(&self) -> bool {
-        self.health > 0
+impl IsDead for Warrior {
+    fn is_dead(&self) -> bool {
+        self.is_dead
+    }
+
+    fn set_dead(&mut self) {
+        self.is_dead = true;
+    }
+}
+
+impl IsUnconscious for Warrior {
+    fn is_unconscious(&self) -> bool {
+        self.is_unconscious
+    }
+
+    fn set_unconscious(&mut self) {
+        self.is_unconscious = true;
     }
 }
 
@@ -140,7 +162,12 @@ impl TakeDamage for Warrior {
     fn take_damage(&mut self, dmg: u8) {
         if self.health > dmg {
             self.health -= dmg;
+            if self.health < 5 {
+                println!("{} fell unconscious", self.name);
+                self.set_unconscious();
+            }
         } else {
+            self.set_dead();
             self.health = 0;
         }
     }
