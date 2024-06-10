@@ -1,3 +1,9 @@
+pub mod body_parts;
+pub mod protection;
+
+use body_parts::Body;
+use body_parts::WearProtection;
+
 use crate::dice::Dice;
 use crate::dice::RollResult;
 use crate::fight_mechanics::critical_hit::CriticalHitResult;
@@ -7,12 +13,14 @@ use crate::fight_mechanics::assaults_miss::AssaultsMiss;
 use crate::fight_mechanics::parries_miss::ParriesMiss;
 use crate::fight_mechanics::parry::ParryAttemptResult;
 use crate::fight_mechanics::attack::AttackAttemptResult;
+use crate::fight_mechanics::ApplyDamageModifier;
 use crate::fight_mechanics::CanMissAssaults;
 use crate::fight_mechanics::CanMissParries;
 use crate::fight_mechanics::CriticalHit;
 use crate::fight_mechanics::CriticalParry;
 use crate::fight_mechanics::IsDead;
 use crate::fight_mechanics::IsUnconscious;
+use crate::fight_mechanics::TakeReducibleDamage;
 use crate::fight_mechanics::{ParryAttempt, AttackAttempt, TemporaryHandicap};
 use crate::fight_mechanics::{ApplyAttackModifier, ApplyParryModifier, RollDamage, TakeDamage};
 use crate::weapon::Weapon;
@@ -28,6 +36,7 @@ pub struct Warrior {
     parries_miss: Option<ParriesMiss>,
     is_dead: bool,
     is_unconscious: bool,
+    body: Body,
 }
 
 impl Warrior {
@@ -42,6 +51,7 @@ impl Warrior {
             parries_miss: None,
             is_dead: false,
             is_unconscious: false,
+            body: Body::new(),
         }
     }
 
@@ -177,5 +187,27 @@ impl TakeDamage for Warrior {
 impl RollDamage for Warrior {
     fn roll_damage(&self) -> u8 {
         self.weapon.roll_damage()
+    }
+}
+
+impl ApplyAttackModifier for Warrior {
+    fn apply_attack_modifier(&self, base: u8) -> u8 {
+        self.body.apply_damage_modifier(base)
+    }
+}
+
+impl TakeReducibleDamage for Warrior {
+    fn take_reduced_damage(&mut self, damage: u8) {
+        self.take_damage(self.apply_attack_modifier(damage));
+    }
+}
+
+impl WearProtection for Warrior {
+    fn can_wear_protection(&self, protection: &protection::Protection, body_part: body_parts::BodyPartKind) -> bool {
+        self.body.can_wear_protection(protection, body_part)
+    }
+
+    fn wear_protection(&mut self, protection: protection::Protection, body_part: body_parts::BodyPartKind) {
+        self.body.wear_protection(protection, body_part)
     }
 }

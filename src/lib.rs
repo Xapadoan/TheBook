@@ -5,3 +5,4 @@ mod modifiers;
 pub mod tournament;
 pub mod warrior;
 pub mod weapon;
+pub mod horizontal_direction;
