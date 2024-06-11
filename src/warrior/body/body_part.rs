@@ -7,6 +7,7 @@ use super::body_side::BodySide;
 
 #[derive(Debug)]
 pub enum BodyPartKind {
+    Hand(BodySide),
     Arm(BodySide),
     Torso,
     Head,
@@ -16,6 +17,7 @@ pub enum BodyPartKind {
 impl Display for BodyPartKind {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
+            BodyPartKind::Hand(side) => write!(f, "{side} hand"),
             BodyPartKind::Arm(direction) => write!(f, "{direction} arm"),
             BodyPartKind::Head => write!(f, "head"),
             BodyPartKind::Leg(direction) => write!(f, "{direction} leg"),

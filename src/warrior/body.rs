@@ -12,6 +12,8 @@ use super::protection::{Protection, WearProtection, GetRandomProtectedBodyPart, 
 pub struct Body {
     head: BodyPart,
     torso: BodyPart,
+    left_hand: BodyPart,
+    right_hand: BodyPart,
     left_arm: BodyPart,
     right_arm: BodyPart,
     left_leg: BodyPart,
@@ -23,6 +25,8 @@ impl Body {
         Self {
             head: BodyPart::new(BodyPartKind::Head),
             torso: BodyPart::new(BodyPartKind::Torso),
+            left_hand: BodyPart::new(BodyPartKind::Hand(BodySide::Left)),
+            right_hand: BodyPart::new(BodyPartKind::Hand(BodySide::Right)),
             left_arm: BodyPart::new(BodyPartKind::Arm(BodySide::Left)),
             right_arm: BodyPart::new(BodyPartKind::Arm(BodySide::Right)),
             left_leg: BodyPart::new(BodyPartKind::Arm(BodySide::Left)),
@@ -32,15 +36,21 @@ impl Body {
 
     pub fn body_part_mut(&mut self, body_part: &BodyPartKind) -> &mut BodyPart {
         match body_part {
-            BodyPartKind::Arm(direction) => {
-                match direction {
+            BodyPartKind::Hand(side) => {
+                match side {
+                    BodySide::Left => &mut self.left_hand,
+                    BodySide::Right => &mut self.right_hand,
+                }
+            },
+            BodyPartKind::Arm(side) => {
+                match side {
                     BodySide::Left => &mut self.left_arm,
                     BodySide::Right => &mut self.right_arm,
                 }
             },
             BodyPartKind::Head => &mut self.head,
-            BodyPartKind::Leg(direction) => {
-                match direction {
+            BodyPartKind::Leg(side) => {
+                match side {
                     BodySide::Left => &mut self.left_leg,
                     BodySide::Right => &mut self.right_leg,
                 }
@@ -51,15 +61,21 @@ impl Body {
 
     pub fn body_part(&self, body_part: &BodyPartKind) -> &BodyPart {
         match body_part {
-            BodyPartKind::Arm(direction) => {
-                match direction {
+            BodyPartKind::Hand(side) => {
+                match side {
+                    BodySide::Left => &self.left_hand,
+                    BodySide::Right => &self.right_hand,
+                }
+            },
+            BodyPartKind::Arm(side) => {
+                match side {
                     BodySide::Left => &self.left_arm,
                     BodySide::Right => &self.right_arm,
                 }
             },
             BodyPartKind::Head => &self.head,
-            BodyPartKind::Leg(direction) => {
-                match direction {
+            BodyPartKind::Leg(side) => {
+                match side {
                     BodySide::Left => &self.left_leg,
                     BodySide::Right => &self.right_leg,
                 }
@@ -73,6 +89,8 @@ impl ApplyDamageModifier for Body {
     fn apply_damage_modifier(&self, mut base: u8) -> u8 {
         base = self.head.apply_damage_modifier(base);
         base = self.torso.apply_damage_modifier(base);
+        base = self.left_hand.apply_damage_modifier(base);
+        base = self.right_hand.apply_damage_modifier(base);
         base = self.left_arm.apply_damage_modifier(base);
         base = self.right_arm.apply_damage_modifier(base);
         base = self.left_leg.apply_damage_modifier(base);
@@ -84,15 +102,21 @@ impl ApplyDamageModifier for Body {
 impl WearProtection for Body {
     fn can_wear_protection(&self, protection: &Protection, body_part: BodyPartKind) -> bool {
         let is_already_protected = match body_part {
-            BodyPartKind::Arm(ref direction) => {
-                match direction {
+            BodyPartKind::Hand(ref side) => {
+                match side {
+                    BodySide::Left => self.left_hand.is_protected(),
+                    BodySide::Right => self.right_hand.is_protected(),
+                }
+            },
+            BodyPartKind::Arm(ref side) => {
+                match side {
                     BodySide::Left => self.left_arm.is_protected(),
                     BodySide::Right => self.right_arm.is_protected(),
                 }
             },
             BodyPartKind::Head => self.head.is_protected(),
-            BodyPartKind::Leg(ref direction) => {
-                match direction {
+            BodyPartKind::Leg(ref side) => {
+                match side {
                     BodySide::Left => self.left_leg.is_protected(),
                     BodySide::Right => self.right_leg.is_protected(),
                 }
@@ -109,15 +133,21 @@ impl WearProtection for Body {
 
     fn wear_protection(&mut self, protection: Protection, body_part: BodyPartKind) {
         match body_part {
-            BodyPartKind::Arm(direction) => {
-                match direction {
+            BodyPartKind::Hand(side) => {
+                match side {
+                    BodySide::Left => self.left_hand.attach_protection(protection),
+                    BodySide::Right => self.right_hand.attach_protection(protection),
+                }
+            },
+            BodyPartKind::Arm(side) => {
+                match side {
                     BodySide::Left => self.left_arm.attach_protection(protection),
                     BodySide::Right => self.right_arm.attach_protection(protection),
                 }
             },
             BodyPartKind::Head => self.head.attach_protection(protection),
-            BodyPartKind::Leg(direction) => {
-                match direction {
+            BodyPartKind::Leg(side) => {
+                match side {
                     BodySide::Left => self.left_leg.attach_protection(protection),
                     BodySide::Right => self.right_leg.attach_protection(protection),
                 }
