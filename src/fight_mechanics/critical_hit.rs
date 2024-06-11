@@ -1,5 +1,7 @@
 use crate::dice::Dice;
-use crate::warrior::body_parts::{BodySide, BodyPartKind, GetRandomFunctionalBodyPart, GetRandomProtectedBodyPart, Protectable};
+use crate::warrior::body::body_part::{BodyPartKind, GetRandomFunctionalBodyPart};
+use crate::warrior::body::body_side::BodySide;
+use crate::warrior::protection::{GetRandomProtectedBodyPart, Protectable};
 use super::fight_action::{ApplyFightActionResult, ShowFightActionResult};
 use super::{IsUnconscious, RollDamage, TakeDamage};
 use crate::warrior::Warrior;

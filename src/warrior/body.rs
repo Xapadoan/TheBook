@@ -1,135 +1,12 @@
-use std::fmt::Display;
+pub mod body_part;
+pub mod body_side;
 
 use rand::Rng;
 
+use body_part::{BodyPart, BodyPartKind, GetRandomFunctionalBodyPart};
+use body_side::BodySide;
 use crate::fight_mechanics::ApplyDamageModifier;
-use crate::dice::Dice;
-
-use super::protection::{Destroyable, Protection};
-
-#[derive(Debug)]
-pub enum BodySide {
-    Left,
-    Right,
-}
-
-impl BodySide {
-    pub fn random() -> Self {
-        match Dice::D6.roll() {
-            1..=3 => Self::Right,
-            4..=6 => Self::Left,
-            other => panic!("D6 roll resulted in {other}")
-        }
-    }
-}
-
-impl Display for BodySide {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            BodySide::Left => write!(f, "left"),
-            BodySide::Right => write!(f, "right"),
-        }
-    }
-}
-
-
-#[derive(Debug)]
-pub enum BodyPartKind {
-    Arm(BodySide),
-    Torso,
-    Head,
-    Leg(BodySide),
-}
-
-impl Display for BodyPartKind {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            BodyPartKind::Arm(direction) => write!(f, "{direction} arm"),
-            BodyPartKind::Head => write!(f, "head"),
-            BodyPartKind::Leg(direction) => write!(f, "{direction} leg"),
-            BodyPartKind::Torso => write!(f, "torso"),
-        }
-    }
-}
-
-pub trait GetRandomFunctionalBodyPart {
-    fn get_random_functional_body_part(&self) -> BodyPartKind;
-}
-
-pub trait GetRandomProtectedBodyPart {
-    fn get_random_protected_body_part(&self) -> Option<BodyPartKind>;
-}
-
-pub trait Protectable {
-    fn is_protected(&self) -> bool;
-    fn protected_by(&self) -> Option<&Protection>;
-    fn protected_by_mut(&mut self) -> Option<&mut Protection>;
-    fn attach_protection(&mut self, protection: Protection);
-}
-
-pub trait WearProtection {
-    fn can_wear_protection(&self, protection: &Protection, body_part: BodyPartKind) -> bool;
-    fn wear_protection(&mut self, protection: Protection, body_part: BodyPartKind);
-}
-
-#[derive(Debug)]
-pub struct BodyPart {
-    kind: BodyPartKind,
-    protection: Option<Protection>,
-    is_destroyed: bool,
-}
-
-impl BodyPart {
-    pub fn new(kind: BodyPartKind) -> Self {
-        Self {
-            kind,
-            protection: None,
-            is_destroyed: false,
-        }
-    }
-
-    pub fn kind(&self) -> &BodyPartKind {
-        &self.kind
-    }
-}
-
-impl Destroyable for BodyPart {
-    fn is_destroyed(&self) -> bool {
-        self.is_destroyed
-    }
-
-    fn destroy(&mut self) {
-        self.is_destroyed = true;
-    }
-}
-
-impl Protectable for BodyPart {
-    fn is_protected(&self) -> bool {
-        self.protection.is_some() && !self.protection.as_ref().unwrap().is_destroyed()
-    }
-
-    fn protected_by(&self) -> Option<&Protection> {
-        self.protection.as_ref()
-    }
-
-    fn protected_by_mut(&mut self) -> Option<&mut Protection> {
-        self.protection.as_mut()
-    }
-
-    fn attach_protection(&mut self, protection: Protection) {
-        self.protection = Some(protection);
-    }
-}
-
-impl ApplyDamageModifier for BodyPart {
-    fn apply_damage_modifier(&self, base: u8) -> u8 {
-        if self.is_protected() {
-            self.protected_by().unwrap().apply_damage_modifier(base)
-        } else {
-            base
-        }
-    }
-}
+use super::protection::{Protection, WearProtection, GetRandomProtectedBodyPart, Protectable};
 
 #[derive(Debug)]
 pub struct Body {
@@ -253,22 +130,22 @@ impl WearProtection for Body {
 impl GetRandomFunctionalBodyPart for Body {
     fn get_random_functional_body_part(&self) -> BodyPartKind {
         let mut functional_body_parts: Vec<BodyPartKind> = Vec::new();
-        if !self.head.is_destroyed() {
+        if !self.head.is_severed() {
             functional_body_parts.push(BodyPartKind::Head);
         }
-        if !self.left_arm.is_destroyed() {
+        if !self.left_arm.is_severed() {
             functional_body_parts.push(BodyPartKind::Arm(BodySide::Left));
         }
-        if !self.right_arm.is_destroyed() {
+        if !self.right_arm.is_severed() {
             functional_body_parts.push(BodyPartKind::Arm(BodySide::Right));
         }
-        if !self.torso.is_destroyed() {
+        if !self.torso.is_severed() {
             functional_body_parts.push(BodyPartKind::Torso);
         }
-        if !self.left_leg.is_destroyed() {
+        if !self.left_leg.is_severed() {
             functional_body_parts.push(BodyPartKind::Leg(BodySide::Left));
         }
-        if !self.right_leg.is_destroyed() {
+        if !self.right_leg.is_severed() {
             functional_body_parts.push(BodyPartKind::Leg(BodySide::Right));
         }
 
@@ -283,22 +160,22 @@ impl GetRandomFunctionalBodyPart for Body {
 impl GetRandomProtectedBodyPart for Body {
     fn get_random_protected_body_part(&self) -> Option<BodyPartKind> {
         let mut armored_body_parts: Vec<BodyPartKind> = Vec::new();
-        if !self.head.is_destroyed() {
+        if !self.head.is_severed() && self.head.is_protected() {
             armored_body_parts.push(BodyPartKind::Head);
         }
-        if !self.left_arm.is_destroyed() {
+        if !self.left_arm.is_severed() && self.left_arm.is_protected() {
             armored_body_parts.push(BodyPartKind::Arm(BodySide::Left));
         }
-        if !self.right_arm.is_destroyed() {
+        if !self.right_arm.is_severed() && self.right_arm.is_protected() {
             armored_body_parts.push(BodyPartKind::Arm(BodySide::Right));
         }
-        if !self.torso.is_destroyed() {
+        if !self.torso.is_severed() && self.torso.is_protected() {
             armored_body_parts.push(BodyPartKind::Torso);
         }
-        if !self.left_leg.is_destroyed() {
+        if !self.left_leg.is_severed() && self.left_leg.is_protected() {
             armored_body_parts.push(BodyPartKind::Leg(BodySide::Left));
         }
-        if !self.right_leg.is_destroyed() {
+        if !self.right_leg.is_severed() && self.right_leg.is_protected() {
             armored_body_parts.push(BodyPartKind::Leg(BodySide::Right));
         }
 

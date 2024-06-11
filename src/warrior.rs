@@ -1,8 +1,9 @@
-pub mod body_parts;
+pub mod body;
 pub mod protection;
 
-use body_parts::Body;
-use body_parts::WearProtection;
+use body::Body;
+use body::body_part::BodyPartKind;
+use protection::WearProtection;
 
 use crate::dice::Dice;
 use crate::dice::RollResult;
@@ -215,11 +216,11 @@ impl TakeReducibleDamage for Warrior {
 }
 
 impl WearProtection for Warrior {
-    fn can_wear_protection(&self, protection: &protection::Protection, body_part: body_parts::BodyPartKind) -> bool {
+    fn can_wear_protection(&self, protection: &protection::Protection, body_part: BodyPartKind) -> bool {
         self.body.can_wear_protection(protection, body_part)
     }
 
-    fn wear_protection(&mut self, protection: protection::Protection, body_part: body_parts::BodyPartKind) {
+    fn wear_protection(&mut self, protection: protection::Protection, body_part: BodyPartKind) {
         self.body.wear_protection(protection, body_part)
     }
 }

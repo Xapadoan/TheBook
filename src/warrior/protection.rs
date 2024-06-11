@@ -3,11 +3,27 @@ use std::fmt::Display;
 use crate::fight_mechanics::{ApplyDamageModifier, TakeDamage};
 use crate::modifiers::Modifier;
 
-use super::body_parts::BodyPartKind;
+use super::body::body_part::BodyPartKind;
+
+pub trait GetRandomProtectedBodyPart {
+    fn get_random_protected_body_part(&self) -> Option<BodyPartKind>;
+}
+
+pub trait Protectable {
+    fn is_protected(&self) -> bool;
+    fn protected_by(&self) -> Option<&Protection>;
+    fn protected_by_mut(&mut self) -> Option<&mut Protection>;
+    fn attach_protection(&mut self, protection: Protection);
+}
 
 pub trait Destroyable {
     fn is_destroyed(&self) -> bool;
     fn destroy(&mut self);
+}
+
+pub trait WearProtection {
+    fn can_wear_protection(&self, protection: &Protection, body_part: BodyPartKind) -> bool;
+    fn wear_protection(&mut self, protection: Protection, body_part: BodyPartKind);
 }
 
 #[derive(Debug)]

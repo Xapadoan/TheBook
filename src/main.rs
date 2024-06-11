@@ -1,12 +1,9 @@
 use the_book::tournament::Tournament;
-use the_book::warrior::body_parts::BodyPartKind;
-use the_book::warrior::body_parts::WearProtection;
-use the_book::warrior::body_parts::BodySide;
-use the_book::warrior::protection::Protection;
-use the_book::warrior::protection::ProtectionKind;
+use the_book::warrior::body::body_part::BodyPartKind;
+use the_book::warrior::body::body_side::BodySide;
+use the_book::warrior::protection::{Protection, ProtectionKind, WearProtection};
 use the_book::warrior::Warrior;
-use the_book::weapon::Weapon;
-use the_book::weapon::WeaponKind;
+use the_book::weapon::{Weapon, WeaponKind};
 
 fn main() {
     let mut masarma = Warrior::new("Masarma", Weapon::new(WeaponKind::GreatSword));
