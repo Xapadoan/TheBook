@@ -19,6 +19,10 @@ fn main() {
     }
 
     let mut tendark = Warrior::new("Tendark", Weapon::new(WeaponKind::BattleAxe));
+    let gauntlet = Protection::new(ProtectionKind::Gauntlet);
+    if tendark.can_wear_protection(&gauntlet, BodyPartKind::Hand(BodySide::Right)) {
+        tendark.wear_protection(gauntlet, BodyPartKind::Hand(BodySide::Right))
+    }
     let helm = Protection::new(ProtectionKind::Helm);
     if tendark.can_wear_protection(&helm, BodyPartKind::Head) {
         tendark.wear_protection(helm, BodyPartKind::Head);
@@ -32,8 +36,12 @@ fn main() {
 
     let mut morbiff = Warrior::new("Morbiff", Weapon::new(WeaponKind::Axe));
     let greave = Protection::new(ProtectionKind::Greave);
+    let gauntlet = Protection::new(ProtectionKind::Gauntlet);
     if morbiff.can_wear_protection(&greave, BodyPartKind::Leg(BodySide::Right)) {
         morbiff.wear_protection(greave, BodyPartKind::Leg(BodySide::Right));
+    }
+    if morbiff.can_wear_protection(&gauntlet, BodyPartKind::Hand(BodySide::Left)) {
+        morbiff.wear_protection(gauntlet, BodyPartKind::Hand(BodySide::Left))
     }
 
     let mut nithu = Warrior::new("Nithu", Weapon::new(WeaponKind::WarHammer));

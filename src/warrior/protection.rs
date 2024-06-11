@@ -35,6 +35,7 @@ pub enum ProtectionKind {
     Armlet,
     ChainMail,
     Helm,
+    Gauntlet,
 }
 
 #[derive(Debug)]
@@ -49,6 +50,13 @@ pub struct Protection {
 impl Protection {
     pub fn new(kind: ProtectionKind) -> Self {
         match kind {
+            ProtectionKind::Gauntlet => Self {
+                kind: ProtectionKind::Gauntlet,
+                dmg_modifier: Modifier::new(0),
+                rupture: Some(5),
+                is_destroyed: false,
+                display_name: String::from("leather gauntlet"),
+            },
             ProtectionKind::Armlet => Self {
                 kind: ProtectionKind::Armlet,
                 dmg_modifier: Modifier::new(-1),
@@ -103,6 +111,12 @@ impl Protection {
 
     pub fn can_be_equipped_on(&self, body_part: BodyPartKind) -> bool {
         match self.kind {
+            ProtectionKind::Gauntlet => {
+                match body_part {
+                    BodyPartKind::Hand(_) => true,
+                    _ => false,
+                }
+            }
             ProtectionKind::Armlet => {
                 match body_part {
                     BodyPartKind::Arm(_) => true,
