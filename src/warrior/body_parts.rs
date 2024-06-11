@@ -3,16 +3,42 @@ use std::fmt::Display;
 use rand::Rng;
 
 use crate::fight_mechanics::ApplyDamageModifier;
-use crate::horizontal_direction::HorizontalDirection;
+use crate::dice::Dice;
 
 use super::protection::{Destroyable, Protection};
 
 #[derive(Debug)]
+pub enum BodySide {
+    Left,
+    Right,
+}
+
+impl BodySide {
+    pub fn random() -> Self {
+        match Dice::D6.roll() {
+            1..=3 => Self::Right,
+            4..=6 => Self::Left,
+            other => panic!("D6 roll resulted in {other}")
+        }
+    }
+}
+
+impl Display for BodySide {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            BodySide::Left => write!(f, "left"),
+            BodySide::Right => write!(f, "right"),
+        }
+    }
+}
+
+
+#[derive(Debug)]
 pub enum BodyPartKind {
-    Arm(HorizontalDirection),
+    Arm(BodySide),
     Torso,
     Head,
-    Leg(HorizontalDirection),
+    Leg(BodySide),
 }
 
 impl Display for BodyPartKind {
@@ -79,7 +105,7 @@ impl Destroyable for BodyPart {
 
 impl Protectable for BodyPart {
     fn is_protected(&self) -> bool {
-        self.protection.is_some()
+        self.protection.is_some() && !self.protection.as_ref().unwrap().is_destroyed()
     }
 
     fn protected_by(&self) -> Option<&Protection> {
@@ -120,10 +146,10 @@ impl Body {
         Self {
             head: BodyPart::new(BodyPartKind::Head),
             torso: BodyPart::new(BodyPartKind::Torso),
-            left_arm: BodyPart::new(BodyPartKind::Arm(HorizontalDirection::Left)),
-            right_arm: BodyPart::new(BodyPartKind::Arm(HorizontalDirection::Right)),
-            left_leg: BodyPart::new(BodyPartKind::Arm(HorizontalDirection::Left)),
-            right_leg: BodyPart::new(BodyPartKind::Leg(HorizontalDirection::Right)),
+            left_arm: BodyPart::new(BodyPartKind::Arm(BodySide::Left)),
+            right_arm: BodyPart::new(BodyPartKind::Arm(BodySide::Right)),
+            left_leg: BodyPart::new(BodyPartKind::Arm(BodySide::Left)),
+            right_leg: BodyPart::new(BodyPartKind::Leg(BodySide::Right)),
         }
     }
 
@@ -131,15 +157,15 @@ impl Body {
         match body_part {
             BodyPartKind::Arm(direction) => {
                 match direction {
-                    HorizontalDirection::Left => &mut self.left_arm,
-                    HorizontalDirection::Right => &mut self.right_arm,
+                    BodySide::Left => &mut self.left_arm,
+                    BodySide::Right => &mut self.right_arm,
                 }
             },
             BodyPartKind::Head => &mut self.head,
             BodyPartKind::Leg(direction) => {
                 match direction {
-                    HorizontalDirection::Left => &mut self.left_leg,
-                    HorizontalDirection::Right => &mut self.right_leg,
+                    BodySide::Left => &mut self.left_leg,
+                    BodySide::Right => &mut self.right_leg,
                 }
             },
             BodyPartKind::Torso => &mut self.torso,
@@ -150,15 +176,15 @@ impl Body {
         match body_part {
             BodyPartKind::Arm(direction) => {
                 match direction {
-                    HorizontalDirection::Left => &self.left_arm,
-                    HorizontalDirection::Right => &self.right_arm,
+                    BodySide::Left => &self.left_arm,
+                    BodySide::Right => &self.right_arm,
                 }
             },
             BodyPartKind::Head => &self.head,
             BodyPartKind::Leg(direction) => {
                 match direction {
-                    HorizontalDirection::Left => &self.left_leg,
-                    HorizontalDirection::Right => &self.right_leg,
+                    BodySide::Left => &self.left_leg,
+                    BodySide::Right => &self.right_leg,
                 }
             },
             BodyPartKind::Torso => &self.torso,
@@ -183,15 +209,15 @@ impl WearProtection for Body {
         let is_already_protected = match body_part {
             BodyPartKind::Arm(ref direction) => {
                 match direction {
-                    HorizontalDirection::Left => self.left_arm.is_protected(),
-                    HorizontalDirection::Right => self.right_arm.is_protected(),
+                    BodySide::Left => self.left_arm.is_protected(),
+                    BodySide::Right => self.right_arm.is_protected(),
                 }
             },
             BodyPartKind::Head => self.head.is_protected(),
             BodyPartKind::Leg(ref direction) => {
                 match direction {
-                    HorizontalDirection::Left => self.left_leg.is_protected(),
-                    HorizontalDirection::Right => self.right_leg.is_protected(),
+                    BodySide::Left => self.left_leg.is_protected(),
+                    BodySide::Right => self.right_leg.is_protected(),
                 }
             },
             BodyPartKind::Torso => self.torso.is_protected()
@@ -208,15 +234,15 @@ impl WearProtection for Body {
         match body_part {
             BodyPartKind::Arm(direction) => {
                 match direction {
-                    HorizontalDirection::Left => self.left_arm.attach_protection(protection),
-                    HorizontalDirection::Right => self.right_arm.attach_protection(protection),
+                    BodySide::Left => self.left_arm.attach_protection(protection),
+                    BodySide::Right => self.right_arm.attach_protection(protection),
                 }
             },
             BodyPartKind::Head => self.head.attach_protection(protection),
             BodyPartKind::Leg(direction) => {
                 match direction {
-                    HorizontalDirection::Left => self.left_leg.attach_protection(protection),
-                    HorizontalDirection::Right => self.right_leg.attach_protection(protection),
+                    BodySide::Left => self.left_leg.attach_protection(protection),
+                    BodySide::Right => self.right_leg.attach_protection(protection),
                 }
             },
             BodyPartKind::Torso => self.torso.attach_protection(protection)
@@ -231,19 +257,19 @@ impl GetRandomFunctionalBodyPart for Body {
             functional_body_parts.push(BodyPartKind::Head);
         }
         if !self.left_arm.is_destroyed() {
-            functional_body_parts.push(BodyPartKind::Arm(HorizontalDirection::Left));
+            functional_body_parts.push(BodyPartKind::Arm(BodySide::Left));
         }
         if !self.right_arm.is_destroyed() {
-            functional_body_parts.push(BodyPartKind::Arm(HorizontalDirection::Right));
+            functional_body_parts.push(BodyPartKind::Arm(BodySide::Right));
         }
         if !self.torso.is_destroyed() {
             functional_body_parts.push(BodyPartKind::Torso);
         }
         if !self.left_leg.is_destroyed() {
-            functional_body_parts.push(BodyPartKind::Leg(HorizontalDirection::Left));
+            functional_body_parts.push(BodyPartKind::Leg(BodySide::Left));
         }
         if !self.right_leg.is_destroyed() {
-            functional_body_parts.push(BodyPartKind::Leg(HorizontalDirection::Right));
+            functional_body_parts.push(BodyPartKind::Leg(BodySide::Right));
         }
 
         if functional_body_parts.len() < 1 {
@@ -261,19 +287,19 @@ impl GetRandomProtectedBodyPart for Body {
             armored_body_parts.push(BodyPartKind::Head);
         }
         if !self.left_arm.is_destroyed() {
-            armored_body_parts.push(BodyPartKind::Arm(HorizontalDirection::Left));
+            armored_body_parts.push(BodyPartKind::Arm(BodySide::Left));
         }
         if !self.right_arm.is_destroyed() {
-            armored_body_parts.push(BodyPartKind::Arm(HorizontalDirection::Right));
+            armored_body_parts.push(BodyPartKind::Arm(BodySide::Right));
         }
         if !self.torso.is_destroyed() {
             armored_body_parts.push(BodyPartKind::Torso);
         }
         if !self.left_leg.is_destroyed() {
-            armored_body_parts.push(BodyPartKind::Leg(HorizontalDirection::Left));
+            armored_body_parts.push(BodyPartKind::Leg(BodySide::Left));
         }
         if !self.right_leg.is_destroyed() {
-            armored_body_parts.push(BodyPartKind::Leg(HorizontalDirection::Right));
+            armored_body_parts.push(BodyPartKind::Leg(BodySide::Right));
         }
 
         if armored_body_parts.len() < 1 {

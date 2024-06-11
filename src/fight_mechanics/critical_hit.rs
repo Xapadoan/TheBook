@@ -1,5 +1,5 @@
 use crate::dice::Dice;
-use crate::warrior::body_parts::{BodyPartKind, GetRandomFunctionalBodyPart, GetRandomProtectedBodyPart, Protectable};
+use crate::warrior::body_parts::{BodySide, BodyPartKind, GetRandomFunctionalBodyPart, GetRandomProtectedBodyPart, Protectable};
 use super::fight_action::{ApplyFightActionResult, ShowFightActionResult};
 use super::{IsUnconscious, RollDamage, TakeDamage};
 use crate::warrior::Warrior;
@@ -90,10 +90,22 @@ impl CriticalHitResult {
                 )
             },
             12 => Self::new(CriticalHitKind::GougedEye, None),
-            13 => Self::new(CriticalHitKind::SeveredHand, None),
-            14 => Self::new(CriticalHitKind::SeveredFoot, None),
-            15 => Self::new(CriticalHitKind::SeveredArm, None),
-            16 => Self::new(CriticalHitKind::SeveredLeg, None),
+            13 => Self::new(
+                CriticalHitKind::SeveredHand,
+                None,
+            ),
+            14 => Self::new(
+                CriticalHitKind::SeveredFoot,
+                None,
+            ),
+            15 => Self::new(
+                CriticalHitKind::SeveredArm,
+                Some(BodyPartKind::Leg(BodySide::random()))
+            ),
+            16 => Self::new(
+                CriticalHitKind::SeveredLeg,
+                Some(BodyPartKind::Leg(BodySide::random()))
+            ),
             17 => Self::new(CriticalHitKind::GenitalsDamage, None),
             18 => Self::new(CriticalHitKind::VitalOrganDamage, None),
             19 => Self::new(CriticalHitKind::HeartInjury, None),

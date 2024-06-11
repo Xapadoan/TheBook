@@ -1,7 +1,7 @@
-use the_book::horizontal_direction::HorizontalDirection;
 use the_book::tournament::Tournament;
 use the_book::warrior::body_parts::BodyPartKind;
 use the_book::warrior::body_parts::WearProtection;
+use the_book::warrior::body_parts::BodySide;
 use the_book::warrior::protection::Protection;
 use the_book::warrior::protection::ProtectionKind;
 use the_book::warrior::Warrior;
@@ -11,8 +11,8 @@ use the_book::weapon::WeaponKind;
 fn main() {
     let mut masarma = Warrior::new("Masarma", Weapon::new(WeaponKind::GreatSword));
     let armlet = Protection::new(ProtectionKind::Armlet);
-    if masarma.can_wear_protection(&armlet, BodyPartKind::Arm(HorizontalDirection::Left)) {
-        masarma.wear_protection(armlet, BodyPartKind::Arm(HorizontalDirection::Left));
+    if masarma.can_wear_protection(&armlet, BodyPartKind::Arm(BodySide::Left)) {
+        masarma.wear_protection(armlet, BodyPartKind::Arm(BodySide::Left));
     }
 
     let mut lehtobel = Warrior::new("Lehtobel", Weapon::new(WeaponKind::Sword));
@@ -35,8 +35,8 @@ fn main() {
 
     let mut morbiff = Warrior::new("Morbiff", Weapon::new(WeaponKind::Axe));
     let greave = Protection::new(ProtectionKind::Greave);
-    if morbiff.can_wear_protection(&greave, BodyPartKind::Leg(HorizontalDirection::Right)) {
-        morbiff.wear_protection(greave, BodyPartKind::Leg(HorizontalDirection::Right));
+    if morbiff.can_wear_protection(&greave, BodyPartKind::Leg(BodySide::Right)) {
+        morbiff.wear_protection(greave, BodyPartKind::Leg(BodySide::Right));
     }
 
     let mut nithu = Warrior::new("Nithu", Weapon::new(WeaponKind::WarHammer));
