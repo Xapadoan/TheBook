@@ -8,6 +8,7 @@ use rand::Rng;
 use body_part::{BodyPart, BodyPartKind, RandomFunctionalBodyPart};
 use body_side::BodySide;
 use crate::fight_mechanics::ApplyDamageModifier;
+use crate::modifiers::Modifier;
 use super::protection::{Protectable, Protection, RandomProtectedBodyPart, WearProtection};
 use super::stats::{Stat, StatModifier};
 
@@ -291,7 +292,14 @@ impl StatModifier for Body {
     fn modify_stat(&self, base: Stat) -> Stat {
         let mut stat = base;
         if self.head.is_injured() {
-            stat = self.head.modify_stat(stat);
+            stat = if self.head.injuries().len() > 1 {
+                match stat {
+                    Stat::Attack(attack) => Stat::Attack(Modifier::new(-5).apply(attack)),
+                    Stat::Parry(parry) => Stat::Parry(Modifier::new(-8).apply(parry)),
+                }
+            } else {
+                self.head.modify_stat(stat)
+            }
         }
         if self.left_arm.is_injured() {
             stat = self.left_arm.modify_stat(stat);
@@ -302,8 +310,17 @@ impl StatModifier for Body {
         if self.left_hand.is_injured() {
             stat = self.left_hand.modify_stat(stat);
         }
-        if self.left_leg.is_injured() {
-            stat = self.left_leg.modify_stat(stat);
+        if self.left_leg.is_injured() || self.right_leg.is_injured() {
+            stat = if !self.left_leg.is_injured() {
+                self.right_leg.modify_stat(stat)
+            } else if !self.right_leg.is_injured() {
+                self.left_leg.modify_stat(stat)
+            } else {
+                match stat {
+                    Stat::Attack(attack) => Stat::Attack(Modifier::new(-8).apply(attack)),
+                    Stat::Parry(parry) => Stat::Parry(Modifier::new(-8).apply(parry)),
+                }
+            }
         }
         if self.right_arm.is_injured() {
             stat = self.right_arm.modify_stat(stat);
@@ -313,9 +330,6 @@ impl StatModifier for Body {
         }
         if self.right_hand.is_injured() {
             stat = self.right_hand.modify_stat(stat);
-        }
-        if self.right_leg.is_injured() {
-            stat = self.right_leg.modify_stat(stat);
         }
         if self.torso.is_injured() {
             stat = self.torso.modify_stat(stat);
