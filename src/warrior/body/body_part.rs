@@ -56,8 +56,9 @@ impl BodyPart {
         self.is_severed
     }
 
-    pub fn sever(&mut self) {
+    pub fn sever(&mut self) -> Option<Protection> {
         self.is_severed = true;
+        self.detach_protection()
     }
 }
 
@@ -76,6 +77,10 @@ impl Protectable for BodyPart {
 
     fn attach_protection(&mut self, protection: Protection) {
         self.protection = Some(protection);
+    }
+
+    fn detach_protection(&mut self) -> Option<Protection> {
+        self.protection.take()
     }
 }
 
