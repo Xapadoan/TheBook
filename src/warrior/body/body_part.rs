@@ -2,8 +2,10 @@ use std::fmt::Display;
 
 use crate::fight_mechanics::ApplyDamageModifier;
 
+use super::super::stats::{Stat, StatModifier};
 use super::super::protection::{Destroyable, Protection, Protectable};
 use super::body_side::BodySide;
+use super::injury::{Injury, MayBeInjured};
 
 #[derive(Debug)]
 pub enum BodyPartKind {
@@ -37,6 +39,7 @@ pub struct BodyPart {
     kind: BodyPartKind,
     protection: Option<Protection>,
     is_severed: bool,
+    injuries: Vec<Injury>,
 }
 
 impl BodyPart {
@@ -45,6 +48,7 @@ impl BodyPart {
             kind,
             protection: None,
             is_severed: false,
+            injuries: Vec::new(),
         }
     }
 
@@ -91,5 +95,29 @@ impl ApplyDamageModifier for BodyPart {
         } else {
             base
         }
+    }
+}
+
+impl MayBeInjured for BodyPart {
+    fn is_injured(&self) -> bool {
+        self.injuries.len() > 0        
+    }
+
+    fn injuries(&self) -> &Vec<Injury> {
+        &self.injuries
+    }
+
+    fn add_injury(&mut self, injury: Injury) {
+        self.injuries.push(injury);
+    }
+}
+
+impl StatModifier for BodyPart {
+    fn modify_stat(&self, base: Stat) -> Stat {
+        let mut stat = base;
+        for injury in self.injuries() {
+            stat = injury.modify_stat(stat)
+        }
+        stat
     }
 }

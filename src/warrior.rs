@@ -129,7 +129,7 @@ impl CanMissAssaults for Warrior {
 
 impl AttackAttempt for Warrior {
     fn attack_attempt(&self) -> AttackAttemptResult {
-        let success_threshold = self.weapon.modify_stat(self.stats_manager.attack_stat());
+        let success_threshold = self.modify_stat(self.stats_manager.attack_stat());
         match Dice::D6.test_roll(Stat::consume(success_threshold)) {
             RollResult::CriticalSuccess => AttackAttemptResult::CriticalSuccess,
             RollResult::Success => AttackAttemptResult::Success,
@@ -141,7 +141,7 @@ impl AttackAttempt for Warrior {
 
 impl ParryAttempt for Warrior {
     fn parry_attempt(&self) -> ParryAttemptResult {
-        let success_threshold = self.weapon.modify_stat(self.stats_manager.parry_stat());
+        let success_threshold = self.modify_stat(self.stats_manager.parry_stat());
         match Dice::D6.test_roll(Stat::consume(success_threshold)) {
             RollResult::CriticalSuccess => ParryAttemptResult::CriticalSuccess,
             RollResult::Success => ParryAttemptResult::Success,
@@ -224,5 +224,14 @@ impl WearProtection for Warrior {
 
     fn wear_protection(&mut self, protection: protection::Protection, body_part: BodyPartKind) {
         self.body.wear_protection(protection, body_part)
+    }
+}
+
+impl StatModifier for Warrior {
+    fn modify_stat(&self, base: Stat) -> Stat {
+        let mut stat = base;
+        stat = self.weapon.modify_stat(stat);
+        stat = self.body.modify_stat(stat);
+        stat
     }
 }

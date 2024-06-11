@@ -1,12 +1,15 @@
 pub mod body_part;
 pub mod body_side;
+pub mod injury;
 
+use injury::MayBeInjured;
 use rand::Rng;
 
 use body_part::{BodyPart, BodyPartKind, RandomFunctionalBodyPart};
 use body_side::BodySide;
 use crate::fight_mechanics::ApplyDamageModifier;
-use super::protection::{Protection, WearProtection, RandomProtectedBodyPart, Protectable};
+use super::protection::{Protectable, Protection, RandomProtectedBodyPart, WearProtection};
+use super::stats::{Stat, StatModifier};
 
 #[derive(Debug)]
 pub struct Body {
@@ -281,5 +284,42 @@ impl RandomProtectedBodyPart for Body {
 
         let random_index = rand::thread_rng().gen_range(0..armored_body_parts.len() - 1);
         Some(armored_body_parts.swap_remove(random_index))
+    }
+}
+
+impl StatModifier for Body {
+    fn modify_stat(&self, base: Stat) -> Stat {
+        let mut stat = base;
+        if self.head.is_injured() {
+            stat = self.head.modify_stat(stat);
+        }
+        if self.left_arm.is_injured() {
+            stat = self.left_arm.modify_stat(stat);
+        }
+        if self.left_foot.is_injured() {
+            stat = self.left_foot.modify_stat(stat);
+        }
+        if self.left_hand.is_injured() {
+            stat = self.left_hand.modify_stat(stat);
+        }
+        if self.left_leg.is_injured() {
+            stat = self.left_leg.modify_stat(stat);
+        }
+        if self.right_arm.is_injured() {
+            stat = self.right_arm.modify_stat(stat);
+        }
+        if self.right_foot.is_injured() {
+            stat = self.right_foot.modify_stat(stat);
+        }
+        if self.right_hand.is_injured() {
+            stat = self.right_hand.modify_stat(stat);
+        }
+        if self.right_leg.is_injured() {
+            stat = self.right_leg.modify_stat(stat);
+        }
+        if self.torso.is_injured() {
+            stat = self.torso.modify_stat(stat);
+        }
+        stat
     }
 }
