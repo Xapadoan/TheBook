@@ -11,6 +11,7 @@ pub enum BodyPartKind {
     Arm(BodySide),
     Torso,
     Head,
+    Foot(BodySide),
     Leg(BodySide),
 }
 
@@ -20,6 +21,7 @@ impl Display for BodyPartKind {
             BodyPartKind::Hand(side) => write!(f, "{side} hand"),
             BodyPartKind::Arm(direction) => write!(f, "{direction} arm"),
             BodyPartKind::Head => write!(f, "head"),
+            BodyPartKind::Foot(side) => write!(f, "{side} foot"),
             BodyPartKind::Leg(direction) => write!(f, "{direction} leg"),
             BodyPartKind::Torso => write!(f, "torso"),
         }

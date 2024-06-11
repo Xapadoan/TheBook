@@ -16,6 +16,8 @@ pub struct Body {
     right_hand: BodyPart,
     left_arm: BodyPart,
     right_arm: BodyPart,
+    left_foot: BodyPart,
+    right_foot: BodyPart,
     left_leg: BodyPart,
     right_leg: BodyPart,
 }
@@ -29,6 +31,8 @@ impl Body {
             right_hand: BodyPart::new(BodyPartKind::Hand(BodySide::Right)),
             left_arm: BodyPart::new(BodyPartKind::Arm(BodySide::Left)),
             right_arm: BodyPart::new(BodyPartKind::Arm(BodySide::Right)),
+            left_foot: BodyPart::new(BodyPartKind::Foot(BodySide::Left)),
+            right_foot: BodyPart::new(BodyPartKind::Foot(BodySide::Right)),
             left_leg: BodyPart::new(BodyPartKind::Arm(BodySide::Left)),
             right_leg: BodyPart::new(BodyPartKind::Leg(BodySide::Right)),
         }
@@ -49,6 +53,12 @@ impl Body {
                 }
             },
             BodyPartKind::Head => &mut self.head,
+            BodyPartKind::Foot(side) => {
+                match side {
+                    BodySide::Left => &mut self.left_foot,
+                    BodySide::Right => &mut self.right_foot,
+                }
+            },
             BodyPartKind::Leg(side) => {
                 match side {
                     BodySide::Left => &mut self.left_leg,
@@ -74,6 +84,12 @@ impl Body {
                 }
             },
             BodyPartKind::Head => &self.head,
+            BodyPartKind::Foot(side) => {
+                match side {
+                    BodySide::Left => &self.left_foot,
+                    BodySide::Right => &self.right_foot,
+                }
+            },
             BodyPartKind::Leg(side) => {
                 match side {
                     BodySide::Left => &self.left_leg,
@@ -93,6 +109,8 @@ impl ApplyDamageModifier for Body {
         base = self.right_hand.apply_damage_modifier(base);
         base = self.left_arm.apply_damage_modifier(base);
         base = self.right_arm.apply_damage_modifier(base);
+        base = self.left_foot.apply_damage_modifier(base);
+        base = self.right_foot.apply_damage_modifier(base);
         base = self.left_leg.apply_damage_modifier(base);
         base = self.right_leg.apply_damage_modifier(base);
         return base;
@@ -115,6 +133,12 @@ impl WearProtection for Body {
                 }
             },
             BodyPartKind::Head => self.head.is_protected(),
+            BodyPartKind::Foot(ref side) => {
+                match side {
+                    BodySide::Left => self.left_foot.is_protected(),
+                    BodySide::Right => self.right_foot.is_protected(),
+                }
+            },
             BodyPartKind::Leg(ref side) => {
                 match side {
                     BodySide::Left => self.left_leg.is_protected(),
@@ -146,6 +170,12 @@ impl WearProtection for Body {
                 }
             },
             BodyPartKind::Head => self.head.attach_protection(protection),
+            BodyPartKind::Foot(side) => {
+                match side {
+                    BodySide::Left => self.left_foot.attach_protection(protection),
+                    BodySide::Right => self.right_foot.attach_protection(protection),
+                }
+            },
             BodyPartKind::Leg(side) => {
                 match side {
                     BodySide::Left => self.left_leg.attach_protection(protection),
@@ -163,6 +193,12 @@ impl GetRandomFunctionalBodyPart for Body {
         if !self.head.is_severed() {
             functional_body_parts.push(BodyPartKind::Head);
         }
+        if !self.left_hand.is_severed() {
+            functional_body_parts.push(BodyPartKind::Hand(BodySide::Left));
+        }
+        if !self.right_hand.is_severed() {
+            functional_body_parts.push(BodyPartKind::Hand(BodySide::Right));
+        }
         if !self.left_arm.is_severed() {
             functional_body_parts.push(BodyPartKind::Arm(BodySide::Left));
         }
@@ -171,6 +207,12 @@ impl GetRandomFunctionalBodyPart for Body {
         }
         if !self.torso.is_severed() {
             functional_body_parts.push(BodyPartKind::Torso);
+        }
+        if !self.left_foot.is_severed() {
+            functional_body_parts.push(BodyPartKind::Foot(BodySide::Left));
+        }
+        if !self.right_foot.is_severed() {
+            functional_body_parts.push(BodyPartKind::Foot(BodySide::Right));
         }
         if !self.left_leg.is_severed() {
             functional_body_parts.push(BodyPartKind::Leg(BodySide::Left));
@@ -193,6 +235,12 @@ impl GetRandomProtectedBodyPart for Body {
         if !self.head.is_severed() && self.head.is_protected() {
             armored_body_parts.push(BodyPartKind::Head);
         }
+        if !self.left_hand.is_severed() && self.left_hand.is_protected() {
+            armored_body_parts.push(BodyPartKind::Hand(BodySide::Left));
+        }
+        if !self.right_hand.is_severed() && self.right_hand.is_protected() {
+            armored_body_parts.push(BodyPartKind::Hand(BodySide::Right));
+        }
         if !self.left_arm.is_severed() && self.left_arm.is_protected() {
             armored_body_parts.push(BodyPartKind::Arm(BodySide::Left));
         }
@@ -201,6 +249,12 @@ impl GetRandomProtectedBodyPart for Body {
         }
         if !self.torso.is_severed() && self.torso.is_protected() {
             armored_body_parts.push(BodyPartKind::Torso);
+        }
+        if !self.left_foot.is_severed() && self.left_foot.is_protected() {
+            armored_body_parts.push(BodyPartKind::Foot(BodySide::Left));
+        }
+        if !self.right_foot.is_severed() && self.right_foot.is_protected() {
+            armored_body_parts.push(BodyPartKind::Foot(BodySide::Right));
         }
         if !self.left_leg.is_severed() && self.left_leg.is_protected() {
             armored_body_parts.push(BodyPartKind::Leg(BodySide::Left));
