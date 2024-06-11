@@ -11,6 +11,10 @@ fn main() {
     if masarma.can_wear_protection(&armlet, BodyPartKind::Arm(BodySide::Left)) {
         masarma.wear_protection(armlet, BodyPartKind::Arm(BodySide::Left));
     }
+    let boot = Protection::new(ProtectionKind::Boot);
+    if masarma.can_wear_protection(&boot, BodyPartKind::Foot(BodySide::Right)) {
+        masarma.wear_protection(boot, BodyPartKind::Foot(BodySide::Right));
+    }
 
     let mut lehtobel = Warrior::new("Lehtobel", Weapon::new(WeaponKind::Sword));
     let chain_mail = Protection::new(ProtectionKind::ChainMail);
@@ -21,7 +25,7 @@ fn main() {
     let mut tendark = Warrior::new("Tendark", Weapon::new(WeaponKind::BattleAxe));
     let gauntlet = Protection::new(ProtectionKind::Gauntlet);
     if tendark.can_wear_protection(&gauntlet, BodyPartKind::Hand(BodySide::Right)) {
-        tendark.wear_protection(gauntlet, BodyPartKind::Hand(BodySide::Right))
+        tendark.wear_protection(gauntlet, BodyPartKind::Hand(BodySide::Right));
     }
     let helm = Protection::new(ProtectionKind::Helm);
     if tendark.can_wear_protection(&helm, BodyPartKind::Head) {
@@ -61,6 +65,11 @@ fn main() {
     if chei.can_wear_protection(&helm, BodyPartKind::Head) {
         chei.wear_protection(helm, BodyPartKind::Head);
     }
+    let boot = Protection::new(ProtectionKind::Boot);
+    if chei.can_wear_protection(&boot, BodyPartKind::Foot(BodySide::Left)) {
+        chei.wear_protection(boot, BodyPartKind::Foot(BodySide::Left));
+    }
+
     let mut tournament = Tournament::new(vec![
         masarma,
         lehtobel,
