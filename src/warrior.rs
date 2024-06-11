@@ -16,7 +16,7 @@ use crate::fight_mechanics::attack::AttackAttemptResult;
 use crate::fight_mechanics::ApplyDamageModifier;
 use crate::fight_mechanics::CanMissAssaults;
 use crate::fight_mechanics::CanMissParries;
-use crate::fight_mechanics::CriticalHit;
+use crate::fight_mechanics::CriticalHitOn;
 use crate::fight_mechanics::CriticalParry;
 use crate::fight_mechanics::IsDead;
 use crate::fight_mechanics::IsUnconscious;
@@ -75,6 +75,14 @@ impl Warrior {
         let attack_attempt_result = self.attack_attempt();
         attack_attempt_result.show_fight_action_result(self, target);
         attack_attempt_result.apply_fight_action_result(self, target);
+    }
+
+    pub fn body(&self) -> &Body {
+        &self.body
+    }
+
+    pub fn body_mut(&mut self) -> &mut Body {
+        &mut self.body
     }
 }
 
@@ -140,9 +148,13 @@ impl ParryAttempt for Warrior {
     }
 }
 
-impl CriticalHit for Warrior {
-    fn critical_hit(&self) -> CriticalHitResult {
-        self.weapon.critical_hit()
+impl CriticalHitOn for Warrior {
+    fn critical_hit_on(&self, target: &Warrior) -> CriticalHitResult {
+        if self.weapon.is_sharp() {
+            CriticalHitResult::roll_sharp(target)
+        } else {
+            CriticalHitResult::roll_blunt()
+        }
     }
 }
 

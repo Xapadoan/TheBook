@@ -1,6 +1,5 @@
-use crate::fight_mechanics::critical_hit::{roll_blunt_critical, roll_sharp_critical, CriticalHitResult};
 use crate::fight_mechanics::{
-    ApplyAttackModifier, ApplyParryModifier, CriticalHit,
+    ApplyAttackModifier, ApplyParryModifier,
     RollDamage,
 };
 use crate::modifiers::Modifier;
@@ -64,15 +63,9 @@ impl Weapon {
             },
         }
     }
-}
 
-impl CriticalHit for Weapon {
-    fn critical_hit(&self) -> CriticalHitResult {
-        if self.is_sharp {
-            return roll_sharp_critical()
-        } else {
-            return roll_blunt_critical()
-        }
+    pub fn is_sharp(&self) -> bool {
+        self.is_sharp
     }
 }
 

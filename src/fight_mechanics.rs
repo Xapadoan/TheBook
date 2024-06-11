@@ -13,7 +13,7 @@ use parries_miss::ParriesMiss;
 use parry::ParryAttemptResult;
 use attack::AttackAttemptResult;
 
-use crate::dice::Dice;
+use crate::{dice::Dice, warrior::Warrior};
 
 pub trait IsDead {
     fn is_dead(&self) -> bool;
@@ -36,8 +36,8 @@ pub trait RollDamage {
     fn roll_damage(&self) -> u8;
 }
 
-pub trait CriticalHit {
-    fn critical_hit(&self) -> CriticalHitResult;
+pub trait CriticalHitOn {
+    fn critical_hit_on(&self, target: &Warrior) -> CriticalHitResult;
 }
 
 pub trait CriticalParry {

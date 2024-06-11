@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use crate::fight_mechanics::{ApplyDamageModifier, TakeDamage};
 use crate::modifiers::Modifier;
 
@@ -25,6 +27,7 @@ pub struct Protection {
     dmg_modifier: Modifier,
     rupture: Option<u8>,
     is_destroyed: bool,
+    display_name: String,
 }
 
 impl Protection {
@@ -35,42 +38,49 @@ impl Protection {
                 dmg_modifier: Modifier::new(-1),
                 rupture: Some(5),
                 is_destroyed: false,
+                display_name: String::from("heavy coarse metal armlet"),
             },
             ProtectionKind::ChainMail => Self {
                 kind: ProtectionKind::ChainMail,
                 dmg_modifier: Modifier::new(-4),
                 rupture: Some(3),
                 is_destroyed: false,
+                display_name: String::from("sleeveless basic chain mail"),
             },
             ProtectionKind::Gambeson => Self {
                 kind: ProtectionKind::Gambeson,
                 dmg_modifier: Modifier::new(-2),
                 rupture: Some(4),
                 is_destroyed: false,
+                display_name: String::from("basic gambeson with sleeves"),
             },
             ProtectionKind::Greave => Self {
                 kind: ProtectionKind::Armlet,
                 dmg_modifier: Modifier::new(-1),
                 rupture: Some(5),
                 is_destroyed: false,
+                display_name: String::from("heavy coarse metal greave"),
             },
             ProtectionKind::Helm => Self {
                 kind: ProtectionKind::Helm,
                 dmg_modifier: Modifier::new(0),
                 rupture: Some(5),
                 is_destroyed: false,
+                display_name: String::from("Leather helmet"),
             },
             ProtectionKind::Jacket => Self {
                 kind: ProtectionKind::Jacket,
                 dmg_modifier: Modifier::new(-2),
                 rupture: Some(5),
                 is_destroyed: false,
+                display_name: String::from("reinforced canvas jacket with sleeves"),
             },
             ProtectionKind::Plastron => Self {
                 kind: ProtectionKind::Armlet,
                 dmg_modifier: Modifier::new(-3),
                 rupture: Some(4),
                 is_destroyed: false,
+                display_name: String::from("basic leather plastron"),
             },
         }
     }
@@ -120,6 +130,12 @@ impl Protection {
                 }
             },
         }
+    }
+}
+
+impl Display for Protection {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.display_name)
     }
 }
 

@@ -1,6 +1,6 @@
 use super::{fight_action::{ApplyFightActionResult, ShowFightActionResult}, parry::ParryAttemptResult, CanMissParries};
 use crate::warrior::Warrior;
-use super::{ParryAttempt, CriticalHit};
+use super::{ParryAttempt, CriticalHitOn};
 
 pub enum AttackAttemptResult {
     CriticalFailure,
@@ -40,7 +40,7 @@ impl ApplyFightActionResult for AttackAttemptResult {
                 if victim.must_miss_parry() {
                     victim.miss_parry();
                 }
-                let crit_consequence = assailant.critical_hit();
+                let crit_consequence = assailant.critical_hit_on(victim);
                 crit_consequence.show_fight_action_result(assailant, victim);
                 crit_consequence.apply_fight_action_result(assailant, victim);
             }

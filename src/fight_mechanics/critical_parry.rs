@@ -4,7 +4,7 @@ use super::attack::AttackAttemptResult;
 use super::fight_action::{ApplyFightActionResult, ShowFightActionResult};
 use super::parries_miss::ParriesMiss;
 use super::parry::ParryAttemptResult;
-use super::{CanMissAssaults, CanMissParries, CriticalHit, TemporaryHandicap};
+use super::{CanMissAssaults, CanMissParries, CriticalHitOn, TemporaryHandicap};
 
 pub enum CriticalParryResult {
     RegularParry,
@@ -41,12 +41,12 @@ impl ApplyFightActionResult for CriticalParryResult {
                 println!("[WARN]: Breaking weapon is not implemented")
             },
             CriticalParryResult::AssailantCriticalHit => {
-                let crit_consequence = victim.critical_hit();
+                let crit_consequence = victim.critical_hit_on(assailant);
                 crit_consequence.show_fight_action_result(victim, assailant);
                 crit_consequence.apply_fight_action_result(victim, assailant);
             },
             CriticalParryResult::AssailantCriticalHitBySelfWeapon => {
-                let crit_consequence = victim.critical_hit();
+                let crit_consequence = victim.critical_hit_on(assailant);
                 crit_consequence.show_fight_action_result(victim, assailant);
                 crit_consequence.apply_fight_action_result(victim, assailant);
             },
