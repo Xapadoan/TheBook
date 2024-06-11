@@ -65,14 +65,6 @@ pub trait ParryAttempt {
     fn parry_attempt(&self) -> ParryAttemptResult;
 }
 
-pub trait ApplyAttackModifier {
-    fn apply_attack_modifier(&self, base: u8) -> u8;
-}
-
-pub trait ApplyParryModifier {
-    fn apply_parry_modifier(&self, base: u8) -> u8;
-}
-
 pub trait ApplyDamageModifier {
     fn apply_damage_modifier(&self, base: u8) -> u8;
 }

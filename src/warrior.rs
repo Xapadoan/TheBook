@@ -1,9 +1,13 @@
 pub mod body;
 pub mod protection;
+pub mod stats;
 
 use body::Body;
 use body::body_part::BodyPartKind;
 use protection::WearProtection;
+use stats::StatModifier;
+use stats::StatsManager;
+use stats::Stat;
 
 use crate::dice::Dice;
 use crate::dice::RollResult;
@@ -23,15 +27,14 @@ use crate::fight_mechanics::IsDead;
 use crate::fight_mechanics::IsUnconscious;
 use crate::fight_mechanics::TakeReducibleDamage;
 use crate::fight_mechanics::{ParryAttempt, AttackAttempt, TemporaryHandicap};
-use crate::fight_mechanics::{ApplyAttackModifier, ApplyParryModifier, RollDamage, TakeDamage};
+use crate::fight_mechanics::{RollDamage, TakeDamage};
 use crate::weapon::Weapon;
 
 #[derive(Debug)]
 pub struct Warrior {
     name: String,
+    stats_manager: StatsManager,
     health: u8,
-    attack: u8,
-    parry: u8,
     weapon: Weapon,
     assaults_miss: Option<AssaultsMiss>,
     parries_miss: Option<ParriesMiss>,
@@ -44,9 +47,8 @@ impl Warrior {
     pub fn new(name: &str, weapon: Weapon) -> Self {
         Self {
             name: String::from(name),
+            stats_manager: StatsManager::new(),
             health: 30,
-            attack: 8,
-            parry: 10,
             weapon,
             assaults_miss: None,
             parries_miss: None,
@@ -127,8 +129,8 @@ impl CanMissAssaults for Warrior {
 
 impl AttackAttempt for Warrior {
     fn attack_attempt(&self) -> AttackAttemptResult {
-        let success_threshold = self.weapon.apply_attack_modifier(self.attack);
-        match Dice::D6.test_roll(success_threshold) {
+        let success_threshold = self.weapon.modify_stat(self.stats_manager.attack_stat());
+        match Dice::D6.test_roll(Stat::consume(success_threshold)) {
             RollResult::CriticalSuccess => AttackAttemptResult::CriticalSuccess,
             RollResult::Success => AttackAttemptResult::Success,
             RollResult::Failure => AttackAttemptResult::Failure,
@@ -139,8 +141,8 @@ impl AttackAttempt for Warrior {
 
 impl ParryAttempt for Warrior {
     fn parry_attempt(&self) -> ParryAttemptResult {
-        let success_threshold = self.weapon.apply_parry_modifier(self.parry);
-        match Dice::D6.test_roll(success_threshold) {
+        let success_threshold = self.weapon.modify_stat(self.stats_manager.parry_stat());
+        match Dice::D6.test_roll(Stat::consume(success_threshold)) {
             RollResult::CriticalSuccess => ParryAttemptResult::CriticalSuccess,
             RollResult::Success => ParryAttemptResult::Success,
             RollResult::Failure => ParryAttemptResult::Failure,
@@ -203,15 +205,15 @@ impl RollDamage for Warrior {
     }
 }
 
-impl ApplyAttackModifier for Warrior {
-    fn apply_attack_modifier(&self, base: u8) -> u8 {
+impl ApplyDamageModifier for Warrior {
+    fn apply_damage_modifier(&self, base: u8) -> u8 {
         self.body.apply_damage_modifier(base)
     }
 }
 
 impl TakeReducibleDamage for Warrior {
     fn take_reduced_damage(&mut self, damage: u8) {
-        self.take_damage(self.apply_attack_modifier(damage));
+        self.take_damage(self.apply_damage_modifier(damage));
     }
 }
 

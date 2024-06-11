@@ -1,9 +1,7 @@
-use crate::fight_mechanics::{
-    ApplyAttackModifier, ApplyParryModifier,
-    RollDamage,
-};
+use crate::fight_mechanics::RollDamage;
 use crate::modifiers::Modifier;
 use crate::dice::Dice;
+use crate::warrior::stats::{Stat, StatModifier};
 
 pub enum WeaponKind {
     Sword,
@@ -75,14 +73,11 @@ impl RollDamage for Weapon {
     }
 }
 
-impl ApplyAttackModifier for Weapon {
-    fn apply_attack_modifier(&self, base: u8) -> u8 {
-        self.attack_modifier.apply(base)
-    }
-}
-
-impl ApplyParryModifier for Weapon {
-    fn apply_parry_modifier(&self, base: u8) -> u8 {
-        self.parry_modifier.apply(base)
+impl StatModifier for Weapon {
+    fn modify_stat(&self, base: Stat) -> Stat {
+        match base {
+            Stat::Attack(attack) => Stat::Attack(self.attack_modifier.apply(attack)),
+            Stat::Parry(parry) => Stat::Parry(self.parry_modifier.apply(parry))
+        }
     }
 }
