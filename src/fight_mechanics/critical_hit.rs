@@ -71,11 +71,11 @@ impl CriticalHitResult {
             12 => Self::new(CriticalHitKind::GougedEye, None),
             13 => Self::new(
                 CriticalHitKind::SeveredHand,
-                None,
+                Some(BodyPartKind::Hand(BodySide::random())),
             ),
             14 => Self::new(
                 CriticalHitKind::SeveredFoot,
-                None,
+                Some(BodyPartKind::Foot(BodySide::random())),
             ),
             15 => Self::new(
                 CriticalHitKind::SeveredArm,
@@ -110,11 +110,26 @@ impl CriticalHitResult {
                 CriticalHitKind::PartOfTheArmorIsDestroyed,
                 Some(victim.body().random_protected_body_part_fallback_functional())
             ),
-            12 => Self::new(CriticalHitKind::KneeDislocation, None),
-            13 => Self::new(CriticalHitKind::BrokenHand, None),
-            14 => Self::new(CriticalHitKind::SmashedFoot, None),
-            15 => Self::new(CriticalHitKind::BrokenArm, None),
-            16 => Self::new(CriticalHitKind::BrokenLeg, None),
+            12 => Self::new(
+                CriticalHitKind::KneeDislocation,
+                Some(BodyPartKind::Leg(BodySide::random())),
+            ),
+            13 => Self::new(
+                CriticalHitKind::BrokenHand,
+                Some(BodyPartKind::Hand(BodySide::random())),
+            ),
+            14 => Self::new(
+                CriticalHitKind::SmashedFoot,
+                Some(BodyPartKind::Foot(BodySide::random())),
+            ),
+            15 => Self::new(
+                CriticalHitKind::BrokenArm,
+                Some(BodyPartKind::Arm(BodySide::random())),
+            ),
+            16 => Self::new(
+                CriticalHitKind::BrokenLeg,
+                Some(BodyPartKind::Leg(BodySide::random()))
+            ),
             17 => Self::new(CriticalHitKind::CrushedGenitals, None),
             18 => Self::new(CriticalHitKind::KnockedOut, None),
             19 => Self::new(CriticalHitKind::OpenSkullFacture, None),
@@ -153,14 +168,8 @@ impl ShowFightActionResult for CriticalHitResult {
                     self.display_protection_or_limb(victim),
                 );
             }
-            CriticalHitKind::BrokenArm => {
-                println!("{} broke {}'s arm", assailant.name(), victim.name());
-            }
-            CriticalHitKind::BrokenHand => {
-                println!("{} broke {}'s arm", assailant.name(), victim.name());
-            }
-            CriticalHitKind::BrokenLeg => {
-                println!("{} broke {}'s leg", assailant.name(), victim.name());
+            CriticalHitKind::BrokenArm | CriticalHitKind::BrokenHand | CriticalHitKind::BrokenLeg => {
+                println!("{} broke {}'s {}", assailant.name(), victim.name(), self.body_part.as_ref().unwrap());
             }
             CriticalHitKind::CrushedGenitals => {
                 println!("{} crushed {}'s genitals", assailant.name(), victim.name());
@@ -235,20 +244,11 @@ impl ShowFightActionResult for CriticalHitResult {
             CriticalHitKind::SeriousHeadInjury => {
                 println!("{} cut through {}'s head", assailant.name(), victim.name());
             }
-            CriticalHitKind::SeveredArm => {
-                println!("{} severed {}'s arm", assailant.name(), victim.name());
-            }
-            CriticalHitKind::SeveredFoot => {
-                println!("{} severed {}'s foot", assailant.name(), victim.name());
-            }
-            CriticalHitKind::SeveredHand => {
-                println!("{} severed {}'s hand", assailant.name(), victim.name());
-            }
-            CriticalHitKind::SeveredLeg => {
-                println!("{} severed {}'s leg", assailant.name(), victim.name());
+            CriticalHitKind::SeveredArm | CriticalHitKind::SeveredFoot | CriticalHitKind::SeveredHand | CriticalHitKind::SeveredLeg => {
+                println!("{} severed {}'s {}", assailant.name(), victim.name(), self.body_part.as_ref().unwrap());
             }
             CriticalHitKind::SmashedFoot => {
-                println!("{} smashed {}'s foot", assailant.name(), victim.name());
+                println!("{} smashed {}'s {}", assailant.name(), victim.name(), self.body_part.as_ref().unwrap());
             }
             CriticalHitKind::VitalOrganCrushed => {
                 println!(
@@ -293,20 +293,16 @@ impl ApplyFightActionResult for CriticalHitResult {
                 println!("[WARN] deep wounds not implemented");
                 damage += 5;
             },
-            CriticalHitKind::SeveredHand => {
-                println!("[WARN] deep wounds not implemented");
-                damage += 6;
-            },
-            CriticalHitKind::SeveredFoot => {
-                println!("[WARN] deep wounds not implemented");
+            CriticalHitKind::SeveredHand | CriticalHitKind::SeveredFoot => {
+                victim.body_mut().body_part_mut(self.body_part.as_ref().unwrap()).sever();
                 damage += 6;
             },
             CriticalHitKind::SeveredArm => {
-                println!("[WARN] deep wounds not implemented");
+                victim.body_mut().body_part_mut(self.body_part.as_ref().unwrap()).sever();
                 damage += 7;
             },
             CriticalHitKind::SeveredLeg => {
-                println!("[WARN] deep wounds not implemented");
+                victim.body_mut().body_part_mut(self.body_part.as_ref().unwrap()).sever();
                 damage += 8;
             },
             CriticalHitKind::GenitalsDamage => {
