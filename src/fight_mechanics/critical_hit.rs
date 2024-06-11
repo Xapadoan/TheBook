@@ -1,8 +1,9 @@
 use crate::dice::Dice;
-use crate::warrior::body::body_part::{BodyPartKind, GetRandomFunctionalBodyPart};
+use crate::warrior::body::body_part::{BodyPartKind, RandomFunctionalBodyPart};
 use crate::warrior::body::body_side::BodySide;
-use crate::warrior::protection::{GetRandomProtectedBodyPart, Protectable};
+use crate::warrior::protection::Protectable;
 use super::fight_action::{ApplyFightActionResult, ShowFightActionResult};
+use super::parry::ParryAttemptResult;
 use super::{IsUnconscious, RollDamage, TakeDamage};
 use crate::warrior::Warrior;
 use std::u8::MAX;
@@ -53,44 +54,20 @@ impl CriticalHitResult {
             3 | 4 => Self::new(CriticalHitKind::ReallyDeepIncision, None),
             5 | 6 => Self::new(
                 CriticalHitKind::ImpressiveWoundAndArmorDamage,
-                Some(victim.body().get_random_functional_body_part()),
+                Some(victim.body().random_functional_body_part()),
             ),
-            7 | 8 => {
-                let protected_body_part = victim.body().get_random_protected_body_part();
-                let body_part = if protected_body_part.is_none() {
-                    protected_body_part
-                } else {
-                    Some(victim.body().get_random_functional_body_part())
-                };
-                Self::new(
-                    CriticalHitKind::PreciseHitAndArmorDamage,
-                    body_part,
-                )
-            },
-            9 | 10 => {
-                let protected_body_part = victim.body().get_random_protected_body_part();
-                let body_part = if protected_body_part.is_none() {
-                    protected_body_part
-                } else {
-                    Some(victim.body().get_random_functional_body_part())
-                };
-                Self::new(
-                    CriticalHitKind::AccurateHeavyBlowAndArmorDamage,
-                    body_part,
-                )
-            },
-            11 => {
-                let protected_body_part = victim.body().get_random_protected_body_part();
-                let body_part = if protected_body_part.is_none() {
-                    protected_body_part
-                } else {
-                    Some(victim.body().get_random_functional_body_part())
-                };
-                Self::new(
-                    CriticalHitKind::PartOfTheArmorIsDestroyed,
-                    body_part,
-                )
-            },
+            7 | 8 => Self::new(
+                CriticalHitKind::PreciseHitAndArmorDamage,
+                Some(victim.body().random_protected_body_part_fallback_functional()),
+            ),
+            9 | 10 => Self::new(
+                CriticalHitKind::AccurateHeavyBlowAndArmorDamage,
+                Some(victim.body().random_protected_body_part_fallback_functional()),
+            ),
+            11 => Self::new(
+                CriticalHitKind::PartOfTheArmorIsDestroyed,
+                Some(victim.body().random_protected_body_part_fallback_functional()),
+            ),
             12 => Self::new(CriticalHitKind::GougedEye, None),
             13 => Self::new(
                 CriticalHitKind::SeveredHand,
@@ -116,14 +93,23 @@ impl CriticalHitResult {
         }
     }
 
-    pub fn roll_blunt() -> Self {
+    pub fn roll_blunt(victim: &Warrior) -> Self {
         match Dice::D20.roll() {
             1 | 2 => Self::new(CriticalHitKind::ImpressiveBruise, None),
             3 | 4 => Self::new(CriticalHitKind::ImpressiveBruiseAndLimbDislocation, None),
             5 | 6 => Self::new(CriticalHitKind::RibFacture, None),
-            7 | 8 => Self::new(CriticalHitKind::PreciseHitAndArmorDamage, None),
-            9 | 10 => Self::new(CriticalHitKind::AccurateHeavyBlowAndArmorDamage, None),
-            11 => Self::new(CriticalHitKind::PartOfTheArmorIsDestroyed, None),
+            7 | 8 => Self::new(
+                CriticalHitKind::PreciseHitAndArmorDamage,
+                Some(victim.body().random_protected_body_part_fallback_functional()),
+            ),
+            9 | 10 => Self::new(
+                CriticalHitKind::AccurateHeavyBlowAndArmorDamage,
+                Some(victim.body().random_protected_body_part_fallback_functional())
+            ),
+            11 => Self::new(
+                CriticalHitKind::PartOfTheArmorIsDestroyed,
+                Some(victim.body().random_protected_body_part_fallback_functional())
+            ),
             12 => Self::new(CriticalHitKind::KneeDislocation, None),
             13 => Self::new(CriticalHitKind::BrokenHand, None),
             14 => Self::new(CriticalHitKind::SmashedFoot, None),
@@ -219,12 +205,18 @@ impl ShowFightActionResult for CriticalHitResult {
                 println!("{} opened {}'s skull wide", assailant.name(), victim.name());
             }
             CriticalHitKind::PartOfTheArmorIsDestroyed => {
-                println!(
-                    "{} destroyed {}'s {}",
-                    assailant.name(),
-                    victim.name(),
-                    self.display_protection_or_limb(victim),
-                );
+                let body_part = self.body_part.as_ref().unwrap();
+                let precise_target = victim.body().body_part(body_part);
+                if precise_target.is_protected() {
+                    println!(
+                        "{} destroyed {}'s {}",
+                        assailant.name(),
+                        victim.name(),
+                        self.display_protection_or_limb(victim),
+                    )
+                } else {
+                    ParryAttemptResult::Failure.show_fight_action_result(assailant, victim)
+                }
             }
             CriticalHitKind::PreciseHitAndArmorDamage => {
                 println!(

@@ -28,8 +28,8 @@ impl Display for BodyPartKind {
     }
 }
 
-pub trait GetRandomFunctionalBodyPart {
-    fn get_random_functional_body_part(&self) -> BodyPartKind;
+pub trait RandomFunctionalBodyPart {
+    fn random_functional_body_part(&self) -> BodyPartKind;
 }
 
 #[derive(Debug)]

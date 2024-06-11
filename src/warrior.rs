@@ -154,7 +154,7 @@ impl CriticalHitOn for Warrior {
         if self.weapon.is_sharp() {
             CriticalHitResult::roll_sharp(target)
         } else {
-            CriticalHitResult::roll_blunt()
+            CriticalHitResult::roll_blunt(target)
         }
     }
 }

@@ -5,8 +5,8 @@ use crate::modifiers::Modifier;
 
 use super::body::body_part::BodyPartKind;
 
-pub trait GetRandomProtectedBodyPart {
-    fn get_random_protected_body_part(&self) -> Option<BodyPartKind>;
+pub trait RandomProtectedBodyPart {
+    fn random_protected_body_part(&self) -> Option<BodyPartKind>;
 }
 
 pub trait Protectable {

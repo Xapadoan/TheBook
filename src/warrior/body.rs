@@ -3,10 +3,10 @@ pub mod body_side;
 
 use rand::Rng;
 
-use body_part::{BodyPart, BodyPartKind, GetRandomFunctionalBodyPart};
+use body_part::{BodyPart, BodyPartKind, RandomFunctionalBodyPart};
 use body_side::BodySide;
 use crate::fight_mechanics::ApplyDamageModifier;
-use super::protection::{Protection, WearProtection, GetRandomProtectedBodyPart, Protectable};
+use super::protection::{Protection, WearProtection, RandomProtectedBodyPart, Protectable};
 
 #[derive(Debug)]
 pub struct Body {
@@ -99,6 +99,15 @@ impl Body {
             BodyPartKind::Torso => &self.torso,
         }
     }
+
+    pub fn random_protected_body_part_fallback_functional(&self) -> BodyPartKind {
+        let protected_body_part = self.random_protected_body_part();
+        if protected_body_part.is_some() {
+            protected_body_part.unwrap()
+        } else {
+            self.random_functional_body_part()
+        }
+    }
 }
 
 impl ApplyDamageModifier for Body {
@@ -187,8 +196,8 @@ impl WearProtection for Body {
     }
 }
 
-impl GetRandomFunctionalBodyPart for Body {
-    fn get_random_functional_body_part(&self) -> BodyPartKind {
+impl RandomFunctionalBodyPart for Body {
+    fn random_functional_body_part(&self) -> BodyPartKind {
         let mut functional_body_parts: Vec<BodyPartKind> = Vec::new();
         if !self.head.is_severed() {
             functional_body_parts.push(BodyPartKind::Head);
@@ -221,16 +230,17 @@ impl GetRandomFunctionalBodyPart for Body {
             functional_body_parts.push(BodyPartKind::Leg(BodySide::Right));
         }
 
-        if functional_body_parts.len() < 1 {
+        if functional_body_parts.len() < 2 {
             panic!("Called get_random_functional_body_part on a dead body");
         }
+
         let random_index = rand::thread_rng().gen_range(0..functional_body_parts.len() - 1);
         functional_body_parts.swap_remove(random_index)
     }
 }
 
-impl GetRandomProtectedBodyPart for Body {
-    fn get_random_protected_body_part(&self) -> Option<BodyPartKind> {
+impl RandomProtectedBodyPart for Body {
+    fn random_protected_body_part(&self) -> Option<BodyPartKind> {
         let mut armored_body_parts: Vec<BodyPartKind> = Vec::new();
         if !self.head.is_severed() && self.head.is_protected() {
             armored_body_parts.push(BodyPartKind::Head);
@@ -264,8 +274,11 @@ impl GetRandomProtectedBodyPart for Body {
         }
 
         if armored_body_parts.len() < 1 {
-            return None
+            return None;
+        } else if armored_body_parts.len() == 1 {
+            return Some(armored_body_parts.swap_remove(0));
         }
+
         let random_index = rand::thread_rng().gen_range(0..armored_body_parts.len() - 1);
         Some(armored_body_parts.swap_remove(random_index))
     }
