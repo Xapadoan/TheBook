@@ -22,12 +22,14 @@ impl ShowFightActionResult for AttackAttemptResult {
 
 impl ApplyFightActionResult for AttackAttemptResult {
     fn apply_fight_action_result(&self, assailant: &mut Warrior, victim: &mut Warrior) {
+        if victim.must_miss_parry() {
+            victim.miss_parry();
+        }
         match self {
             AttackAttemptResult::CriticalFailure => {},
             AttackAttemptResult::Failure => {},
             AttackAttemptResult::Success => {
                 if victim.must_miss_parry() {
-                    victim.miss_parry();
                     ParryAttemptResult::Failure.show_fight_action_result(assailant, victim);
                     ParryAttemptResult::Failure.apply_fight_action_result(assailant, victim);
                     return;
@@ -37,9 +39,6 @@ impl ApplyFightActionResult for AttackAttemptResult {
                 parry_attempt_result.apply_fight_action_result(assailant, victim);
             },
             AttackAttemptResult::CriticalSuccess => {
-                if victim.must_miss_parry() {
-                    victim.miss_parry();
-                }
                 let crit_consequence = assailant.critical_hit_on(victim);
                 crit_consequence.show_fight_action_result(assailant, victim);
                 crit_consequence.apply_fight_action_result(assailant, victim);
