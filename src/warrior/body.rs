@@ -24,8 +24,11 @@ pub struct Body {
     right_arm: BodyPart,
     left_foot: BodyPart,
     right_foot: BodyPart,
+    left_knee: BodyPart,
+    right_knee: BodyPart,
     left_leg: BodyPart,
     right_leg: BodyPart,
+    genitals: BodyPart,
 }
 
 impl Body {
@@ -41,13 +44,17 @@ impl Body {
             right_arm: BodyPart::new(BodyPartKind::Arm(BodySide::Right)),
             left_foot: BodyPart::new(BodyPartKind::Foot(BodySide::Left)),
             right_foot: BodyPart::new(BodyPartKind::Foot(BodySide::Right)),
+            left_knee: BodyPart::new(BodyPartKind::Knee(BodySide::Left)),
+            right_knee: BodyPart::new(BodyPartKind::Knee(BodySide::Right)),
             left_leg: BodyPart::new(BodyPartKind::Arm(BodySide::Left)),
             right_leg: BodyPart::new(BodyPartKind::Leg(BodySide::Right)),
+            genitals: BodyPart::new(BodyPartKind::Genitals),
         }
     }
 
     pub fn body_part_mut(&mut self, body_part: &BodyPartKind) -> &mut BodyPart {
         match body_part {
+            BodyPartKind::Genitals => &mut self.genitals,
             BodyPartKind::Eye(side) => match side {
                 BodySide::Left => &mut self.left_eye,
                 BodySide::Right => &mut self.right_eye,
@@ -65,6 +72,10 @@ impl Body {
                 BodySide::Left => &mut self.left_foot,
                 BodySide::Right => &mut self.right_foot,
             },
+            BodyPartKind::Knee(side) => match side {
+                BodySide::Left => &mut self.left_knee,
+                BodySide::Right => &mut self.right_knee,
+            }
             BodyPartKind::Leg(side) => match side {
                 BodySide::Left => &mut self.left_leg,
                 BodySide::Right => &mut self.right_leg,
@@ -75,6 +86,7 @@ impl Body {
 
     pub fn body_part(&self, body_part: &BodyPartKind) -> &BodyPart {
         match body_part {
+            BodyPartKind::Genitals => &self.genitals,
             BodyPartKind::Eye(side) => match side {
                 BodySide::Left => &self.left_eye,
                 BodySide::Right => &self.right_eye,
@@ -91,6 +103,10 @@ impl Body {
             BodyPartKind::Foot(side) => match side {
                 BodySide::Left => &self.left_foot,
                 BodySide::Right => &self.right_foot,
+            }
+            BodyPartKind::Knee(side) => match side {
+                BodySide::Left => &self.left_knee,
+                BodySide::Right => &self.right_knee,
             }
             BodyPartKind::Leg(side) => match side {
                 BodySide::Left => &self.left_leg,
@@ -122,8 +138,11 @@ impl ApplyDamageModifier for Body {
         base = self.right_arm.apply_damage_modifier(base);
         base = self.left_foot.apply_damage_modifier(base);
         base = self.right_foot.apply_damage_modifier(base);
+        base = self.left_knee.apply_damage_modifier(base);
+        base = self.right_knee.apply_damage_modifier(base);
         base = self.left_leg.apply_damage_modifier(base);
         base = self.right_leg.apply_damage_modifier(base);
+        base = self.genitals.apply_damage_modifier(base);
         return base;
     }
 }
@@ -131,6 +150,7 @@ impl ApplyDamageModifier for Body {
 impl WearProtection for Body {
     fn can_wear_protection(&self, protection: &Protection, body_part: BodyPartKind) -> bool {
         let is_already_protected = match body_part {
+            BodyPartKind::Genitals => false,
             BodyPartKind::Eye(_) => false,
             BodyPartKind::Hand(ref side) => match side {
                 BodySide::Left => self.left_hand.is_protected(),
@@ -145,6 +165,7 @@ impl WearProtection for Body {
                 BodySide::Left => self.left_foot.is_protected(),
                 BodySide::Right => self.right_foot.is_protected(),
             }
+            BodyPartKind::Knee(_) => false,
             BodyPartKind::Leg(ref side) => match side {
                 BodySide::Left => self.left_leg.is_protected(),
                 BodySide::Right => self.right_leg.is_protected(),
@@ -161,6 +182,7 @@ impl WearProtection for Body {
 
     fn wear_protection(&mut self, protection: Protection, body_part: BodyPartKind) {
         match body_part {
+            BodyPartKind::Genitals => panic!("Trying to wear protection on the genitals"),
             BodyPartKind::Eye(_) => panic!("Trying to wear protection on the eye."),
             BodyPartKind::Hand(side) => match side {
                 BodySide::Left => self.left_hand.attach_protection(protection),
@@ -175,6 +197,7 @@ impl WearProtection for Body {
                 BodySide::Left => self.left_foot.attach_protection(protection),
                 BodySide::Right => self.right_foot.attach_protection(protection),
             }
+            BodyPartKind::Knee(_) => panic!("Trying to wear protection on the knee."),
             BodyPartKind::Leg(side) => match side {
                 BodySide::Left => self.left_leg.attach_protection(protection),
                 BodySide::Right => self.right_leg.attach_protection(protection),
@@ -314,6 +337,12 @@ impl StatModifier for Body {
         if self.right_arm.is_injured() {
             stat = self.right_arm.modify_stat(stat);
         }
+        if self.left_knee.is_injured() {
+            stat = self.left_knee.modify_stat(stat);
+        }
+        if self.right_knee.is_injured() {
+            stat = self.right_knee.modify_stat(stat);
+        }
         if self.right_foot.is_injured() {
             stat = self.right_foot.modify_stat(stat);
         }
@@ -322,6 +351,9 @@ impl StatModifier for Body {
         }
         if self.torso.is_injured() {
             stat = self.torso.modify_stat(stat);
+        }
+        if self.genitals.is_injured() {
+            stat = self.genitals.modify_stat(stat);
         }
         stat
     }

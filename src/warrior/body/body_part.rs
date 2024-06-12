@@ -5,7 +5,7 @@ use crate::fight_mechanics::ApplyDamageModifier;
 use super::super::stats::{Stat, StatModifier};
 use super::super::protection::{Destroyable, Protection, Protectable};
 use super::body_side::BodySide;
-use super::injury::{Injury, MayBeInjured};
+use super::injury::{Injury, InjuryKind, MayBeInjured};
 
 #[derive(Debug)]
 pub enum BodyPartKind {
@@ -15,7 +15,9 @@ pub enum BodyPartKind {
     Torso,
     Head,
     Foot(BodySide),
+    Knee(BodySide),
     Leg(BodySide),
+    Genitals,
 }
 
 impl Display for BodyPartKind {
@@ -26,8 +28,10 @@ impl Display for BodyPartKind {
             BodyPartKind::Head => write!(f, "head"),
             BodyPartKind::Foot(side) => write!(f, "{side} foot"),
             BodyPartKind::Leg(side) => write!(f, "{side} leg"),
+            BodyPartKind::Knee(side) => write!(f, "{side} knee"),
             BodyPartKind::Torso => write!(f, "torso"),
             BodyPartKind::Eye(side) => write!(f, "{side} eye"),
+            BodyPartKind::Genitals => write!(f, "genitals"),
         }
     }
 }
@@ -40,7 +44,6 @@ pub trait RandomFunctionalBodyPart {
 pub struct BodyPart {
     kind: BodyPartKind,
     protection: Option<Protection>,
-    is_severed: bool,
     injuries: Vec<Injury>,
 }
 
@@ -49,22 +52,12 @@ impl BodyPart {
         Self {
             kind,
             protection: None,
-            is_severed: false,
             injuries: Vec::new(),
         }
     }
 
     pub fn kind(&self) -> &BodyPartKind {
         &self.kind
-    }
-
-    pub fn is_severed(&self) -> bool {
-        self.is_severed
-    }
-
-    pub fn sever(&mut self) -> Option<Protection> {
-        self.is_severed = true;
-        self.detach_protection()
     }
 }
 
@@ -105,11 +98,75 @@ impl MayBeInjured for BodyPart {
         self.injuries.len() > 0        
     }
 
+    fn is_broken(&self) -> bool {
+        for injury in self.injuries() {
+            match injury.kind() {
+                InjuryKind::Broken => return true,
+                _ => {},
+            }
+        }
+        false
+    }
+
+    fn is_dislocated(&self) -> bool {
+        for injury in self.injuries() {
+            match injury.kind() {
+                InjuryKind::Dislocated => return true,
+                _ => {},
+            }
+        }
+        false
+    }
+
+    fn is_gouged(&self) -> bool {
+        for injury in self.injuries() {
+            match injury.kind() {
+                InjuryKind::Gouged => return true,
+                _ => {},
+            }
+        }
+        false
+    }
+
+    fn is_severed(&self) -> bool {
+        for injury in self.injuries() {
+            match injury.kind() {
+                InjuryKind::Severed => return true,
+                _ => {},
+            }
+        }
+        false
+    }
+
     fn injuries(&self) -> &Vec<Injury> {
         &self.injuries
     }
 
     fn add_injury(&mut self, injury: Injury) {
+        match injury.kind() {
+            InjuryKind::Severed => self.injuries.clear(),
+            InjuryKind::Broken => self.injuries.retain(
+                |injury|
+                match injury.kind() {
+                    InjuryKind::Broken | InjuryKind::Dislocated => false,
+                    _ => true,
+                }
+            ),
+            InjuryKind::Gouged => self.injuries.retain(
+                |injury|
+                match injury.kind() {
+                    InjuryKind::Gouged => false,
+                    _ => true,
+                }
+            ),
+            InjuryKind::Dislocated => self.injuries.retain(
+                |injury|
+                match injury.kind() {
+                    InjuryKind::Dislocated => false,
+                    _ => true,
+                }
+            )
+        }
         self.injuries.push(injury);
     }
 }
