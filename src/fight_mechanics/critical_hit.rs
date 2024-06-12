@@ -2,7 +2,7 @@ use crate::dice::Dice;
 use crate::equipment::{HasRupture, RuptureTestResult};
 use crate::warrior::body::body_part::{BodyPartKind, RandomFunctionalBodyPart};
 use crate::warrior::body::body_side::BodySide;
-use crate::warrior::protection::Protectable;
+use crate::warrior::protection::{Protectable, RandomProtectedBodyPart};
 use crate::warrior::body::injury::{Injury, InjuryKind, MayBeInjured};
 use super::fight_action::{ApplyFightActionResult, ShowFightActionResult};
 use super::parry::ParryAttemptResult;
@@ -16,7 +16,7 @@ pub enum CriticalHitKind {
     ImpressiveWoundAndArmorDamage,
     PreciseHitAndArmorDamage,
     AccurateHeavyBlowAndArmorDamage,
-    PartOfTheArmorIsDestroyed,
+    PartOfTheArmorIsDestroyed(RuptureTestResult),
     GougedEye,
     SeveredHand,
     SeveredFoot,
@@ -66,10 +66,15 @@ impl CriticalHitResult {
                 CriticalHitKind::AccurateHeavyBlowAndArmorDamage,
                 Some(victim.body().random_protected_body_part_fallback_functional()),
             ),
-            11 => Self::new(
-                CriticalHitKind::PartOfTheArmorIsDestroyed,
-                Some(victim.body().random_protected_body_part_fallback_functional()),
-            ),
+            11 => match victim.body().random_protected_body_part() {
+                Some(part) => Self::new(
+                    CriticalHitKind::PartOfTheArmorIsDestroyed(
+                        victim.body().body_part(&part).protected_by().unwrap().rupture_test()
+                    ),
+                    Some(part),
+                ),
+                None => Self::new(CriticalHitKind::DeepIncision, None),
+            },
             12 => Self::new(
                 CriticalHitKind::GougedEye,
                 Some(BodyPartKind::Eye(BodySide::random()))),
@@ -125,10 +130,15 @@ impl CriticalHitResult {
                 CriticalHitKind::AccurateHeavyBlowAndArmorDamage,
                 Some(victim.body().random_protected_body_part_fallback_functional())
             ),
-            11 => Self::new(
-                CriticalHitKind::PartOfTheArmorIsDestroyed,
-                Some(victim.body().random_protected_body_part_fallback_functional())
-            ),
+            11 => match victim.body().random_protected_body_part() {
+                Some(part) => Self::new(
+                    CriticalHitKind::PartOfTheArmorIsDestroyed(
+                        victim.body().body_part(&part).protected_by().unwrap().rupture_test()
+                    ),
+                    Some(part),
+                ),
+                None => Self::new(CriticalHitKind::DeepIncision, None),
+            },
             12 => Self::new(
                 CriticalHitKind::KneeDislocation,
                 Some(BodyPartKind::Knee(BodySide::random())),
@@ -187,7 +197,7 @@ impl CriticalHitResult {
 
 impl ShowFightActionResult for CriticalHitResult {
     fn show_fight_action_result(&self, assailant: &Warrior, victim: &Warrior) {
-        match self.kind {
+        match &self.kind {
             CriticalHitKind::AccurateHeavyBlowAndArmorDamage => {
                 println!(
                     "{} hits {} heavily, damaging his {}",
@@ -256,18 +266,15 @@ impl ShowFightActionResult for CriticalHitResult {
             CriticalHitKind::OpenSkullFacture => {
                 println!("{} opened {}'s skull wide", assailant.name(), victim.name());
             }
-            CriticalHitKind::PartOfTheArmorIsDestroyed => {
-                let body_part = self.body_part.as_ref().unwrap();
-                let precise_target = victim.body().body_part(body_part);
-                if precise_target.is_protected() {
-                    println!(
+            CriticalHitKind::PartOfTheArmorIsDestroyed(rupture_test_result) => {
+                match rupture_test_result {
+                    RuptureTestResult::Fail => println!(
                         "{} destroyed {}'s {}",
                         assailant.name(),
                         victim.name(),
                         self.display_protection_or_limb(victim),
-                    )
-                } else {
-                    ParryAttemptResult::Failure.show_fight_action_result(assailant, victim)
+                    ),
+                    RuptureTestResult::Success => ParryAttemptResult::Failure.show_fight_action_result(assailant, victim)
                 }
             }
             CriticalHitKind::PreciseHitAndArmorDamage => {
@@ -329,7 +336,7 @@ impl ShowFightActionResult for CriticalHitResult {
 impl ApplyFightActionResult for CriticalHitResult {
     fn apply_fight_action_result(&self, assailant: &mut Warrior, victim: &mut Warrior) {
         let mut damage = assailant.roll_damage();
-        match self.kind {
+        match &self.kind {
             CriticalHitKind::DeepIncision => damage += 1,
             CriticalHitKind::ReallyDeepIncision => damage += 2,
             CriticalHitKind::ImpressiveWoundAndArmorDamage => {
@@ -344,14 +351,12 @@ impl ApplyFightActionResult for CriticalHitResult {
                 self.damage_victim_armor(victim, 1);
                 damage += 5;
             },
-            CriticalHitKind::PartOfTheArmorIsDestroyed => {
+            CriticalHitKind::PartOfTheArmorIsDestroyed(rupture_test_result) => {
                 let body_part = victim.body_mut().body_part_mut(self.body_part.as_ref().unwrap());
-                match body_part.protected_by_mut() {
-                    Some(protection) => match protection.rupture_test() {
-                        RuptureTestResult::Success => protection.damage_rupture(1),
-                        RuptureTestResult::Fail => protection.damage_rupture(MAX),
-                    },
-                    None => {},
+                let protection = body_part.protected_by_mut().unwrap();
+                match rupture_test_result {
+                    RuptureTestResult::Success => protection.damage_rupture(1),
+                    RuptureTestResult::Fail => protection.damage_rupture(MAX),
                 }
             },
             CriticalHitKind::GougedEye => {
