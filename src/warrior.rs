@@ -22,12 +22,14 @@ use crate::fight_mechanics::ApplyDamageModifier;
 use crate::fight_mechanics::CanMissAssaults;
 use crate::fight_mechanics::CanMissParries;
 use crate::fight_mechanics::CriticalHitOn;
-use crate::fight_mechanics::CriticalParry;
+use crate::fight_mechanics::critical_parry::CriticalParry;
 use crate::fight_mechanics::IsDead;
 use crate::fight_mechanics::IsUnconscious;
 use crate::fight_mechanics::TakeReducibleDamage;
 use crate::fight_mechanics::{ParryAttempt, AttackAttempt, TemporaryHandicap};
 use crate::fight_mechanics::{RollDamage, TakeDamage};
+use crate::modifiers::Modifier;
+use crate::weapon::CanHaveWeapon;
 use crate::weapon::Weapon;
 
 #[derive(Debug)]
@@ -35,7 +37,7 @@ pub struct Warrior {
     name: String,
     stats_manager: StatsManager,
     health: u8,
-    weapon: Weapon,
+    weapon: Option<Weapon>,
     assaults_miss: Option<AssaultsMiss>,
     parries_miss: Option<ParriesMiss>,
     is_dead: bool,
@@ -44,12 +46,12 @@ pub struct Warrior {
 }
 
 impl Warrior {
-    pub fn new(name: &str, weapon: Weapon) -> Self {
+    pub fn new(name: &str) -> Self {
         Self {
             name: String::from(name),
             stats_manager: StatsManager::new(),
             health: 30,
-            weapon,
+            weapon: None,
             assaults_miss: None,
             parries_miss: None,
             is_dead: false,
@@ -141,6 +143,9 @@ impl AttackAttempt for Warrior {
 
 impl ParryAttempt for Warrior {
     fn parry_attempt(&self) -> ParryAttemptResult {
+        if self.weapon.is_none() {
+            return ParryAttemptResult::Failure;
+        }
         let success_threshold = self.modify_stat(self.stats_manager.parry_stat());
         match Dice::D6.test_roll(Stat::consume(success_threshold)) {
             RollResult::CriticalSuccess => ParryAttemptResult::CriticalSuccess,
@@ -153,7 +158,12 @@ impl ParryAttempt for Warrior {
 
 impl CriticalHitOn for Warrior {
     fn critical_hit_on(&self, target: &Warrior) -> CriticalHitResult {
-        if self.weapon.is_sharp() {
+        if self.weapon.is_none() {
+            println!("[WARN] bear hands fights is not implemented yet !");
+            return CriticalHitResult::roll_blunt(target);
+        }
+
+        if self.weapon.as_ref().unwrap().is_sharp() {
             CriticalHitResult::roll_sharp(target)
         } else {
             CriticalHitResult::roll_blunt(target)
@@ -201,7 +211,10 @@ impl TakeDamage for Warrior {
 
 impl RollDamage for Warrior {
     fn roll_damage(&self) -> u8 {
-        self.weapon.roll_damage()
+        match &self.weapon {
+            Some(weapon) => weapon.roll_damage(),
+            None => Modifier::new(-2).apply(Dice::D6.roll()),
+        }
     }
 }
 
@@ -230,8 +243,40 @@ impl WearProtection for Warrior {
 impl StatModifier for Warrior {
     fn modify_stat(&self, base: Stat) -> Stat {
         let mut stat = base;
-        stat = self.weapon.modify_stat(stat);
+        stat = match &self.weapon {
+            Some(weapon) => weapon.modify_stat(stat),
+            None => match stat {
+                Stat::Attack(attack) => Stat::Attack(Modifier::new(-4).apply(attack)),
+                Stat::Parry(_) => stat,
+            }
+        };
         stat = self.body.modify_stat(stat);
         stat
+    }
+}
+
+impl CanHaveWeapon for Warrior {
+    fn drop_weapon(&mut self) -> Option<Weapon> {
+        if self.weapon.is_none() {
+            None
+        } else {
+            self.weapon.take()
+        }
+    }
+
+    fn has_weapon(&self) -> bool {
+        self.weapon.is_some()
+    }
+
+    fn take_weapon(&mut self, weapon: Weapon) {
+        self.weapon = Some(weapon)
+    }
+
+    fn weapon(&self) -> Option<&Weapon> {
+        self.weapon.as_ref()
+    }
+
+    fn weapon_mut(&mut self) -> Option<&mut Weapon> {
+        self.weapon.as_mut()
     }
 }

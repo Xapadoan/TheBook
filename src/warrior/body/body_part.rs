@@ -1,9 +1,10 @@
 use std::fmt::Display;
 
 use crate::fight_mechanics::ApplyDamageModifier;
+use crate::equipment::HasRupture;
 
 use super::super::stats::{Stat, StatModifier};
-use super::super::protection::{Destroyable, Protection, Protectable};
+use super::super::protection::{Protection, Protectable};
 use super::body_side::BodySide;
 use super::injury::{Injury, InjuryKind, MayBeInjured};
 

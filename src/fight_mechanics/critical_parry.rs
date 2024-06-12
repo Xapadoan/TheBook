@@ -1,4 +1,9 @@
+use std::u8::MAX;
+
+use crate::equipment::{HasRupture, RuptureTestResult};
 use crate::warrior::Warrior;
+use crate::weapon::CanHaveWeapon;
+use crate::dice::Dice;
 use super::assaults_miss::AssaultsMiss;
 use super::attack::AttackAttemptResult;
 use super::fight_action::{ApplyFightActionResult, ShowFightActionResult};
@@ -6,25 +11,61 @@ use super::parries_miss::ParriesMiss;
 use super::parry::ParryAttemptResult;
 use super::{CanMissAssaults, CanMissParries, CriticalHitOn, TemporaryHandicap};
 
+pub trait CriticalParry {
+    fn critical_parry(&self, assailant: &Warrior) -> CriticalParryResult {
+        match Dice::D20.roll() {
+            1 | 2 => CriticalParryResult::RegularParry,
+            3..=5 => CriticalParryResult::AssailantRepelled,
+            6 | 7 => CriticalParryResult::AssailantTrips,
+            8 | 9 => CriticalParryResult::AssailantFalls,
+            10..=12 => CriticalParryResult::AssailantDropsWeapon,
+            13..=15 => if assailant.has_weapon() {
+                CriticalParryResult::AssailantBreaksWeapon(assailant.weapon().unwrap().rupture_test())
+            } else {
+                CriticalParryResult::RegularParry
+            }
+            16..=18 => CriticalParryResult::AssailantHit,
+            19 => CriticalParryResult::AssailantCriticalHit,
+            20 => CriticalParryResult::AssailantSelfCriticalHit,
+            other => panic!("D20 roll resulted in {other}"),
+        }
+    }
+}
+
 pub enum CriticalParryResult {
     RegularParry,
     AssailantRepelled,
     AssailantTrips,
     AssailantFalls,
     AssailantDropsWeapon,
-    AssailantBreaksWeapon,
+    AssailantBreaksWeapon(RuptureTestResult),
     AssailantHit,
     AssailantCriticalHit,
-    AssailantCriticalHitBySelfWeapon,
+    AssailantSelfCriticalHit,
 }
 
 impl ShowFightActionResult for CriticalParryResult {
     fn show_fight_action_result(&self, assailant: &Warrior, victim: &Warrior) {
         match self {
-            CriticalParryResult::AssailantBreaksWeapon => println!("{} broke {}'s weapon", victim.name(), assailant.name()),
+            CriticalParryResult::AssailantBreaksWeapon(rupture_test_result) => {
+                if !assailant.has_weapon() {
+                    println!("{} has no weapon", assailant.name());
+                } else {
+                    match rupture_test_result {
+                        RuptureTestResult::Fail => println!("{} broke {}'s weapon", victim.name(), assailant.name()),
+                        RuptureTestResult::Success => println!("{} damaged {}'s weapon", victim.name(), assailant.name()),
+                    }
+                }
+            },
             CriticalParryResult::AssailantCriticalHit => println!("{} finds a great counter", victim.name()),
-            CriticalParryResult::AssailantCriticalHitBySelfWeapon => println!("{}'s weapon is repelled against him", assailant.name()),
-            CriticalParryResult::AssailantDropsWeapon => println!("{} dropped his weapon", assailant.name()),
+            CriticalParryResult::AssailantSelfCriticalHit => println!("{}'s weapon is repelled against him", assailant.name()),
+            CriticalParryResult::AssailantDropsWeapon => {
+                if assailant.has_weapon() {
+                    println!("{} dropped his weapon", assailant.name())
+                } else {
+                    println!("{} has no weapon", assailant.name())
+                }
+            },
             CriticalParryResult::AssailantFalls => println!("{} falls to the ground", assailant.name()),
             CriticalParryResult::AssailantHit => println!("{} counters {}'s attack", victim.name(), assailant.name()),
             CriticalParryResult::AssailantRepelled => println!("{} repelled {}", victim.name(), assailant.name()),
@@ -37,21 +78,28 @@ impl ShowFightActionResult for CriticalParryResult {
 impl ApplyFightActionResult for CriticalParryResult {
     fn apply_fight_action_result(&self, assailant: &mut Warrior, victim: &mut Warrior) {
         match self {
-            CriticalParryResult::AssailantBreaksWeapon => {
-                println!("[WARN]: Breaking weapon is not implemented")
+            CriticalParryResult::AssailantBreaksWeapon(rupture_test_result) => {
+                if assailant.has_weapon() {
+                    match rupture_test_result {
+                        RuptureTestResult::Fail => assailant.weapon_mut().unwrap().damage_rupture(MAX),
+                        RuptureTestResult::Success => assailant.weapon_mut().unwrap().damage_rupture(1)
+                    }
+                }
             },
             CriticalParryResult::AssailantCriticalHit => {
                 let crit_consequence = victim.critical_hit_on(assailant);
                 crit_consequence.show_fight_action_result(victim, assailant);
                 crit_consequence.apply_fight_action_result(victim, assailant);
             },
-            CriticalParryResult::AssailantCriticalHitBySelfWeapon => {
+            CriticalParryResult::AssailantSelfCriticalHit => {
                 let crit_consequence = victim.critical_hit_on(assailant);
                 crit_consequence.show_fight_action_result(victim, assailant);
                 crit_consequence.apply_fight_action_result(victim, assailant);
             },
             CriticalParryResult::AssailantDropsWeapon => {
-                println!("[WARN]: Dropping Weapon is not implemented")
+                if assailant.has_weapon() {
+                    assailant.drop_weapon();
+                }
             },
             CriticalParryResult::AssailantFalls => {
                 assailant.will_miss_parries(ParriesMiss::new(2, String::from("he fell on the ground")));

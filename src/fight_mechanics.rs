@@ -8,12 +8,11 @@ pub mod parries_miss;
 
 use critical_hit::CriticalHitResult;
 use assaults_miss::AssaultsMiss;
-use critical_parry::CriticalParryResult;
 use parries_miss::ParriesMiss;
 use parry::ParryAttemptResult;
 use attack::AttackAttemptResult;
 
-use crate::{dice::Dice, warrior::Warrior};
+use crate::warrior::Warrior;
 
 pub trait IsDead {
     fn is_dead(&self) -> bool;
@@ -38,23 +37,6 @@ pub trait RollDamage {
 
 pub trait CriticalHitOn {
     fn critical_hit_on(&self, target: &Warrior) -> CriticalHitResult;
-}
-
-pub trait CriticalParry {
-    fn critical_parry(&self) -> CriticalParryResult {
-        match Dice::D20.roll() {
-            1 | 2 => CriticalParryResult::RegularParry,
-            3..=5 => CriticalParryResult::AssailantRepelled,
-            6 | 7 => CriticalParryResult::AssailantTrips,
-            8 | 9 => CriticalParryResult::AssailantFalls,
-            10..=12 => CriticalParryResult::AssailantDropsWeapon,
-            13..=15 => CriticalParryResult::AssailantBreaksWeapon,
-            16..=18 => CriticalParryResult::AssailantHit,
-            19 => CriticalParryResult::AssailantCriticalHit,
-            20 => CriticalParryResult::AssailantCriticalHitBySelfWeapon,
-            other => panic!("D20 roll resulted in {other}"),
-        }
-    }
 }
 
 pub trait AttackAttempt {

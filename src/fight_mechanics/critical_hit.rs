@@ -1,4 +1,5 @@
 use crate::dice::Dice;
+use crate::equipment::{HasRupture, RuptureTestResult};
 use crate::warrior::body::body_part::{BodyPartKind, RandomFunctionalBodyPart};
 use crate::warrior::body::body_side::BodySide;
 use crate::warrior::protection::Protectable;
@@ -175,11 +176,11 @@ impl CriticalHitResult {
         }
     }
 
-    fn damage_victim_armor(&self, victim: &mut Warrior) {
+    fn damage_victim_armor(&self, victim: &mut Warrior, damage: u8) {
         let part = victim.body_mut().body_part_mut(self.body_part.as_ref().unwrap());
         let protection = part.protected_by_mut();
         if protection.is_some() {
-            protection.unwrap().take_damage(1);
+            protection.unwrap().damage_rupture(damage);
         }
     }
 }
@@ -332,19 +333,26 @@ impl ApplyFightActionResult for CriticalHitResult {
             CriticalHitKind::DeepIncision => damage += 1,
             CriticalHitKind::ReallyDeepIncision => damage += 2,
             CriticalHitKind::ImpressiveWoundAndArmorDamage => {
-                self.damage_victim_armor(victim);
+                self.damage_victim_armor(victim, 1);
                 damage += 3;
             },
             CriticalHitKind::PreciseHitAndArmorDamage => {
-                self.damage_victim_armor(victim);
+                self.damage_victim_armor(victim, 1);
                 damage += 4;
             },
             CriticalHitKind::AccurateHeavyBlowAndArmorDamage => {
-                self.damage_victim_armor(victim);
+                self.damage_victim_armor(victim, 1);
                 damage += 5;
             },
             CriticalHitKind::PartOfTheArmorIsDestroyed => {
-                self.damage_victim_armor(victim);
+                let body_part = victim.body_mut().body_part_mut(self.body_part.as_ref().unwrap());
+                match body_part.protected_by_mut() {
+                    Some(protection) => match protection.rupture_test() {
+                        RuptureTestResult::Success => protection.damage_rupture(1),
+                        RuptureTestResult::Fail => protection.damage_rupture(MAX),
+                    },
+                    None => {},
+                }
             },
             CriticalHitKind::GougedEye => {
                 let eye = victim.body_mut().body_part_mut(self.body_part.as_ref().unwrap());
