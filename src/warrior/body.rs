@@ -14,6 +14,8 @@ use super::stats::{Stat, StatModifier};
 
 #[derive(Debug)]
 pub struct Body {
+    left_eye: BodyPart,
+    right_eye: BodyPart,
     head: BodyPart,
     torso: BodyPart,
     left_hand: BodyPart,
@@ -29,6 +31,8 @@ pub struct Body {
 impl Body {
     pub fn new() -> Self {
         Self {
+            left_eye: BodyPart::new(BodyPartKind::Eye(BodySide::Left)),
+            right_eye: BodyPart::new(BodyPartKind::Eye(BodySide::Right)),
             head: BodyPart::new(BodyPartKind::Head),
             torso: BodyPart::new(BodyPartKind::Torso),
             left_hand: BodyPart::new(BodyPartKind::Hand(BodySide::Left)),
@@ -44,62 +48,54 @@ impl Body {
 
     pub fn body_part_mut(&mut self, body_part: &BodyPartKind) -> &mut BodyPart {
         match body_part {
-            BodyPartKind::Hand(side) => {
-                match side {
-                    BodySide::Left => &mut self.left_hand,
-                    BodySide::Right => &mut self.right_hand,
-                }
-            },
-            BodyPartKind::Arm(side) => {
-                match side {
-                    BodySide::Left => &mut self.left_arm,
-                    BodySide::Right => &mut self.right_arm,
-                }
-            },
+            BodyPartKind::Eye(side) => match side {
+                BodySide::Left => &mut self.left_eye,
+                BodySide::Right => &mut self.right_eye,
+            }
+            BodyPartKind::Hand(side) => match side {
+                BodySide::Left => &mut self.left_hand,
+                BodySide::Right => &mut self.right_hand,
+            }
+            BodyPartKind::Arm(side) => match side {
+                BodySide::Left => &mut self.left_arm,
+                BodySide::Right => &mut self.right_arm,
+            }
             BodyPartKind::Head => &mut self.head,
-            BodyPartKind::Foot(side) => {
-                match side {
-                    BodySide::Left => &mut self.left_foot,
-                    BodySide::Right => &mut self.right_foot,
-                }
+            BodyPartKind::Foot(side) => match side {
+                BodySide::Left => &mut self.left_foot,
+                BodySide::Right => &mut self.right_foot,
             },
-            BodyPartKind::Leg(side) => {
-                match side {
-                    BodySide::Left => &mut self.left_leg,
-                    BodySide::Right => &mut self.right_leg,
-                }
-            },
+            BodyPartKind::Leg(side) => match side {
+                BodySide::Left => &mut self.left_leg,
+                BodySide::Right => &mut self.right_leg,
+            }
             BodyPartKind::Torso => &mut self.torso,
         }
     }
 
     pub fn body_part(&self, body_part: &BodyPartKind) -> &BodyPart {
         match body_part {
-            BodyPartKind::Hand(side) => {
-                match side {
-                    BodySide::Left => &self.left_hand,
-                    BodySide::Right => &self.right_hand,
-                }
-            },
-            BodyPartKind::Arm(side) => {
-                match side {
-                    BodySide::Left => &self.left_arm,
-                    BodySide::Right => &self.right_arm,
-                }
-            },
+            BodyPartKind::Eye(side) => match side {
+                BodySide::Left => &self.left_eye,
+                BodySide::Right => &self.right_eye,
+            }
+            BodyPartKind::Hand(side) => match side {
+                BodySide::Left => &self.left_hand,
+                BodySide::Right => &self.right_hand,
+            }
+            BodyPartKind::Arm(side) => match side {
+                BodySide::Left => &self.left_arm,
+                BodySide::Right => &self.right_arm,
+            }
             BodyPartKind::Head => &self.head,
-            BodyPartKind::Foot(side) => {
-                match side {
-                    BodySide::Left => &self.left_foot,
-                    BodySide::Right => &self.right_foot,
-                }
-            },
-            BodyPartKind::Leg(side) => {
-                match side {
-                    BodySide::Left => &self.left_leg,
-                    BodySide::Right => &self.right_leg,
-                }
-            },
+            BodyPartKind::Foot(side) => match side {
+                BodySide::Left => &self.left_foot,
+                BodySide::Right => &self.right_foot,
+            }
+            BodyPartKind::Leg(side) => match side {
+                BodySide::Left => &self.left_leg,
+                BodySide::Right => &self.right_leg,
+            }
             BodyPartKind::Torso => &self.torso,
         }
     }
@@ -116,6 +112,8 @@ impl Body {
 
 impl ApplyDamageModifier for Body {
     fn apply_damage_modifier(&self, mut base: u8) -> u8 {
+        base = self.left_eye.apply_damage_modifier(base);
+        base = self.right_eye.apply_damage_modifier(base);
         base = self.head.apply_damage_modifier(base);
         base = self.torso.apply_damage_modifier(base);
         base = self.left_hand.apply_damage_modifier(base);
@@ -133,31 +131,24 @@ impl ApplyDamageModifier for Body {
 impl WearProtection for Body {
     fn can_wear_protection(&self, protection: &Protection, body_part: BodyPartKind) -> bool {
         let is_already_protected = match body_part {
-            BodyPartKind::Hand(ref side) => {
-                match side {
-                    BodySide::Left => self.left_hand.is_protected(),
-                    BodySide::Right => self.right_hand.is_protected(),
-                }
-            },
-            BodyPartKind::Arm(ref side) => {
-                match side {
-                    BodySide::Left => self.left_arm.is_protected(),
-                    BodySide::Right => self.right_arm.is_protected(),
-                }
-            },
+            BodyPartKind::Eye(_) => false,
+            BodyPartKind::Hand(ref side) => match side {
+                BodySide::Left => self.left_hand.is_protected(),
+                BodySide::Right => self.right_hand.is_protected(),
+            }
+            BodyPartKind::Arm(ref side) => match side {
+                BodySide::Left => self.left_arm.is_protected(),
+                BodySide::Right => self.right_arm.is_protected(),
+            }
             BodyPartKind::Head => self.head.is_protected(),
-            BodyPartKind::Foot(ref side) => {
-                match side {
-                    BodySide::Left => self.left_foot.is_protected(),
-                    BodySide::Right => self.right_foot.is_protected(),
-                }
-            },
-            BodyPartKind::Leg(ref side) => {
-                match side {
-                    BodySide::Left => self.left_leg.is_protected(),
-                    BodySide::Right => self.right_leg.is_protected(),
-                }
-            },
+            BodyPartKind::Foot(ref side) => match side {
+                BodySide::Left => self.left_foot.is_protected(),
+                BodySide::Right => self.right_foot.is_protected(),
+            }
+            BodyPartKind::Leg(ref side) => match side {
+                BodySide::Left => self.left_leg.is_protected(),
+                BodySide::Right => self.right_leg.is_protected(),
+            }
             BodyPartKind::Torso => self.torso.is_protected()
         };
 
@@ -170,31 +161,24 @@ impl WearProtection for Body {
 
     fn wear_protection(&mut self, protection: Protection, body_part: BodyPartKind) {
         match body_part {
-            BodyPartKind::Hand(side) => {
-                match side {
-                    BodySide::Left => self.left_hand.attach_protection(protection),
-                    BodySide::Right => self.right_hand.attach_protection(protection),
-                }
-            },
-            BodyPartKind::Arm(side) => {
-                match side {
-                    BodySide::Left => self.left_arm.attach_protection(protection),
-                    BodySide::Right => self.right_arm.attach_protection(protection),
-                }
-            },
+            BodyPartKind::Eye(_) => panic!("Trying to wear protection on the eye."),
+            BodyPartKind::Hand(side) => match side {
+                BodySide::Left => self.left_hand.attach_protection(protection),
+                BodySide::Right => self.right_hand.attach_protection(protection),
+            }
+            BodyPartKind::Arm(side) => match side {
+                BodySide::Left => self.left_arm.attach_protection(protection),
+                BodySide::Right => self.right_arm.attach_protection(protection),
+            }
             BodyPartKind::Head => self.head.attach_protection(protection),
-            BodyPartKind::Foot(side) => {
-                match side {
-                    BodySide::Left => self.left_foot.attach_protection(protection),
-                    BodySide::Right => self.right_foot.attach_protection(protection),
-                }
-            },
-            BodyPartKind::Leg(side) => {
-                match side {
-                    BodySide::Left => self.left_leg.attach_protection(protection),
-                    BodySide::Right => self.right_leg.attach_protection(protection),
-                }
-            },
+            BodyPartKind::Foot(side) => match side {
+                BodySide::Left => self.left_foot.attach_protection(protection),
+                BodySide::Right => self.right_foot.attach_protection(protection),
+            }
+            BodyPartKind::Leg(side) => match side {
+                BodySide::Left => self.left_leg.attach_protection(protection),
+                BodySide::Right => self.right_leg.attach_protection(protection),
+            }
             BodyPartKind::Torso => self.torso.attach_protection(protection)
         }
     }
@@ -291,15 +275,20 @@ impl RandomProtectedBodyPart for Body {
 impl StatModifier for Body {
     fn modify_stat(&self, base: Stat) -> Stat {
         let mut stat = base;
-        if self.head.is_injured() {
-            stat = if self.head.injuries().len() > 1 {
+        if self.left_eye.is_injured() || self.right_eye.is_injured() {
+            stat = if !self.left_eye.is_injured() {
+                self.right_eye.modify_stat(stat)
+            } else if !self.right_eye.is_injured() {
+                self.left_eye.modify_stat(stat)
+            } else {
                 match stat {
                     Stat::Attack(attack) => Stat::Attack(Modifier::new(-5).apply(attack)),
                     Stat::Parry(parry) => Stat::Parry(Modifier::new(-8).apply(parry)),
                 }
-            } else {
-                self.head.modify_stat(stat)
             }
+        }
+        if self.head.is_injured() {
+            stat = self.head.modify_stat(stat);
         }
         if self.left_arm.is_injured() {
             stat = self.left_arm.modify_stat(stat);

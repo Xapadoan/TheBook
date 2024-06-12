@@ -69,7 +69,9 @@ impl CriticalHitResult {
                 CriticalHitKind::PartOfTheArmorIsDestroyed,
                 Some(victim.body().random_protected_body_part_fallback_functional()),
             ),
-            12 => Self::new(CriticalHitKind::GougedEye, None),
+            12 => Self::new(
+                CriticalHitKind::GougedEye,
+                Some(BodyPartKind::Eye(BodySide::random()))),
             13 => Self::new(
                 CriticalHitKind::SeveredHand,
                 Some(BodyPartKind::Hand(BodySide::random())),
@@ -86,10 +88,22 @@ impl CriticalHitResult {
                 CriticalHitKind::SeveredLeg,
                 Some(BodyPartKind::Leg(BodySide::random()))
             ),
-            17 => Self::new(CriticalHitKind::GenitalsDamage, None),
-            18 => Self::new(CriticalHitKind::VitalOrganDamage, None),
-            19 => Self::new(CriticalHitKind::HeartInjury, None),
-            20 => Self::new(CriticalHitKind::SeriousHeadInjury, None),
+            17 => Self::new(
+                CriticalHitKind::GenitalsDamage,
+                Some(BodyPartKind::Torso)
+            ),
+            18 => Self::new(
+                CriticalHitKind::VitalOrganDamage,
+                Some(BodyPartKind::Torso),
+            ),
+            19 => Self::new(
+                CriticalHitKind::HeartInjury,
+                Some(BodyPartKind::Torso),
+            ),
+            20 => Self::new(
+                CriticalHitKind::SeriousHeadInjury,
+                Some(BodyPartKind::Head)
+            ),
             other => panic!("D20 roll resulted in {other}"),
         }
     }
@@ -98,7 +112,10 @@ impl CriticalHitResult {
         match Dice::D20.roll() {
             1 | 2 => Self::new(CriticalHitKind::ImpressiveBruise, None),
             3 | 4 => Self::new(CriticalHitKind::ImpressiveBruiseAndLimbDislocation, None),
-            5 | 6 => Self::new(CriticalHitKind::RibFacture, None),
+            5 | 6 => Self::new(
+                CriticalHitKind::RibFacture,
+                Some(BodyPartKind::Torso)
+            ),
             7 | 8 => Self::new(
                 CriticalHitKind::PreciseHitAndArmorDamage,
                 Some(victim.body().random_protected_body_part_fallback_functional()),
@@ -131,10 +148,19 @@ impl CriticalHitResult {
                 CriticalHitKind::BrokenLeg,
                 Some(BodyPartKind::Leg(BodySide::random()))
             ),
-            17 => Self::new(CriticalHitKind::CrushedGenitals, None),
+            17 => Self::new(
+                CriticalHitKind::CrushedGenitals,
+                Some(BodyPartKind::Torso),
+            ),
             18 => Self::new(CriticalHitKind::KnockedOut, None),
-            19 => Self::new(CriticalHitKind::OpenSkullFacture, None),
-            20 => Self::new(CriticalHitKind::VitalOrganCrushed, None),
+            19 => Self::new(
+                CriticalHitKind::OpenSkullFacture,
+                Some(BodyPartKind::Head),
+            ),
+            20 => Self::new(
+                CriticalHitKind::VitalOrganCrushed,
+                Some(BodyPartKind::Torso)
+            ),
             other => panic!("D20 roll resulted in {other}"),
         }
     }
@@ -182,7 +208,12 @@ impl ShowFightActionResult for CriticalHitResult {
                 println!("{} hit {}'s genitals", assailant.name(), victim.name());
             }
             CriticalHitKind::GougedEye => {
-                println!("{} gouged {}'s eye", assailant.name(), victim.name());
+                let eye = victim.body().body_part(self.body_part.as_ref().unwrap());
+                if eye.is_severed() {
+                    println!("{}'s {} is already gouged", victim.name(), eye.kind());
+                } else {
+                    println!("{} gouged {}'s eye", assailant.name(), victim.name());
+                }
             }
             CriticalHitKind::HeartInjury => {
                 println!("{} pierced {}'s heart", assailant.name(), victim.name());
@@ -254,7 +285,17 @@ impl ShowFightActionResult for CriticalHitResult {
                 }
             }
             CriticalHitKind::SmashedFoot => {
-                println!("{} smashed {}'s {}", assailant.name(), victim.name(), self.body_part.as_ref().unwrap());
+                let body_part = victim.body().body_part(self.body_part.as_ref().unwrap());
+                if body_part.is_severed() {
+                    println!(
+                        "{} smashed the ground where {}'s {} should have been",
+                        assailant.name(),
+                        victim.name(),
+                        body_part.kind(),
+                    )
+                } else {
+                    println!("{} smashed {}'s {}", assailant.name(), victim.name(), body_part.kind());
+                }
             }
             CriticalHitKind::VitalOrganCrushed => {
                 println!(
@@ -296,7 +337,15 @@ impl ApplyFightActionResult for CriticalHitResult {
                 self.damage_victim_armor(victim);
             },
             CriticalHitKind::GougedEye => {
-                println!("[WARN] deep wounds not implemented");
+                let eye = victim.body_mut().body_part_mut(self.body_part.as_ref().unwrap());
+                if !eye.is_severed() {
+                    eye.sever();
+                    eye.add_injury(Injury::new(
+                        -1,
+                        -2,
+                        format!("{} gouged the {}", assailant.name(), eye.kind()),
+                    ));
+                }
                 damage += 5;
             },
             CriticalHitKind::SeveredHand | CriticalHitKind::SeveredFoot => {
@@ -305,11 +354,9 @@ impl ApplyFightActionResult for CriticalHitResult {
                     body_part.sever();
                     let injury_reason = format!("{} severed the {}", assailant.name(), body_part.kind());
                     let injury = match body_part.kind() {
-                        BodyPartKind::Hand(side) => {
-                            match side {
-                                BodySide::Left => Injury::new(-2, -3, injury_reason),
-                                BodySide::Right => Injury::new(-5, -6, injury_reason),
-                            }
+                        BodyPartKind::Hand(side) => match side {
+                            BodySide::Left => Injury::new(-2, -3, injury_reason),
+                            BodySide::Right => Injury::new(-5, -6, injury_reason),
                         }
                         BodyPartKind::Foot(_) => Injury::new(-2, -2, injury_reason),
                         other => panic!("{other} can't be severed the same way a foot or hand does")
@@ -324,12 +371,10 @@ impl ApplyFightActionResult for CriticalHitResult {
                     arm.sever();
                     let injury_reason = format!("{} severed the {}", assailant.name(), arm.kind());
                     let injury = match arm.kind() {
-                        BodyPartKind::Arm(side) => {
-                            match side {
-                                BodySide::Left => Injury::new(-3, -4, injury_reason),
-                                BodySide::Right => Injury::new(-5, -6, injury_reason),
-                            }
-                        },
+                        BodyPartKind::Arm(side) => match side {
+                            BodySide::Left => Injury::new(-3, -4, injury_reason),
+                            BodySide::Right => Injury::new(-5, -6, injury_reason),
+                        }
                         other => panic!("{other} can't be severed the same way an arm does")
                     };
                     arm.add_injury(injury);
@@ -342,12 +387,10 @@ impl ApplyFightActionResult for CriticalHitResult {
                     leg.sever();
                     let injury_reason = format!("{} severed the {}", assailant.name(), leg.kind());
                     let injury = match leg.kind() {
-                        BodyPartKind::Leg(side) => {
-                            match side {
-                                BodySide::Left => Injury::new(-3, -4, injury_reason),
-                                BodySide::Right => Injury::new(-5, -6, injury_reason),
-                            }
-                        },
+                        BodyPartKind::Leg(side) => match side {
+                            BodySide::Left => Injury::new(-3, -4, injury_reason),
+                            BodySide::Right => Injury::new(-5, -6, injury_reason),
+                        }
                         other => panic!("{other} can't be severed the same way an arm does")
                     };
                     leg.add_injury(injury);
