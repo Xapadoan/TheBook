@@ -1,4 +1,4 @@
-use super::fight_action::{ApplyFightActionResult, ShowFightActionResult};
+use super::fight_action::{ExecuteFightActionResult, ShowFightActionResult};
 use super::critical_parry::CriticalParry;
 use crate::warrior::Warrior;
 use super::{TakeDamage, RollDamage, TakeReducibleDamage};
@@ -20,16 +20,16 @@ impl ShowFightActionResult for ParryAttemptResult {
     }
 }
 
-impl ApplyFightActionResult for ParryAttemptResult {
-    fn apply_fight_action_result(&self, assailant: &mut Warrior, victim: &mut Warrior) {
+impl ExecuteFightActionResult for ParryAttemptResult {
+    fn execute(&mut self, assailant: &mut Warrior, victim: &mut Warrior) {
         match self {
             ParryAttemptResult::CriticalFailure => victim.take_damage(assailant.roll_damage() * 2),
             ParryAttemptResult::Failure => victim.take_reduced_damage(assailant.roll_damage()),
             ParryAttemptResult::Success => {},
             ParryAttemptResult::CriticalSuccess => {
-                let critical_parry_result = victim.critical_parry(assailant);
+                let mut critical_parry_result = victim.critical_parry(assailant);
                 critical_parry_result.show_fight_action_result(assailant, victim);
-                critical_parry_result.apply_fight_action_result(assailant, victim);
+                critical_parry_result.execute(assailant, victim);
             }
         }
     }

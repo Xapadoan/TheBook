@@ -3,6 +3,7 @@ use std::fmt::Display;
 use crate::dice::Dice;
 
 #[derive(Debug)]
+#[derive(Clone)]
 pub enum BodySide {
     Left,
     Right,

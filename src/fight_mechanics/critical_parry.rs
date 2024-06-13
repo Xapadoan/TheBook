@@ -6,7 +6,7 @@ use crate::weapon::CanHaveWeapon;
 use crate::dice::Dice;
 use super::assaults_miss::AssaultsMiss;
 use super::attack::AttackAttemptResult;
-use super::fight_action::{ApplyFightActionResult, ShowFightActionResult};
+use super::fight_action::{ExecuteFightActionResult, ShowFightActionResult};
 use super::parries_miss::ParriesMiss;
 use super::parry::ParryAttemptResult;
 use super::{CanMissAssaults, CanMissParries, CriticalHitOn, TemporaryHandicap};
@@ -75,8 +75,8 @@ impl ShowFightActionResult for CriticalParryResult {
     }
 }
 
-impl ApplyFightActionResult for CriticalParryResult {
-    fn apply_fight_action_result(&self, assailant: &mut Warrior, victim: &mut Warrior) {
+impl ExecuteFightActionResult for CriticalParryResult {
+    fn execute(&mut self, assailant: &mut Warrior, victim: &mut Warrior) {
         match self {
             CriticalParryResult::AssailantBreaksWeapon(rupture_test_result) => {
                 if assailant.has_weapon() {
@@ -87,14 +87,14 @@ impl ApplyFightActionResult for CriticalParryResult {
                 }
             },
             CriticalParryResult::AssailantCriticalHit => {
-                let crit_consequence = victim.critical_hit_on(assailant);
+                let mut crit_consequence = victim.critical_hit_on(assailant);
                 crit_consequence.show_fight_action_result(victim, assailant);
-                crit_consequence.apply_fight_action_result(victim, assailant);
+                crit_consequence.execute(victim, assailant);
             },
             CriticalParryResult::AssailantSelfCriticalHit => {
-                let crit_consequence = victim.critical_hit_on(assailant);
+                let mut crit_consequence = victim.critical_hit_on(assailant);
                 crit_consequence.show_fight_action_result(victim, assailant);
-                crit_consequence.apply_fight_action_result(victim, assailant);
+                crit_consequence.execute(victim, assailant);
             },
             CriticalParryResult::AssailantDropsWeapon => {
                 if assailant.has_weapon() {
@@ -107,7 +107,7 @@ impl ApplyFightActionResult for CriticalParryResult {
                 victim.attack(assailant);
             },
             CriticalParryResult::AssailantHit => {
-                AttackAttemptResult::Success.apply_fight_action_result(victim, assailant);
+                AttackAttemptResult::Success.execute(victim, assailant);
             },
             CriticalParryResult::AssailantRepelled => {
                 assailant.will_miss_assault(AssaultsMiss::new(1, format!("he was repelled by {}", victim.name())));
@@ -117,7 +117,7 @@ impl ApplyFightActionResult for CriticalParryResult {
                 victim.attack(assailant);
             },
             CriticalParryResult::RegularParry => {
-                ParryAttemptResult::Success.apply_fight_action_result(assailant, victim)
+                ParryAttemptResult::Success.execute(assailant, victim)
             }
         }
     }

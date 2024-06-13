@@ -12,7 +12,7 @@ use stats::Stat;
 use crate::dice::Dice;
 use crate::dice::RollResult;
 use crate::fight_mechanics::critical_hit::CriticalHitResult;
-use crate::fight_mechanics::fight_action::ApplyFightActionResult;
+use crate::fight_mechanics::fight_action::ExecuteFightActionResult;
 use crate::fight_mechanics::fight_action::ShowFightActionResult;
 use crate::fight_mechanics::assaults_miss::AssaultsMiss;
 use crate::fight_mechanics::parries_miss::ParriesMiss;
@@ -77,9 +77,9 @@ impl Warrior {
             return;
         }
         println!("{} attacks {}", self.name, target.name);
-        let attack_attempt_result = self.attack_attempt();
+        let mut attack_attempt_result = self.attack_attempt();
         attack_attempt_result.show_fight_action_result(self, target);
-        attack_attempt_result.apply_fight_action_result(self, target);
+        attack_attempt_result.execute(self, target);
     }
 
     pub fn body(&self) -> &Body {

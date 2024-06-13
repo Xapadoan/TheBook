@@ -1,4 +1,6 @@
-use super::{fight_action::{ApplyFightActionResult, ShowFightActionResult}, parry::ParryAttemptResult, CanMissParries};
+use super::fight_action::{ExecuteFightActionResult, ShowFightActionResult};
+use super::parry::ParryAttemptResult;
+use super::CanMissParries;
 use crate::warrior::Warrior;
 use super::{ParryAttempt, CriticalHitOn};
 
@@ -20,8 +22,8 @@ impl ShowFightActionResult for AttackAttemptResult {
     }
 }
 
-impl ApplyFightActionResult for AttackAttemptResult {
-    fn apply_fight_action_result(&self, assailant: &mut Warrior, victim: &mut Warrior) {
+impl ExecuteFightActionResult for AttackAttemptResult {
+    fn execute(&mut self, assailant: &mut Warrior, victim: &mut Warrior) {
         if victim.must_miss_parry() {
             victim.miss_parry();
         }
@@ -31,17 +33,17 @@ impl ApplyFightActionResult for AttackAttemptResult {
             AttackAttemptResult::Success => {
                 if victim.must_miss_parry() {
                     ParryAttemptResult::Failure.show_fight_action_result(assailant, victim);
-                    ParryAttemptResult::Failure.apply_fight_action_result(assailant, victim);
+                    ParryAttemptResult::Failure.execute(assailant, victim);
                     return;
                 }
-                let parry_attempt_result = victim.parry_attempt();
+                let mut parry_attempt_result = victim.parry_attempt();
                 parry_attempt_result.show_fight_action_result(assailant, victim);
-                parry_attempt_result.apply_fight_action_result(assailant, victim);
+                parry_attempt_result.execute(assailant, victim);
             },
             AttackAttemptResult::CriticalSuccess => {
-                let crit_consequence = assailant.critical_hit_on(victim);
+                let mut crit_consequence = assailant.critical_hit_on(victim);
                 crit_consequence.show_fight_action_result(assailant, victim);
-                crit_consequence.apply_fight_action_result(assailant, victim);
+                crit_consequence.execute(assailant, victim);
             }
         }
     }
