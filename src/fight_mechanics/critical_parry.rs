@@ -81,7 +81,10 @@ impl ExecuteFightActionResult for CriticalParryResult {
             CriticalParryResult::AssailantBreaksWeapon(rupture_test_result) => {
                 if assailant.has_weapon() {
                     match rupture_test_result {
-                        RuptureTestResult::Fail => assailant.weapon_mut().unwrap().damage_rupture(MAX),
+                        RuptureTestResult::Fail => {
+                            assailant.weapon_mut().unwrap().damage_rupture(MAX);
+                            assailant.drop_weapon();
+                        },
                         RuptureTestResult::Success => assailant.weapon_mut().unwrap().damage_rupture(1)
                     }
                 }
