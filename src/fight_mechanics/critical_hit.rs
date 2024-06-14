@@ -128,6 +128,7 @@ impl CriticalHitResult {
                             BodySide::Right => (-5, -6),
                         },
                         BodyPartKind::Foot(_) => (-2, -2),
+                        BodyPartKind::Knee(_) => (-1, -2),
                         _ => panic!("Match should not be possible")
                     };
                     Self {
