@@ -23,7 +23,6 @@ use crate::fight_mechanics::CanMissAssaults;
 use crate::fight_mechanics::CanMissParries;
 use crate::fight_mechanics::CriticalHitOn;
 use crate::fight_mechanics::critical_parry::CriticalParry;
-use crate::fight_mechanics::IsDead;
 use crate::fight_mechanics::IsUnconscious;
 use crate::fight_mechanics::TakeReducibleDamage;
 use crate::fight_mechanics::{ParryAttempt, AttackAttempt, TemporaryHandicap};
@@ -40,7 +39,6 @@ pub struct Warrior {
     weapon: Option<Weapon>,
     assaults_miss: Option<AssaultsMiss>,
     parries_miss: Option<ParriesMiss>,
-    is_dead: bool,
     is_unconscious: bool,
     body: Body,
 }
@@ -54,7 +52,6 @@ impl Warrior {
             weapon: None,
             assaults_miss: None,
             parries_miss: None,
-            is_dead: false,
             is_unconscious: false,
             body: Body::new(),
         }
@@ -68,7 +65,14 @@ impl Warrior {
         println!("Hi ! I'm {}", self.name);
     }
 
+    pub fn is_dead(&self) -> bool {
+        self.health < 1
+    }
+
     pub fn attack(&mut self, target: &mut Self) {
+        if !target.has_weapon() {
+            return;
+        }
         if self.is_dead() || self.is_unconscious() {
             return;
         }
@@ -173,17 +177,6 @@ impl CriticalHitOn for Warrior {
 
 impl CriticalParry for Warrior {}
 
-impl IsDead for Warrior {
-    fn is_dead(&self) -> bool {
-        self.is_dead
-    }
-
-    fn set_dead(&mut self) {
-        println!("{} dies", self.name);
-        self.is_dead = true;
-    }
-}
-
 impl IsUnconscious for Warrior {
     fn is_unconscious(&self) -> bool {
         self.is_unconscious
@@ -203,7 +196,6 @@ impl TakeDamage for Warrior {
                 self.set_unconscious();
             }
         } else {
-            self.set_dead();
             self.health = 0;
         }
     }

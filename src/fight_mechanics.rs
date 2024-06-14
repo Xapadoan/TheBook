@@ -14,11 +14,6 @@ use attack::AttackAttemptResult;
 
 use crate::warrior::Warrior;
 
-pub trait IsDead {
-    fn is_dead(&self) -> bool;
-    fn set_dead(&mut self);
-}
-
 pub trait IsUnconscious {
     fn is_unconscious(&self) -> bool;
     fn set_unconscious(&mut self);
