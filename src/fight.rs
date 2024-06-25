@@ -1,3 +1,4 @@
+use crate::virtual_timer::VirtualTimer;
 use crate::warrior::Warrior;
 use crate::fight_mechanics::IsUnconscious;
 use crate::weapon::CanHaveWeapon;
@@ -6,6 +7,7 @@ use crate::weapon::CanHaveWeapon;
 pub struct Fight {
     blue_corner: Warrior,
     red_corner: Warrior,
+    timer: VirtualTimer,
 }
 
 pub struct FightResult {
@@ -28,6 +30,7 @@ impl Fight {
         Self {
             blue_corner,
             red_corner,
+            timer: VirtualTimer::new(),
         }
     }
 
@@ -54,16 +57,20 @@ impl Fight {
         while turn < u8::MAX {
             println!("=== {turn} ===");
             self.blue_corner.attack(&mut self.red_corner);
+            self.timer.add_time(2);
             self.red_corner.attack(&mut self.blue_corner);
+            self.timer.add_time(2);
             println!("\n");
             turn += 1;
+            self.blue_corner.apply_duration_damage(self.timer.absolute_time());
+            self.red_corner.apply_duration_damage(self.timer.absolute_time());
             if self.blue_corner.is_dead() || self.blue_corner.is_unconscious() || !self.blue_corner.has_weapon() {
                 return FightResult {
                     winner: Some(self.red_corner),
                     end_reason: Fight::end_reason(&self.blue_corner),
                 };
             }
-            if self.red_corner.is_dead() || self.red_corner.is_unconscious() || !self.blue_corner.has_weapon() {
+            if self.red_corner.is_dead() || self.red_corner.is_unconscious() || !self.red_corner.has_weapon() {
                 return FightResult {
                     winner: Some(self.blue_corner),
                     end_reason: Fight::end_reason(&self.red_corner),

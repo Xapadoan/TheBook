@@ -5,6 +5,7 @@ pub mod parry;
 pub mod attack;
 pub mod assaults_miss;
 pub mod parries_miss;
+pub mod duration_damage;
 
 use critical_hit::CriticalHitResult;
 use assaults_miss::AssaultsMiss;

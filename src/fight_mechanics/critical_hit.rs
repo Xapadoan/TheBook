@@ -679,7 +679,12 @@ impl ExecuteFightActionResult for CriticalHitResult {
             CriticalHitKind::KnockedOut => victim.set_unconscious(),
             CriticalHitKind::SeveredGenitals |
             CriticalHitKind::VitalOrganDamage => {
-                println!("[WARN] duration damage not implemented")
+                let reason = match self.kind {
+                    CriticalHitKind::SeveredGenitals => format!("{} severed his genitals", assailant.name()),
+                    CriticalHitKind::VitalOrganDamage => format!("{} damage a vital organ", assailant.name()),
+                    _ => panic!("Match should not be possible")
+                };
+                victim.add_duration_damage(reason, 1)
             },
             _ => {},
         }

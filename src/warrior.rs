@@ -12,6 +12,7 @@ use stats::Stat;
 use crate::dice::Dice;
 use crate::dice::RollResult;
 use crate::fight_mechanics::critical_hit::CriticalHitResult;
+use crate::fight_mechanics::duration_damage::DurationDamage;
 use crate::fight_mechanics::fight_action::ExecuteFightActionResult;
 use crate::fight_mechanics::fight_action::ShowFightActionResult;
 use crate::fight_mechanics::assaults_miss::AssaultsMiss;
@@ -41,6 +42,7 @@ pub struct Warrior {
     parries_miss: Option<ParriesMiss>,
     is_unconscious: bool,
     body: Body,
+    duration_damage: Vec<DurationDamage>,
 }
 
 impl Warrior {
@@ -54,6 +56,7 @@ impl Warrior {
             parries_miss: None,
             is_unconscious: false,
             body: Body::new(),
+            duration_damage: Vec::new(),
         }
     }
 
@@ -70,7 +73,7 @@ impl Warrior {
     }
 
     pub fn attack(&mut self, target: &mut Self) {
-        if !target.has_weapon() {
+        if !self.has_weapon() || !target.has_weapon() {
             return;
         }
         if self.is_dead() || self.is_unconscious() {
@@ -92,6 +95,21 @@ impl Warrior {
 
     pub fn body_mut(&mut self) -> &mut Body {
         &mut self.body
+    }
+
+    pub fn apply_duration_damage(&mut self, time_elapsed: u32) {
+        let mut damage = 0;
+        for duration_damage in &self.duration_damage {
+            if duration_damage.should_take_duration_damage(time_elapsed) {
+                damage += duration_damage.roll_damage();
+                println!("{} took duration damage because {}", self.name(), duration_damage.reason());
+            }
+        }
+        self.take_damage(damage);
+    }
+
+    pub fn add_duration_damage(&mut self, reason: String, start_at: u32) {
+        self.duration_damage.push(DurationDamage::new(reason, start_at))
     }
 }
 
