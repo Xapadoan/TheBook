@@ -62,8 +62,8 @@ impl Fight {
             self.timer.add_time(2);
             println!("\n");
             turn += 1;
-            self.blue_corner.apply_duration_damage(self.timer.absolute_time());
-            self.red_corner.apply_duration_damage(self.timer.absolute_time());
+            self.blue_corner.apply_duration_damages(self.timer.absolute_time());
+            self.red_corner.apply_duration_damages(self.timer.absolute_time());
             if self.blue_corner.is_dead() || self.blue_corner.is_unconscious() || !self.blue_corner.has_weapon() {
                 return FightResult {
                     winner: Some(self.red_corner),

@@ -42,7 +42,7 @@ pub struct Warrior {
     parries_miss: Option<ParriesMiss>,
     is_unconscious: bool,
     body: Body,
-    duration_damage: Vec<DurationDamage>,
+    duration_damages: Vec<DurationDamage>,
 }
 
 impl Warrior {
@@ -56,7 +56,7 @@ impl Warrior {
             parries_miss: None,
             is_unconscious: false,
             body: Body::new(),
-            duration_damage: Vec::new(),
+            duration_damages: Vec::new(),
         }
     }
 
@@ -97,19 +97,20 @@ impl Warrior {
         &mut self.body
     }
 
-    pub fn apply_duration_damage(&mut self, time_elapsed: u32) {
-        let mut damage = 0;
-        for duration_damage in &self.duration_damage {
+    pub fn apply_duration_damages(&mut self, time_elapsed: u32) {
+        let mut damages = 0;
+        for duration_damage in &mut self.duration_damages {
             if duration_damage.should_take_duration_damage(time_elapsed) {
-                damage += duration_damage.roll_damage();
-                println!("{} took duration damage because {}", self.name(), duration_damage.reason());
+                damages += duration_damage.roll_damage();
+                duration_damage.add_hit();
+                println!("{} took duration damage because {}", self.name, duration_damage.reason());
             }
         }
-        self.take_damage(damage);
+        self.take_damage(damages)
     }
 
     pub fn add_duration_damage(&mut self, reason: String, start_at: u32) {
-        self.duration_damage.push(DurationDamage::new(reason, start_at))
+        self.duration_damages.push(DurationDamage::new(reason, start_at))
     }
 }
 
