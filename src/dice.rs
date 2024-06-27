@@ -6,16 +6,16 @@ pub enum Dice {
 }
 
 impl Dice {
-    pub fn test_roll(&self, success_threshold: u8) -> RollResult {
+    pub fn test_roll(&self, success_threshold: u8) -> TestRollResult {
         let face = self.roll();
         if face == 1 {
-            RollResult::CriticalSuccess
+            TestRollResult::CriticalSuccess
         } else if face == 20 {
-            RollResult::CriticalFailure
+            TestRollResult::CriticalFailure
         } else if face > success_threshold {
-            RollResult::Failure
+            TestRollResult::Failure
         } else {
-            RollResult::Success
+            TestRollResult::Success
         }
     }
 
@@ -28,7 +28,7 @@ impl Dice {
     }
 }
 
-pub enum RollResult {
+pub enum TestRollResult {
     CriticalSuccess,
     Success,
     Failure,

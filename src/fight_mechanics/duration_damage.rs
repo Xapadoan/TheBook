@@ -39,6 +39,10 @@ impl RollDamage for DurationDamage {
     }
 }
 
+pub trait MayHaveDurationDamage {
+    fn add_duration_damage(&mut self, reason: String, start_at: u32);
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

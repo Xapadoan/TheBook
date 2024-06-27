@@ -358,3 +358,11 @@ impl StatModifier for Body {
         stat
     }
 }
+
+pub trait HasBody {
+    fn body(&self) -> &Body;
+}
+
+pub trait HasMutableBody {
+    fn body_mut(&mut self) -> &mut Body;
+}

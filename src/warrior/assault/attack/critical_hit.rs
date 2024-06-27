@@ -1,14 +1,25 @@
 use crate::dice::Dice;
-use crate::equipment::{HasRupture, RuptureTestResult};
+use crate::equipment::{HasRupture, MayHaveRuptureDamage, MayHaveTestedRupture, RuptureTestResult};
+use crate::fight_mechanics::duration_damage::MayHaveDurationDamage;
 use crate::modifiers::Modifier;
-use crate::warrior::body::body_part::{BodyPartKind, RandomFunctionalBodyPart};
+use crate::warrior::assault::execute_action::ExecuteAction;
+use crate::warrior::assault::parry::parry_attempt::ParryThreshold;
+use crate::warrior::assault::show_action::ShowAction;
+use crate::warrior::assault::Assault;
+use crate::warrior::body::body_part::{BodyPartKind, RandomFunctionalBodyPart, MayTargetBodyPart};
 use crate::warrior::body::body_side::BodySide;
+use crate::warrior::body::{HasBody, HasMutableBody};
 use crate::warrior::protection::{Protectable, RandomProtectedBodyPart};
-use crate::warrior::body::injury::{Injury, InjuryKind, MayBeInjured};
-use super::fight_action::{ExecuteFightActionResult, ShowFightActionResult};
-use super::{ApplyDamageModifier, IsUnconscious, RollDamage, TakeDamage};
+use crate::warrior::body::injury::{Injury, InjuryKind, MayBeInjured, MayCauseInjury, TakeInjury};
+use crate::fight_mechanics::fight_action::ExecuteFightActionResult;
+use crate::fight_mechanics::{ApplyDamageModifier, CanMissAssaults, CanMissParries};
+use crate::warrior::weapon::{MayHaveMutableWeapon, MayHaveWeapon, TakeWeapon};
+use crate::warrior::{IsUnconscious, Name, RollDamage, TakeDamage, TakeReducedDamage};
 use crate::warrior::Warrior;
 
+use super::can_be_attacked::CanBeAttacked;
+
+#[derive(Debug)]
 pub enum CriticalHitKind {
     DeepIncision,
     ReallyDeepIncision,
@@ -39,6 +50,7 @@ pub enum CriticalHitKind {
     VitalOrganCrushed,
 }
 
+#[derive(Debug)]
 pub struct CriticalHitResult {
     kind: CriticalHitKind,
     body_part_kind: Option<BodyPartKind>,
@@ -49,7 +61,7 @@ pub struct CriticalHitResult {
 }
 
 impl CriticalHitResult {
-    fn new(victim: &Warrior, kind: CriticalHitKind) -> Self {
+    fn new<V: HasBody>(victim: &V, kind: CriticalHitKind) -> Self {
         match kind {
             CriticalHitKind::BrokenArm |
             CriticalHitKind::BrokenLeg => {
@@ -459,7 +471,7 @@ impl CriticalHitResult {
         }
     }
 
-    pub fn roll_sharp(victim: &Warrior) -> Self {
+    pub fn roll_sharp<V: HasBody>(victim: &V) -> Self {
         match Dice::D20.roll() {
             1 | 2 => Self::new(victim, CriticalHitKind::DeepIncision),
             3 | 4 => Self::new(victim, CriticalHitKind::ReallyDeepIncision),
@@ -480,7 +492,7 @@ impl CriticalHitResult {
         }
     }
 
-    pub fn roll_blunt(victim: &Warrior) -> Self {
+    pub fn roll_blunt<V: HasBody>(victim: &V) -> Self {
         match Dice::D20.roll() {
             1 | 2 => Self::new(victim, CriticalHitKind::ImpressiveBruise),
             3 | 4 => Self::new(victim, CriticalHitKind::ImpressiveBruiseAndLimbDislocation),
@@ -501,185 +513,249 @@ impl CriticalHitResult {
         }
     }
 
-    fn display_protection_or_limb(&self, victim: &Warrior) -> String {
+    pub fn display_protection_or_limb<V: HasBody>(&self, victim: &V) -> String {
         let body_part = victim.body().body_part(self.body_part_kind.as_ref().unwrap());
         match body_part.protected_by() {
             Some(protection) => protection.to_string(),
             None => body_part.kind().to_string()
         }
     }
-}
 
-impl ShowFightActionResult for CriticalHitResult {
-    fn show_fight_action_result(&self, assailant: &Warrior, victim: &Warrior) {
-        match &self.kind {
-            CriticalHitKind::AccurateHeavyBlowAndArmorDamage => {
-                println!(
-                    "{} hits {} heavily, damaging his {}",
-                    assailant.name(),
-                    victim.name(),
-                    self.display_protection_or_limb(victim),
-                );
-            }
-            CriticalHitKind::BrokenArm | CriticalHitKind::BrokenHand | CriticalHitKind::BrokenLeg => {
-                println!("{} broke {}'s {}", assailant.name(), victim.name(), self.body_part_kind.as_ref().unwrap());
-            }
-            CriticalHitKind::CrushedGenitals => {
-                let genitals = self.body_part_kind.as_ref().unwrap();
-                if victim.body().body_part(genitals).is_severed() {
-                    println!(
-                        "{} smashed the air when {}'s {} should have been",
-                        assailant.name(),
-                        victim.name(),
-                        genitals,
-                    )
-                } else {
-                    println!("{} crushed {}'s genitals", assailant.name(), victim.name());
-                }
-            }
-            CriticalHitKind::DeepIncision => {
-                println!("{} cut {} deeply", assailant.name(), victim.name());
-            }
-            CriticalHitKind::SeveredGenitals => {
-                println!("{} severed {}'s genitals", assailant.name(), victim.name());
-            }
-            CriticalHitKind::GougedEye => {
-                let eye = victim.body().body_part(self.body_part_kind.as_ref().unwrap());
-                if eye.is_severed() {
-                    println!("{}'s {} is already gouged", victim.name(), eye.kind());
-                } else {
-                    println!("{} gouged {}'s eye", assailant.name(), victim.name());
-                }
-            }
-            CriticalHitKind::HeartInjury => {
-                println!("{} pierced {}'s heart", assailant.name(), victim.name());
-            }
-            CriticalHitKind::ImpressiveBruise => {
-                println!("{} bruised {} heavily", assailant.name(), victim.name());
-            }
-            CriticalHitKind::ImpressiveBruiseAndLimbDislocation => {
-                println!(
-                    "{} bruised {} heavily, dislocating a limb",
-                    assailant.name(),
-                    victim.name()
-                );
-            }
-            CriticalHitKind::ImpressiveWoundAndArmorDamage => {
-                println!(
-                    "{} wounded {} deeply, damaging his {}",
-                    assailant.name(),
-                    victim.name(),
-                    self.display_protection_or_limb(victim),
-                );
-            }
-            CriticalHitKind::KneeDislocation => {
-                println!("{} dislocated {}'s knee", assailant.name(), victim.name());
-            }
-            CriticalHitKind::KnockedOut => {
-                println!("{} knocked {} out", assailant.name(), victim.name());
-            }
-            CriticalHitKind::OpenSkullFacture => {
-                println!("{} opened {}'s skull wide", assailant.name(), victim.name());
-            }
-            CriticalHitKind::PartOfTheArmorIsDestroyed => {
-                match &self.rupture_test_result {
-                    Some(result) => match result {
-                        RuptureTestResult::Fail => println!(
-                            "{} destroyed {}'s {}",
-                            assailant.name(),
-                            victim.name(),
-                            self.display_protection_or_limb(victim),
-                        ),
-                        RuptureTestResult::Success => println!(
-                            "{} hits {} savagely, damaging his {}",
-                            assailant.name(),
-                            victim.name(),
-                            self.display_protection_or_limb(victim),
-                        )
-                    },
-                    None => println!(
-                        "{} hits {}'s unprotected {}.",
-                        assailant.name(),
-                        victim.name(),
-                        self.body_part_kind.as_ref().unwrap(),
-                    )
-                }
-            }
-            CriticalHitKind::PreciseHitAndArmorDamage => {
-                println!(
-                    "{} hit {} precisely, damaging his {}",
-                    assailant.name(),
-                    victim.name(),
-                    self.display_protection_or_limb(victim),
-                );
-            }
-            CriticalHitKind::ReallyDeepIncision => {
-                println!("{} cut {} really deep", assailant.name(), victim.name());
-            }
-            CriticalHitKind::RibFacture => {
-                println!("{} fractured {}'s rib", assailant.name(), victim.name());
-            }
-            CriticalHitKind::SeriousHeadInjury => {
-                println!("{} cut through {}'s head", assailant.name(), victim.name());
-            }
-            CriticalHitKind::SeveredArm | CriticalHitKind::SeveredFoot | CriticalHitKind::SeveredHand | CriticalHitKind::SeveredLeg => {
-                let body_part = victim.body().body_part(self.body_part_kind.as_ref().unwrap());
-                if body_part.is_severed() {
-                    println!("{} slashed right where {}'s {} should be", assailant.name(), victim.name(), body_part.kind());
-                } else {
-                    println!("{} severed {}'s {}", assailant.name(), victim.name(), body_part.kind());
-                }
-            }
-            CriticalHitKind::SmashedFoot => {
-                let body_part = victim.body().body_part(self.body_part_kind.as_ref().unwrap());
-                if body_part.is_severed() {
-                    println!(
-                        "{} smashed the ground where {}'s {} should have been",
-                        assailant.name(),
-                        victim.name(),
-                        body_part.kind(),
-                    )
-                } else {
-                    println!("{} smashed {}'s {}", assailant.name(), victim.name(), body_part.kind());
-                }
-            }
-            CriticalHitKind::VitalOrganCrushed => {
-                println!(
-                    "{} crushed one of {}'s vital organs",
-                    assailant.name(),
-                    victim.name()
-                );
-            }
-            CriticalHitKind::VitalOrganDamage => {
-                println!(
-                    "{} damaged one of {}'s vital organs",
-                    assailant.name(),
-                    victim.name()
-                );
-            }
-        }
+    pub fn kind(&self) -> &CriticalHitKind {
+        &self.kind
     }
 }
 
-impl ExecuteFightActionResult for CriticalHitResult {
-    fn execute(&mut self, assailant: &mut Warrior, victim: &mut Warrior) {
-        match &self.body_part_kind {
+pub trait CriticalHit {
+    fn critical_hit<V: MayHaveWeapon + HasBody + Name>(&self, victim: &mut V) -> CriticalHitResult;
+}
+
+impl<A: MayHaveWeapon + Name> CriticalHit for A {
+    fn critical_hit<V: Name + HasBody>(&self, victim: &mut V) -> CriticalHitResult {
+        let result = match self.weapon() {
+            None => panic!("Can't critical hit without weapon"),
+            Some(weapon) => if weapon.is_sharp() {
+                CriticalHitResult::roll_sharp(victim)
+            } else {
+                CriticalHitResult::roll_blunt(victim)
+            }
+        };
+        result.show(self, victim);
+        // result.execute(self, victim)
+        result
+    }
+}
+
+impl MayTargetBodyPart for CriticalHitResult {
+    fn target_body_part(&self) -> Option<&BodyPartKind> {
+        self.body_part_kind.as_ref()
+    }
+}
+
+impl MayHaveTestedRupture for CriticalHitResult {
+    fn rupture_test_result(&self) -> Option<&RuptureTestResult> {
+        self.rupture_test_result.as_ref()
+    }
+}
+
+impl ApplyDamageModifier for CriticalHitResult {
+    fn apply_damage_modifier(&self, base: u8) -> u8 {
+        self.dmg_modifier.apply(base)
+    }
+}
+
+impl MayHaveRuptureDamage for CriticalHitResult {
+    fn rupture_damage(&self) -> Option<u8> {
+        self.rupture_damage
+    }
+}
+
+impl MayCauseInjury for CriticalHitResult {
+    fn injury(&self) -> Option<&Injury> {
+        self.injury.as_ref()
+    }
+}
+
+impl TakeInjury for CriticalHitResult {
+    fn take_injury(&mut self) -> Option<Injury> {
+        self.injury.take()
+    }
+}
+
+// impl ShowFightActionResult for CriticalHitResult {
+//     fn show_fight_action_result(&self, assailant: &Warrior, victim: &Warrior) {
+//         match &self.kind {
+//             CriticalHitKind::AccurateHeavyBlowAndArmorDamage => {
+//                 println!(
+//                     "{} hits {} heavily, damaging his {}",
+//                     assailant.name(),
+//                     victim.name(),
+//                     self.display_protection_or_limb(victim),
+//                 );
+//             }
+//             CriticalHitKind::BrokenArm | CriticalHitKind::BrokenHand | CriticalHitKind::BrokenLeg => {
+//                 println!("{} broke {}'s {}", assailant.name(), victim.name(), self.body_part_kind.as_ref().unwrap());
+//             }
+//             CriticalHitKind::CrushedGenitals => {
+//                 let genitals = self.body_part_kind.as_ref().unwrap();
+//                 if victim.body().body_part(genitals).is_severed() {
+//                     println!(
+//                         "{} smashed the air when {}'s {} should have been",
+//                         assailant.name(),
+//                         victim.name(),
+//                         genitals,
+//                     )
+//                 } else {
+//                     println!("{} crushed {}'s genitals", assailant.name(), victim.name());
+//                 }
+//             }
+//             CriticalHitKind::DeepIncision => {
+//                 println!("{} cut {} deeply", assailant.name(), victim.name());
+//             }
+//             CriticalHitKind::SeveredGenitals => {
+//                 println!("{} severed {}'s genitals", assailant.name(), victim.name());
+//             }
+//             CriticalHitKind::GougedEye => {
+//                 let eye = victim.body().body_part(self.body_part_kind.as_ref().unwrap());
+//                 if eye.is_severed() {
+//                     println!("{}'s {} is already gouged", victim.name(), eye.kind());
+//                 } else {
+//                     println!("{} gouged {}'s eye", assailant.name(), victim.name());
+//                 }
+//             }
+//             CriticalHitKind::HeartInjury => {
+//                 println!("{} pierced {}'s heart", assailant.name(), victim.name());
+//             }
+//             CriticalHitKind::ImpressiveBruise => {
+//                 println!("{} bruised {} heavily", assailant.name(), victim.name());
+//             }
+//             CriticalHitKind::ImpressiveBruiseAndLimbDislocation => {
+//                 println!(
+//                     "{} bruised {} heavily, dislocating a limb",
+//                     assailant.name(),
+//                     victim.name()
+//                 );
+//             }
+//             CriticalHitKind::ImpressiveWoundAndArmorDamage => {
+//                 println!(
+//                     "{} wounded {} deeply, damaging his {}",
+//                     assailant.name(),
+//                     victim.name(),
+//                     self.display_protection_or_limb(victim),
+//                 );
+//             }
+//             CriticalHitKind::KneeDislocation => {
+//                 println!("{} dislocated {}'s knee", assailant.name(), victim.name());
+//             }
+//             CriticalHitKind::KnockedOut => {
+//                 println!("{} knocked {} out", assailant.name(), victim.name());
+//             }
+//             CriticalHitKind::OpenSkullFacture => {
+//                 println!("{} opened {}'s skull wide", assailant.name(), victim.name());
+//             }
+//             CriticalHitKind::PartOfTheArmorIsDestroyed => {
+//                 match &self.rupture_test_result {
+//                     Some(result) => match result {
+//                         RuptureTestResult::Fail => println!(
+//                             "{} destroyed {}'s {}",
+//                             assailant.name(),
+//                             victim.name(),
+//                             self.display_protection_or_limb(victim),
+//                         ),
+//                         RuptureTestResult::Success => println!(
+//                             "{} hits {} savagely, damaging his {}",
+//                             assailant.name(),
+//                             victim.name(),
+//                             self.display_protection_or_limb(victim),
+//                         )
+//                     },
+//                     None => println!(
+//                         "{} hits {}'s unprotected {}.",
+//                         assailant.name(),
+//                         victim.name(),
+//                         self.body_part_kind.as_ref().unwrap(),
+//                     )
+//                 }
+//             }
+//             CriticalHitKind::PreciseHitAndArmorDamage => {
+//                 println!(
+//                     "{} hit {} precisely, damaging his {}",
+//                     assailant.name(),
+//                     victim.name(),
+//                     self.display_protection_or_limb(victim),
+//                 );
+//             }
+//             CriticalHitKind::ReallyDeepIncision => {
+//                 println!("{} cut {} really deep", assailant.name(), victim.name());
+//             }
+//             CriticalHitKind::RibFacture => {
+//                 println!("{} fractured {}'s rib", assailant.name(), victim.name());
+//             }
+//             CriticalHitKind::SeriousHeadInjury => {
+//                 println!("{} cut through {}'s head", assailant.name(), victim.name());
+//             }
+//             CriticalHitKind::SeveredArm | CriticalHitKind::SeveredFoot | CriticalHitKind::SeveredHand | CriticalHitKind::SeveredLeg => {
+//                 let body_part = victim.body().body_part(self.body_part_kind.as_ref().unwrap());
+//                 if body_part.is_severed() {
+//                     println!("{} slashed right where {}'s {} should be", assailant.name(), victim.name(), body_part.kind());
+//                 } else {
+//                     println!("{} severed {}'s {}", assailant.name(), victim.name(), body_part.kind());
+//                 }
+//             }
+//             CriticalHitKind::SmashedFoot => {
+//                 let body_part = victim.body().body_part(self.body_part_kind.as_ref().unwrap());
+//                 if body_part.is_severed() {
+//                     println!(
+//                         "{} smashed the ground where {}'s {} should have been",
+//                         assailant.name(),
+//                         victim.name(),
+//                         body_part.kind(),
+//                     )
+//                 } else {
+//                     println!("{} smashed {}'s {}", assailant.name(), victim.name(), body_part.kind());
+//                 }
+//             }
+//             CriticalHitKind::VitalOrganCrushed => {
+//                 println!(
+//                     "{} crushed one of {}'s vital organs",
+//                     assailant.name(),
+//                     victim.name()
+//                 );
+//             }
+//             CriticalHitKind::VitalOrganDamage => {
+//                 println!(
+//                     "{} damaged one of {}'s vital organs",
+//                     assailant.name(),
+//                     victim.name()
+//                 );
+//             }
+//         }
+//     }
+// }
+
+impl ExecuteAction for CriticalHitResult {
+    fn execute<A, V>(&mut self, assailant: &mut A, victim: &mut V)
+    where
+        A: RollDamage + CanMissParries + CanMissAssaults + MayHaveWeapon + MayHaveMutableWeapon + TakeWeapon + Name + HasBody + TakeDamage + TakeReducedDamage + CanBeAttacked + ParryThreshold,
+        V: Assault + CriticalHit + Name + MayHaveWeapon + IsUnconscious + HasMutableBody + TakeDamage + MayHaveDurationDamage,
+    {
+        match self.target_body_part() {
             Some(part) => {
                 let body_part = victim.body_mut().body_part_mut(part);
-                if self.injury.is_some() {
-                    body_part.add_injury(self.injury.take().unwrap());
+                if self.injury().is_some() {
+                    body_part.add_injury(self.take_injury().unwrap());
                 }
-                if self.rupture_damage.is_some() && body_part.is_protected() {
-                    body_part.protected_by_mut().unwrap().damage_rupture(self.rupture_damage.take().unwrap())
+                if self.rupture_damage().is_some() && body_part.is_protected() {
+                    body_part.protected_by_mut().unwrap().damage_rupture(self.rupture_damage().unwrap())
                 }
             },
             None => {},
         }
-        match self.kind {
+        match self.kind() {
             CriticalHitKind::KnockedOut => victim.set_unconscious(),
             CriticalHitKind::SeveredGenitals |
             CriticalHitKind::VitalOrganDamage => {
-                let reason = match self.kind {
+                let reason = match self.kind() {
                     CriticalHitKind::SeveredGenitals => format!("{} severed his genitals", assailant.name()),
                     CriticalHitKind::VitalOrganDamage => format!("{} damage a vital organ", assailant.name()),
                     _ => panic!("Match should not be possible")
@@ -688,13 +764,7 @@ impl ExecuteFightActionResult for CriticalHitResult {
             },
             _ => {},
         }
-        let damage = self.dmg_modifier.apply(assailant.roll_damage());
+        let damage = self.apply_damage_modifier(assailant.roll_damage());
         victim.take_damage(damage);
-    }
-}
-
-impl ApplyDamageModifier for CriticalHitResult {
-    fn apply_damage_modifier(&self, base: u8) -> u8 {
-        self.dmg_modifier.apply(base)
     }
 }

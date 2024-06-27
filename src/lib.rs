@@ -5,5 +5,4 @@ mod modifiers;
 mod equipment;
 pub mod tournament;
 pub mod warrior;
-pub mod weapon;
 mod virtual_timer;

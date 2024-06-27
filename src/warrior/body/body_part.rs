@@ -8,6 +8,10 @@ use super::super::protection::{Protection, Protectable};
 use super::body_side::BodySide;
 use super::injury::{Injury, InjuryKind, MayBeInjured};
 
+pub trait MayTargetBodyPart {
+    fn target_body_part(&self) -> Option<&BodyPartKind>;
+}
+
 #[derive(Debug)]
 pub enum BodyPartKind {
     Eye(BodySide),

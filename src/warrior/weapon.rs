@@ -4,12 +4,20 @@ use crate::dice::Dice;
 use crate::warrior::stats::{Stat, StatModifier};
 use crate::equipment::{HasRupture, RuptureTestResult};
 
-pub trait CanHaveWeapon {
-    fn has_weapon(&self) -> bool;
+pub trait MayHaveWeapon {
     fn weapon(&self) -> Option<&Weapon>;
+}
+
+pub trait MayHaveMutableWeapon {
     fn weapon_mut(&mut self) -> Option<&mut Weapon>;
-    fn take_weapon(&mut self, weapon: Weapon);
-    fn drop_weapon(&mut self) -> Option<Weapon>;
+}
+
+pub trait TakeWeapon {
+    fn take_weapon(&mut self) -> Option<Weapon>;
+}
+
+pub trait GiveWeapon {
+    fn give_weapon(&mut self, weapon: Weapon);
 }
 
 pub enum WeaponKind {

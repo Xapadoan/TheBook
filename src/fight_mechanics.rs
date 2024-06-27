@@ -1,19 +1,14 @@
 pub mod fight_action;
-pub mod critical_hit;
-pub mod critical_parry;
 pub mod parry;
 pub mod attack;
 pub mod assaults_miss;
 pub mod parries_miss;
 pub mod duration_damage;
 
-use critical_hit::CriticalHitResult;
 use assaults_miss::AssaultsMiss;
 use parries_miss::ParriesMiss;
 use parry::ParryAttemptResult;
 use attack::AttackAttemptResult;
-
-use crate::warrior::Warrior;
 
 pub trait IsUnconscious {
     fn is_unconscious(&self) -> bool;
@@ -29,10 +24,6 @@ pub trait TakeReducibleDamage {
 
 pub trait RollDamage {
     fn roll_damage(&self) -> u8;
-}
-
-pub trait CriticalHitOn {
-    fn critical_hit_on(&self, target: &Warrior) -> CriticalHitResult;
 }
 
 pub trait AttackAttempt {
