@@ -1,6 +1,5 @@
-use crate::fight_mechanics::RollDamage;
 use crate::modifiers::Modifier;
-use crate::dice::Dice;
+use crate::dice::{RollDamage, Dice};
 use crate::warrior::stats::{Stat, StatModifier};
 use crate::equipment::{HasRupture, RuptureTestResult};
 

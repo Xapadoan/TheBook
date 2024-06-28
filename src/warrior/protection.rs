@@ -1,8 +1,7 @@
 use std::fmt::Display;
 
 use crate::equipment::{HasRupture, RuptureTestResult};
-use crate::fight_mechanics::ApplyDamageModifier;
-use crate::modifiers::Modifier;
+use crate::modifiers::{ApplyDamageModifier, Modifier};
 use crate::dice::Dice;
 
 use super::body::body_part::BodyPartKind;

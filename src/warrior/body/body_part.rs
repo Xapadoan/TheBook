@@ -1,6 +1,6 @@
 use std::fmt::Display;
 
-use crate::fight_mechanics::ApplyDamageModifier;
+use crate::modifiers::ApplyDamageModifier;
 use crate::equipment::HasRupture;
 
 use super::super::stats::{Stat, StatModifier};

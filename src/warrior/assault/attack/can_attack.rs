@@ -1,6 +1,7 @@
+use crate::warrior::assault::show_action::ShowAction;
 use crate::warrior::weapon::MayHaveWeapon;
-use crate::warrior::{IsDead, IsUnconscious};
-use crate::fight_mechanics::CanMissAssaults;
+use crate::warrior::{IsDead, IsUnconscious, Name};
+use crate::warrior::temporary_handicap::assaults_miss::CanMissAssaults;
 
 use super::can_be_attacked::CantBeAttackedReason;
 use super::CanBeAttacked;
@@ -14,6 +15,22 @@ pub enum CantAttackReason {
     VictimCantBeAttacked(CantBeAttackedReason)
 }
 
+impl ShowAction for CantAttackReason {
+    fn show<A, V>(&self, assailant: &A, victim: &V)
+    where
+        A: CanMissAssaults + MayHaveWeapon + Name,
+        V: Name + crate::warrior::body::HasBody
+    {
+        match self {
+            CantAttackReason::IsDead => println!("{} can't attack because he is dead", assailant.name()),
+            CantAttackReason::IsUnconscious => println!("{} can't attack because he is unconscious", assailant.name()),
+            CantAttackReason::MustMissAssault => println!("{} can't attack because {}", assailant.name(), assailant.must_miss_assault_reason()),
+            CantAttackReason::NoWeapon => println!("{} can't attack attack he has no weapon", assailant.name()),
+            CantAttackReason::VictimCantBeAttacked(reason) => reason.show(assailant, victim),
+        }
+    }
+}
+
 #[derive(Debug)]
 pub struct CanAttackResult {
     can_attack: bool,
@@ -25,8 +42,8 @@ impl CanAttackResult {
         self.can_attack
     }
 
-    pub fn reason(self) -> Option<CantAttackReason> {
-        self.reason
+    pub fn reason(&self) -> Option<&CantAttackReason> {
+        self.reason.as_ref()
     }
 }
 pub trait CanAttack {
@@ -41,7 +58,7 @@ impl<T: MayHaveWeapon + IsDead + IsUnconscious + CanMissAssaults> CanAttack for 
                 can_attack: false,
                 reason: Some(CantAttackReason::VictimCantBeAttacked(victim_can_be_attacked.reason().unwrap()))
             }
-        } else if !self.weapon().is_none() {
+        } else if self.weapon().is_none() {
             CanAttackResult {
                 can_attack: false,
                 reason: Some(CantAttackReason::NoWeapon)

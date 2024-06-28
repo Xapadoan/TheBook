@@ -1,47 +1,70 @@
 use attack::attack_attempt::AttackAttemptResult;
-use attack::can_attack::CanAttack;
+use attack::critical_hit::CriticalHit;
 use attack::{Attack, AttackResult};
-use attack::can_be_attacked::CanBeAttacked;
-// use assault_damage_summary::AssaultDamageSummary;
-// use parry::parry_attempt::ParryAttemptResult;
+use damage_summary::{ApplyDamageSummary, DamageSummary};
+use execute_action::ExecuteAction;
+use parry::parry_attempt::ParryThreshold;
 use parry::{Parry, ParryResult};
+use show_action::ShowAction;
 
-use crate::fight_mechanics::{RollDamage, TakeDamage};
+use crate::dice::RollDamage;
+use crate::modifiers::ApplyDamageModifier;
 
-use super::weapon::MayHaveWeapon;
-use super::{Name, TakeReducedDamage, Warrior};
-use super::body::HasBody;
+use super::weapon::{MayHaveMutableWeapon, MayHaveWeapon, TakeWeapon};
+use super::{IsDead, IsUnconscious, Name, TakeDamage, TakeReducedDamage, Warrior};
+use super::body::{HasBody, HasMutableBody};
+use super::temporary_handicap::parries_miss::CanMissParries;
+use super::temporary_handicap::assaults_miss::CanMissAssaults;
+use super::duration_damage::MayHaveDurationDamage;
 
 pub mod attack;
-mod parry;
+pub mod parry;
+pub mod damage_summary;
 mod show_action;
 mod execute_action;
-// mod assault_damage_summary;
 
 #[derive(Debug)]
 pub struct AssaultResult {
     attack: AttackResult,
     parry: Option<ParryResult>,
-    // damage_summary: AssaultDamageSummary,
+    damage_summary: DamageSummary,
+}
+
+impl ApplyDamageSummary for AssaultResult {
+    fn apply_damage_summary<T: TakeDamage>(self, assailant: &mut T, victim: &mut T) {
+        self.damage_summary.apply_damage_summary(assailant, victim)
+    }
 }
 
 pub trait Assault {
-    fn assault<V: CanBeAttacked + Parry + HasBody + TakeDamage + TakeReducedDamage + MayHaveWeapon + Name>(&mut self, victim: &mut V) -> AssaultResult;
+    fn assault<V: ApplyDamageModifier + Assault + CriticalHit + MayHaveDurationDamage + IsDead + ParryThreshold + TakeReducedDamage + TakeWeapon + MayHaveMutableWeapon + CanMissParries + CanMissAssaults + HasMutableBody + IsUnconscious + MayHaveWeapon + RollDamage + TakeDamage + Name + HasBody>(&mut self, victim: &mut V) -> AssaultResult;
 }
 
-impl<T: Attack + RollDamage + MayHaveWeapon + TakeDamage + Name> Assault for T {
-    fn assault<V: CanBeAttacked + Parry + HasBody + TakeDamage + TakeReducedDamage + MayHaveWeapon + Name>(&mut self, victim: &mut V) -> AssaultResult {
-        let attack = self.attack(victim);
+impl Assault for Warrior {
+    fn assault<V: ApplyDamageModifier + Assault + CriticalHit + MayHaveDurationDamage + IsDead + ParryThreshold + TakeReducedDamage + TakeWeapon + MayHaveMutableWeapon + CanMissParries + CanMissAssaults + HasMutableBody + IsUnconscious + MayHaveWeapon + RollDamage + TakeDamage + Name + HasBody>(&mut self, victim: &mut V) -> AssaultResult {
+        let mut attack = self.attack(victim);
+        attack.show(self, victim);
+        let mut damage_summary = attack.execute(self, victim);
         let parry = match attack.attack_attempt() {
             Some(attack_attempt) => match attack_attempt {
-                AttackAttemptResult::Success => Some(victim.parry(self)),
+                AttackAttemptResult::Success => {
+                    let mut parry_result = victim.parry(self);
+                    parry_result.show(self, victim);
+                    damage_summary.merge(
+                        parry_result.execute(self, victim),
+                        false,
+                    );
+                    Some(parry_result)
+                },
                 _ => None
             },
             None => None,
         };
+
         AssaultResult {
             attack,
-            parry
+            parry,
+            damage_summary,
         }
     }
 }

@@ -1,10 +1,28 @@
-use crate::warrior::{weapon::MayHaveWeapon, IsDead, IsUnconscious};
+use crate::warrior::assault::show_action::ShowAction;
+use crate::warrior::body::HasBody;
+use crate::warrior::temporary_handicap::assaults_miss::CanMissAssaults;
+use crate::warrior::weapon::MayHaveWeapon;
+use crate::warrior::{IsDead, IsUnconscious, Name};
 
 #[derive(Debug)]
 pub enum CantBeAttackedReason {
     IsDead,
     IsUnconscious,
     HasNoWeapon,
+}
+
+impl ShowAction for CantBeAttackedReason {
+    fn show<A, V>(&self, assailant: &A, victim: &V)
+    where
+        A: MayHaveWeapon + Name + CanMissAssaults,
+        V: Name + HasBody
+    {
+        match self {
+            CantBeAttackedReason::IsDead => println!("{} won't attack because {} is already dead", assailant.name(), victim.name()),
+            CantBeAttackedReason::IsUnconscious => println!("{} won't attack because {} is unconscious", assailant.name(), victim.name()),
+            CantBeAttackedReason::HasNoWeapon => println!("{} won't attack because {} has no weapon", assailant.name(), victim.name()),
+        }
+    }
 }
 
 #[derive(Debug)]

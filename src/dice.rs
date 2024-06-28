@@ -1,5 +1,9 @@
 use rand::Rng;
 
+pub trait RollDamage {
+    fn roll_damage(&self) -> u8;
+}
+
 pub enum Dice {
     D20,
     D6,

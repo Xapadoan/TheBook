@@ -1,10 +1,10 @@
 // pub mod show_action;
 
 use crate::virtual_timer::VirtualTimer;
-use crate::warrior::{IsUnconscious, IsDead, Warrior};
+use crate::warrior::assault::damage_summary::ApplyDamageSummary;
+use crate::warrior::{IsDead, IsUnconscious, Warrior};
 use crate::warrior::weapon::MayHaveWeapon;
 use crate::warrior::assault::Assault;
-use crate::warrior::assault::attack::Attack;
 
 #[derive(Debug)]
 pub struct Fight {
@@ -59,9 +59,13 @@ impl Fight {
 
         while turn < u8::MAX {
             println!("=== {turn} ===");
-            self.blue_corner.assault(&mut self.red_corner);
+            let blue_assault = self.blue_corner.assault(&mut self.red_corner);
+            dbg!(&blue_assault);
+            blue_assault.apply_damage_summary(&mut self.blue_corner, &mut self.red_corner);
             self.timer.add_time(2);
-            self.red_corner.assa(&mut self.blue_corner);
+            let red_assault = self.red_corner.assault(&mut self.blue_corner);
+            dbg!(&red_assault);
+            red_assault.apply_damage_summary(&mut self.red_corner, &mut self.blue_corner);
             self.timer.add_time(2);
             println!("\n");
             turn += 1;

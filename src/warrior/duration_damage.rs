@@ -1,6 +1,4 @@
-use crate::dice::Dice;
-
-use super::RollDamage;
+use crate::dice::{RollDamage, Dice};
 
 #[derive(Debug)]
 pub struct DurationDamage {

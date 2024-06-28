@@ -7,8 +7,7 @@ use rand::Rng;
 
 use body_part::{BodyPart, BodyPartKind, RandomFunctionalBodyPart};
 use body_side::BodySide;
-use crate::fight_mechanics::ApplyDamageModifier;
-use crate::modifiers::Modifier;
+use crate::modifiers::{ApplyDamageModifier, Modifier};
 use super::protection::{Protectable, Protection, RandomProtectedBodyPart, WearProtection};
 use super::stats::{Stat, StatModifier};
 

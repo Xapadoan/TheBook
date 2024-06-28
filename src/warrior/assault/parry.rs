@@ -1,8 +1,18 @@
 use can_parry::{CanParry, CanParryResult};
 use critical_parry::{CriticalParry, CriticalParryResult};
-use parry_attempt::{ParryAttempt, ParryAttemptResult};
+use parry_attempt::{ParryAttempt, ParryAttemptResult, ParryThreshold};
 
-use crate::{fight_mechanics::TakeDamage, warrior::{weapon::MayHaveWeapon, Name}};
+use crate::dice::RollDamage;
+use crate::modifiers::ApplyDamageModifier;
+use crate::warrior::body::{HasBody, HasMutableBody};
+use crate::warrior::duration_damage::MayHaveDurationDamage;
+use crate::warrior::weapon::{MayHaveMutableWeapon, MayHaveWeapon, TakeWeapon};
+use crate::warrior::temporary_handicap::parries_miss::CanMissParries;
+use crate::warrior::temporary_handicap::assaults_miss::CanMissAssaults;
+use crate::warrior::{IsDead, IsUnconscious, Name, TakeDamage, TakeReducedDamage};
+
+use super::damage_summary::DamageSummary;
+use super::{attack::{can_be_attacked::CanBeAttacked, critical_hit::CriticalHit}, execute_action::ExecuteAction, show_action::ShowAction, Assault};
 
 pub mod can_parry;
 pub mod parry_attempt;
@@ -26,11 +36,11 @@ impl ParryResult {
 }
 
 pub trait Parry {
-    fn parry<A: MayHaveWeapon + TakeDamage + Name>(&mut self, assailant: &mut A) -> ParryResult;
+    fn parry<A: CriticalHit + RollDamage + CanMissParries + CanMissAssaults + MayHaveWeapon + MayHaveMutableWeapon + TakeWeapon + Name + HasBody + TakeDamage + TakeReducedDamage + CanBeAttacked + ParryThreshold + IsUnconscious + HasMutableBody + Assault + IsDead + MayHaveDurationDamage>(&mut self, assailant: &mut A) -> ParryResult;
 }
 
 impl<T: CanParry + ParryAttempt + CriticalParry> Parry for T {
-    fn parry<A: MayHaveWeapon + TakeDamage + Name>(&mut self, assailant: &mut A) -> ParryResult {
+    fn parry<A: CriticalHit + RollDamage + CanMissParries + CanMissAssaults + MayHaveWeapon + MayHaveMutableWeapon + TakeWeapon + Name + HasBody + TakeDamage + TakeReducedDamage + CanBeAttacked + ParryThreshold + IsUnconscious + HasMutableBody + Assault + IsDead + MayHaveDurationDamage>(&mut self, assailant: &mut A) -> ParryResult {
         let can_parry = self.can_parry();
         if !can_parry.can_parry() {
             return ParryResult {
@@ -59,6 +69,53 @@ impl<T: CanParry + ParryAttempt + CriticalParry> Parry for T {
                 parry_attempt: Some(parry_attempt),
                 critical_success: None,
             }
+        }
+    }
+}
+
+impl ShowAction for ParryResult {
+    fn show<A, V>(&self, assailant: &A, victim: &V)
+    where
+        A: MayHaveWeapon + Name + CanMissAssaults,
+        V: Name + HasBody
+    {
+        let parry_possibility = self.can_parry();
+        if !parry_possibility.can_parry() {
+            parry_possibility.reason().unwrap().show(assailant, victim);
+            return;
+        }
+        let parry_attempt = self.parry_attempt();
+        match parry_attempt.unwrap() {
+            ParryAttemptResult::CriticalFailure => println!("[WARN] critical fail for parry not implemented yet"),
+            ParryAttemptResult::Failure => println!("{} hits {}", assailant.name(), victim.name()),
+            ParryAttemptResult::Success => println!("{} parried", victim.name()),
+            ParryAttemptResult::CriticalSuccess => self.critical_success.as_ref().unwrap().show(assailant, victim),
+        }
+    }
+}
+
+impl ExecuteAction for ParryResult {
+    fn execute<A, V>(&mut self, assailant: &mut A, victim: &mut V) -> DamageSummary
+    where
+        A: ApplyDamageModifier + CriticalHit + RollDamage + CanMissParries + CanMissAssaults + MayHaveWeapon + MayHaveMutableWeapon + TakeWeapon + Name + HasBody + TakeDamage + TakeReducedDamage + CanBeAttacked + ParryThreshold + IsUnconscious + HasMutableBody + Assault + IsDead + MayHaveDurationDamage,
+        V: CriticalHit + RollDamage + Assault + CriticalHit + Name + MayHaveWeapon + IsUnconscious + HasMutableBody + CanMissAssaults + CanMissParries + MayHaveMutableWeapon + TakeWeapon + HasBody + TakeReducedDamage + ApplyDamageModifier + TakeDamage + ParryThreshold + IsUnconscious + HasMutableBody + IsDead + MayHaveDurationDamage
+    {
+        let parry_possibility = self.can_parry();
+        if !parry_possibility.can_parry() {
+            return DamageSummary::new(0);
+        }
+        let parry_attempt = self.parry_attempt().unwrap();
+        match parry_attempt {
+            ParryAttemptResult::CriticalFailure => {
+                println!("[NOT IMPLEMENTED]");
+                DamageSummary::new(0)
+            },
+            ParryAttemptResult::Failure => {
+                let damage = victim.apply_damage_modifier(assailant.roll_damage());
+                DamageSummary::new(damage)
+            },
+            ParryAttemptResult::Success => DamageSummary::new(0),
+            ParryAttemptResult::CriticalSuccess => self.critical_success.as_mut().unwrap().execute(assailant, victim),
         }
     }
 }
