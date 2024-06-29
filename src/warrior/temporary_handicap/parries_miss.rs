@@ -2,6 +2,7 @@ use super::TemporaryHandicap;
 
 pub trait CanMissParries {
     fn must_miss_parry(&self) -> bool;
+    fn must_miss_parry_reason(&self) -> &String;
     fn will_miss_parries(&mut self, misses: ParriesMiss);
     fn miss_parry(&mut self);
 }

@@ -79,7 +79,7 @@ impl ShowAction for AttackResult {
     fn show<A, V>(&self, assailant: &A, victim: &V)
         where
             A: MayHaveWeapon + Name + CanMissAssaults,
-            V: Name + HasBody
+            V: Name + HasBody + CanMissParries
     {
         let attack_possibility = self.can_attack();
         if !attack_possibility.can_attack() {
@@ -100,11 +100,11 @@ impl ExecuteAction for AttackResult {
     fn execute<A, V>(&mut self, assailant: &mut A, victim: &mut V) -> DamageSummary
     where
         A: ApplyDamageModifier + CriticalHit + RollDamage + CanMissParries + CanMissAssaults + MayHaveWeapon + MayHaveMutableWeapon + TakeWeapon + Name + HasBody + TakeDamage + TakeReducedDamage + CanBeAttacked + ParryThreshold + IsUnconscious + HasMutableBody + Assault + IsDead + MayHaveDurationDamage,
-        V: ApplyDamageModifier + CriticalHit + RollDamage + Assault + CriticalHit + Name + MayHaveWeapon + IsUnconscious + HasMutableBody + CanMissAssaults + CanMissParries + MayHaveMutableWeapon + TakeWeapon + HasBody + TakeReducedDamage + TakeDamage + ParryThreshold + IsUnconscious + HasMutableBody + IsDead + MayHaveDurationDamage
+        V: ApplyDamageModifier + CriticalHit + RollDamage + CanMissParries + Assault + CriticalHit + Name + MayHaveWeapon + IsUnconscious + HasMutableBody + CanMissAssaults + CanMissParries + MayHaveMutableWeapon + TakeWeapon + HasBody + TakeReducedDamage + TakeDamage + ParryThreshold + IsUnconscious + HasMutableBody + IsDead + MayHaveDurationDamage
     {
         let attack_possibility = self.can_attack();
         if !attack_possibility.can_attack() {
-            return DamageSummary::new(0);
+            return self.can_attack.execute(assailant, victim)
         }
         let attack_attempt = self.attack_attempt().unwrap();
         match attack_attempt {

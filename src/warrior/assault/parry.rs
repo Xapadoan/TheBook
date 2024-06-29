@@ -77,7 +77,7 @@ impl ShowAction for ParryResult {
     fn show<A, V>(&self, assailant: &A, victim: &V)
     where
         A: MayHaveWeapon + Name + CanMissAssaults,
-        V: Name + HasBody
+        V: Name + HasBody + CanMissParries
     {
         let parry_possibility = self.can_parry();
         if !parry_possibility.can_parry() {
@@ -102,7 +102,7 @@ impl ExecuteAction for ParryResult {
     {
         let parry_possibility = self.can_parry();
         if !parry_possibility.can_parry() {
-            return DamageSummary::new(0);
+            return self.can_parry.execute(assailant, victim)
         }
         let parry_attempt = self.parry_attempt().unwrap();
         match parry_attempt {
@@ -111,7 +111,9 @@ impl ExecuteAction for ParryResult {
                 DamageSummary::new(0)
             },
             ParryAttemptResult::Failure => {
-                let damage = victim.apply_damage_modifier(assailant.roll_damage());
+                let raw_damage = assailant.roll_damage();
+                println!("{} fails to parry and takes {} damage", victim.name(), raw_damage);
+                let damage = victim.apply_damage_modifier(raw_damage);
                 DamageSummary::new(damage)
             },
             ParryAttemptResult::Success => DamageSummary::new(0),

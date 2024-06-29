@@ -16,6 +16,6 @@ use super::parry::parry_attempt::ParryThreshold;
 pub trait ExecuteAction {
     fn execute<A, V>(&mut self, assailant: &mut A, victim: &mut V) -> DamageSummary
     where
-        A: ApplyDamageModifier + CriticalHit + RollDamage + CanMissParries + CanMissAssaults + MayHaveWeapon + MayHaveMutableWeapon + TakeWeapon + Name + HasBody + TakeDamage + TakeReducedDamage + CanBeAttacked + ParryThreshold + IsUnconscious + HasMutableBody + Assault + IsDead + MayHaveDurationDamage,
-        V: ApplyDamageModifier + CriticalHit + RollDamage + Assault + CriticalHit + Name + MayHaveWeapon + IsUnconscious + HasMutableBody + CanMissAssaults + CanMissParries + MayHaveMutableWeapon + TakeWeapon + HasBody + TakeReducedDamage + TakeDamage + ParryThreshold + IsUnconscious + HasMutableBody + IsDead + MayHaveDurationDamage;
+        A: ApplyDamageModifier + CriticalHit + RollDamage + CanMissParries + CanMissAssaults + MayHaveWeapon + MayHaveMutableWeapon + TakeWeapon + Name + HasBody + TakeDamage + TakeReducedDamage + ParryThreshold + IsUnconscious + HasMutableBody + IsDead + MayHaveDurationDamage + Assault + CanBeAttacked,
+        V: ApplyDamageModifier + CriticalHit + RollDamage + CanMissParries + CanMissAssaults + MayHaveWeapon + MayHaveMutableWeapon + TakeWeapon + Name + HasBody + TakeDamage + TakeReducedDamage + ParryThreshold + IsUnconscious + HasMutableBody + IsDead + MayHaveDurationDamage + Assault + IsUnconscious + HasMutableBody;
 }

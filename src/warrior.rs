@@ -108,6 +108,10 @@ impl CanMissParries for Warrior {
         self.parries_miss.is_some()
     }
 
+    fn must_miss_parry_reason(&self) -> &String {
+        self.parries_miss.as_ref().unwrap().reason()
+    }
+
     fn miss_parry(&mut self) {
         let misses = self.parries_miss.as_mut().unwrap();
         misses.decrement_turns_count();
@@ -132,8 +136,10 @@ impl CanMissAssaults for Warrior {
     }
 
     fn miss_assault(&mut self) {
+        dbg!(&self.assaults_miss);
         let misses = self.assaults_miss.as_mut().unwrap();
         misses.decrement_turns_count();
+        dbg!(&misses);
         if misses.turns_left() == 0 {
             self.assaults_miss = None;
         }

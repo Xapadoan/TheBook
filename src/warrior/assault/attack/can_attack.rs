@@ -1,9 +1,19 @@
+use crate::dice::RollDamage;
+use crate::modifiers::ApplyDamageModifier;
+use crate::warrior::assault::damage_summary::DamageSummary;
+use crate::warrior::assault::execute_action::ExecuteAction;
+use crate::warrior::assault::parry::parry_attempt::ParryThreshold;
 use crate::warrior::assault::show_action::ShowAction;
-use crate::warrior::weapon::MayHaveWeapon;
-use crate::warrior::{IsDead, IsUnconscious, Name};
+use crate::warrior::assault::Assault;
+use crate::warrior::body::{HasBody, HasMutableBody};
+use crate::warrior::duration_damage::MayHaveDurationDamage;
+use crate::warrior::temporary_handicap::parries_miss::CanMissParries;
+use crate::warrior::weapon::{MayHaveMutableWeapon, MayHaveWeapon, TakeWeapon};
+use crate::warrior::{IsDead, IsUnconscious, Name, TakeDamage, TakeReducedDamage};
 use crate::warrior::temporary_handicap::assaults_miss::CanMissAssaults;
 
 use super::can_be_attacked::CantBeAttackedReason;
+use super::critical_hit::CriticalHit;
 use super::CanBeAttacked;
 
 #[derive(Debug)]
@@ -19,7 +29,7 @@ impl ShowAction for CantAttackReason {
     fn show<A, V>(&self, assailant: &A, victim: &V)
     where
         A: CanMissAssaults + MayHaveWeapon + Name,
-        V: Name + crate::warrior::body::HasBody
+        V: Name + crate::warrior::body::HasBody + CanMissParries
     {
         match self {
             CantAttackReason::IsDead => println!("{} can't attack because he is dead", assailant.name()),
@@ -28,6 +38,23 @@ impl ShowAction for CantAttackReason {
             CantAttackReason::NoWeapon => println!("{} can't attack attack he has no weapon", assailant.name()),
             CantAttackReason::VictimCantBeAttacked(reason) => reason.show(assailant, victim),
         }
+    }
+}
+
+impl ExecuteAction for CanAttackResult {
+    fn execute<A, V>(&mut self, assailant: &mut A, _: &mut V) -> DamageSummary
+    where
+        A: ApplyDamageModifier + CriticalHit + RollDamage + CanMissParries + CanMissAssaults + MayHaveWeapon + MayHaveMutableWeapon + TakeWeapon + Name + HasBody + TakeDamage + TakeReducedDamage + CanBeAttacked + ParryThreshold + IsUnconscious + HasMutableBody + Assault + IsDead + MayHaveDurationDamage,
+        V: ApplyDamageModifier + CriticalHit + RollDamage + Assault + Name + MayHaveWeapon + IsUnconscious + HasMutableBody + CanMissAssaults + CanMissParries + MayHaveMutableWeapon + TakeWeapon + HasBody + TakeReducedDamage + TakeDamage + ParryThreshold + IsUnconscious + HasMutableBody + IsDead + MayHaveDurationDamage
+    {
+        match &self.reason {
+            Some(reason) => match reason {
+                CantAttackReason::MustMissAssault => assailant.miss_assault(),
+                _ => {},
+            },
+            None => {},
+        }
+        DamageSummary::new(0)
     }
 }
 
