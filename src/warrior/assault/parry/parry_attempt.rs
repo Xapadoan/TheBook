@@ -18,7 +18,8 @@ pub trait ParryAttempt {
 
 impl<T: ParryThreshold> ParryAttempt for T {
     fn parry_attempt(&self) -> ParryAttemptResult {
-        match Dice::D6.test_roll(self.parry_threshold()) {
+        dbg!(self.parry_threshold());
+        match Dice::D20.test_roll(self.parry_threshold()) {
             TestRollResult::CriticalSuccess => ParryAttemptResult::CriticalSuccess,
             TestRollResult::Success => ParryAttemptResult::Success,
             TestRollResult::Failure => ParryAttemptResult::Failure,

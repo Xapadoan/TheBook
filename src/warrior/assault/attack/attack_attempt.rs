@@ -18,7 +18,7 @@ pub trait AttackAttempt {
 
 impl<T: AttackThreshold> AttackAttempt for T {
     fn attack_attempt(&self) -> AttackAttemptResult {
-        match Dice::D6.test_roll(self.attack_threshold()) {
+        match Dice::D20.test_roll(self.attack_threshold()) {
             TestRollResult::CriticalSuccess => AttackAttemptResult::CriticalSuccess,
             TestRollResult::Success => AttackAttemptResult::Success,
             TestRollResult::Failure => AttackAttemptResult::Failure,
