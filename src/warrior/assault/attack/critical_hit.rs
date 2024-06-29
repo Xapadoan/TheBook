@@ -13,11 +13,10 @@ use crate::warrior::duration_damage::MayHaveDurationDamage;
 use crate::warrior::protection::{Protectable, RandomProtectedBodyPart};
 use crate::warrior::body::injury::{Injury, InjuryKind, MayBeInjured, MayCauseInjury, TakeInjury};
 use crate::warrior::weapon::{MayHaveMutableWeapon, MayHaveWeapon, TakeWeapon};
-use crate::warrior::{IsDead, IsUnconscious, Name, RollDamage, TakeDamage, TakeReducedDamage};
+use crate::warrior::{IsUnconscious, Name, RollDamage, TakeDamage, TakeReducedDamage};
 use crate::warrior::temporary_handicap::parries_miss::CanMissParries;
 use crate::warrior::temporary_handicap::assaults_miss::CanMissAssaults;
 
-use super::attack_attempt::AttackThreshold;
 use super::can_be_attacked::CanBeAttacked;
 
 #[derive(Debug)]
@@ -525,14 +524,48 @@ impl CriticalHitResult {
     pub fn kind(&self) -> &CriticalHitKind {
         &self.kind
     }
+
+    pub fn self_inflict<T>(&mut self, victim: &mut T) -> DamageSummary
+    where
+        T: RollDamage + CanMissParries + CanMissAssaults + MayHaveWeapon + MayHaveMutableWeapon + TakeWeapon + Name + HasMutableBody + TakeDamage + TakeReducedDamage + CanBeAttacked + ParryThreshold + IsUnconscious + MayHaveDurationDamage,
+    {
+        match self.target_body_part() {
+            Some(part) => {
+                let body_part = victim.body_mut().body_part_mut(part);
+                if self.injury().is_some() {
+                    body_part.add_injury(self.take_injury().unwrap());
+                }
+                if self.rupture_damage().is_some() && body_part.is_protected() {
+                    body_part.protected_by_mut().unwrap().damage_rupture(self.rupture_damage().unwrap())
+                }
+            },
+            None => {},
+        }
+        match self.kind() {
+            CriticalHitKind::KnockedOut => victim.set_unconscious(),
+            CriticalHitKind::SeveredGenitals |
+            CriticalHitKind::VitalOrganDamage => {
+                let reason = match self.kind() {
+                    CriticalHitKind::SeveredGenitals => format!("{} severed his genitals", victim.name()),
+                    CriticalHitKind::VitalOrganDamage => format!("{} damage a vital organ", victim.name()),
+                    _ => panic!("Match should not be possible")
+                };
+                victim.add_duration_damage(reason, 1)
+            },
+            _ => {},
+        }
+        let damage = self.apply_damage_modifier(victim.roll_damage());
+        // victim.take_damage(damage);
+        DamageSummary::new(damage)
+    }
 }
 
 pub trait CriticalHit {
-    fn critical_hit<V: Assault + CriticalHit + MayHaveDurationDamage + IsDead + ParryThreshold + TakeReducedDamage + TakeWeapon + MayHaveMutableWeapon + CanMissParries + CanMissAssaults + HasMutableBody + IsUnconscious + MayHaveWeapon + RollDamage + TakeDamage + Name + HasBody>(&mut self, victim: &mut V) -> CriticalHitResult;
+    fn critical_hit<V: HasBody>(&self, victim: &V) -> CriticalHitResult;
 }
 
-impl<A: Assault + MayHaveWeapon + Name + RollDamage + CanMissParries + CanMissAssaults + MayHaveMutableWeapon + TakeDamage + TakeWeapon + HasBody + TakeReducedDamage + ParryThreshold + IsUnconscious + HasMutableBody + IsDead + MayHaveMutableWeapon + MayHaveDurationDamage + AttackThreshold> CriticalHit for A {
-    fn critical_hit<V: Assault + CriticalHit + MayHaveDurationDamage + IsDead + ParryThreshold + TakeReducedDamage + TakeWeapon + MayHaveMutableWeapon + CanMissParries + CanMissAssaults + HasMutableBody + IsUnconscious + MayHaveWeapon + RollDamage + TakeDamage + Name + HasBody>(&mut self, victim: &mut V) -> CriticalHitResult {
+impl<A: MayHaveWeapon> CriticalHit for A {
+    fn critical_hit<V: HasBody>(&self, victim: &V) -> CriticalHitResult {
         match self.weapon() {
             None => panic!("Can't critical hit without weapon"),
             Some(weapon) => if weapon.is_sharp() {
@@ -768,6 +801,23 @@ impl ShowAction for CriticalHitResult {
                     victim.name()
                 );
             }
+        }
+    }
+}
+
+pub trait SelfCriticalHit {
+    fn self_critical_hit(&self) -> CriticalHitResult;
+}
+
+impl<T: MayHaveWeapon + HasBody> SelfCriticalHit for T {
+    fn self_critical_hit(&self) -> CriticalHitResult {
+        match self.weapon() {
+            Some(weapon) => if weapon.is_sharp() {
+                CriticalHitResult::roll_sharp(self)
+            } else {
+                CriticalHitResult::roll_blunt(self)
+            },
+            None => panic!("Can't critical hit without weapon")
         }
     }
 }

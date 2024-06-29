@@ -79,7 +79,7 @@ impl ShowAction for AttackResult {
     fn show<A, V>(&self, assailant: &A, victim: &V)
         where
             A: MayHaveWeapon + Name + CanMissAssaults,
-            V: Name + HasBody + CanMissParries
+            V: MayHaveWeapon + Name + HasBody + CanMissParries
     {
         let attack_possibility = self.can_attack();
         if !attack_possibility.can_attack() {

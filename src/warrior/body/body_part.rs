@@ -13,8 +13,30 @@ pub trait MayTargetBodyPart {
 }
 
 #[derive(Debug)]
+pub enum FingerName {
+    Thumb,
+    PointerFinger,
+    MiddleFinger,
+    RingFinger,
+    PinkyFinger,
+}
+
+impl Display for FingerName {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            FingerName::Thumb => write!(f, "thumb"),
+            FingerName::PointerFinger => write!(f, "pointer finger"),
+            FingerName::MiddleFinger => write!(f, "middle finger"),
+            FingerName::RingFinger => write!(f, "ring finger"),
+            FingerName::PinkyFinger => write!(f, "pinky finger"),
+        }
+    }
+}
+
+#[derive(Debug)]
 pub enum BodyPartKind {
     Eye(BodySide),
+    Finger(BodySide, FingerName),
     Hand(BodySide),
     Arm(BodySide),
     Torso,
@@ -28,6 +50,7 @@ pub enum BodyPartKind {
 impl Display for BodyPartKind {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
+            BodyPartKind::Finger(side, name) => write!(f, "{side} {name}"),
             BodyPartKind::Hand(side) => write!(f, "{side} hand"),
             BodyPartKind::Arm(side) => write!(f, "{side} arm"),
             BodyPartKind::Head => write!(f, "head"),

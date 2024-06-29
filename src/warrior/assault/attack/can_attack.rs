@@ -29,7 +29,7 @@ impl ShowAction for CantAttackReason {
     fn show<A, V>(&self, assailant: &A, victim: &V)
     where
         A: CanMissAssaults + MayHaveWeapon + Name,
-        V: Name + crate::warrior::body::HasBody + CanMissParries
+        V: MayHaveWeapon + Name + HasBody + CanMissParries
     {
         match self {
             CantAttackReason::IsDead => println!("{} can't attack because he is dead", assailant.name()),

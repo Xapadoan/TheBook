@@ -25,6 +25,10 @@ impl DamageSummary {
         self.to_victim += damage;
     }
 
+    pub fn add_damage_to_assailant(&mut self, damage: u8) {
+        self.to_assailant += damage;
+    }
+
     pub fn merge(&mut self, target: DamageSummary, reverse: bool) {
         if reverse {
             self.to_assailant += target.to_victim;

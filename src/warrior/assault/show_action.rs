@@ -7,6 +7,6 @@ use crate::warrior::CanMissAssaults;
 pub trait ShowAction {
     fn show<A, V>(&self, assailant: &A, victim: &V)
     where
-        A: MayHaveWeapon + Name + CanMissAssaults,
-        V: Name + HasBody + CanMissParries;
+        A: Name + MayHaveWeapon + CanMissAssaults,
+        V: Name + MayHaveWeapon + HasBody + CanMissParries;
 }

@@ -22,6 +22,7 @@ pub mod parry;
 pub mod damage_summary;
 mod show_action;
 mod execute_action;
+mod clumsiness;
 
 #[derive(Debug)]
 pub struct AssaultResult {

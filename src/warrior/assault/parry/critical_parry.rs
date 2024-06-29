@@ -81,9 +81,9 @@ impl ExecuteAction for CriticalParryResult {
                 damage_summary.merge(inter_damage_summary, true);
             },
             CriticalParryResult::AssailantSelfCriticalHit => {
-                let mut crit_consequence = victim.critical_hit(assailant);
-                crit_consequence.show(victim, assailant);
-                let inter_damage_summary = crit_consequence.execute(victim, assailant);
+                let mut crit_consequence = assailant.critical_hit(assailant);
+                crit_consequence.show(assailant, assailant);
+                let inter_damage_summary = crit_consequence.self_inflict(assailant);
                 damage_summary.merge(inter_damage_summary, true);
             },
             CriticalParryResult::AssailantDropsWeapon => {
