@@ -2,14 +2,14 @@ use the_book::tournament::Tournament;
 use the_book::warrior::body::body_part::BodyPartKind;
 use the_book::warrior::body::body_side::BodySide;
 use the_book::warrior::protection::{Protection, ProtectionKind, WearProtection};
+use the_book::warrior::weapon::{WeaponKind, Weapon, MayHaveWeapon, GiveWeapon};
 use the_book::warrior::Warrior;
-use the_book::weapon::{CanHaveWeapon, Weapon, WeaponKind};
 
 fn main() {
     let mut masarma = Warrior::new("Masarma");
     let great_sword = Weapon::new(WeaponKind::GreatSword);
-    if !masarma.has_weapon() {
-        masarma.take_weapon(great_sword);
+    if masarma.weapon().is_none() {
+        masarma.give_weapon(great_sword);
     }
     let armlet = Protection::new(ProtectionKind::Armlet);
     if masarma.can_wear_protection(&armlet, BodyPartKind::Arm(BodySide::Left)) {
@@ -22,8 +22,8 @@ fn main() {
 
     let mut lehtobel = Warrior::new("Lehtobel");
     let sword = Weapon::new(WeaponKind::Sword);
-    if !lehtobel.has_weapon() {
-        lehtobel.take_weapon(sword);
+    if lehtobel.weapon().is_none() {
+        lehtobel.give_weapon(sword);
     }
     let chain_mail = Protection::new(ProtectionKind::ChainMail);
     if lehtobel.can_wear_protection(&chain_mail, BodyPartKind::Torso) {
@@ -32,8 +32,8 @@ fn main() {
 
     let mut tendark = Warrior::new("Tendark");
     let battle_axe = Weapon::new(WeaponKind::BattleAxe);
-    if !tendark.has_weapon() {
-        tendark.take_weapon(battle_axe);
+    if tendark.weapon().is_none() {
+        tendark.give_weapon(battle_axe);
     }
     let gauntlet = Protection::new(ProtectionKind::Gauntlet);
     if tendark.can_wear_protection(&gauntlet, BodyPartKind::Hand(BodySide::Right)) {
@@ -46,8 +46,8 @@ fn main() {
 
     let mut arcen = Warrior::new("Arcen");
     let sword = Weapon::new(WeaponKind::Sword);
-    if !arcen.has_weapon() {
-        arcen.take_weapon(sword);
+    if arcen.weapon().is_none() {
+        arcen.give_weapon(sword);
     }
     let gambeson = Protection::new(ProtectionKind::Gambeson);
     if arcen.can_wear_protection(&gambeson, BodyPartKind::Torso) {
@@ -56,8 +56,8 @@ fn main() {
 
     let mut morbiff = Warrior::new("Morbiff");
     let axe = Weapon::new(WeaponKind::Axe);
-    if !morbiff.has_weapon() {
-        morbiff.take_weapon(axe);
+    if morbiff.weapon().is_none() {
+        morbiff.give_weapon(axe);
     }
     let greave = Protection::new(ProtectionKind::Greave);
     let gauntlet = Protection::new(ProtectionKind::Gauntlet);
@@ -70,8 +70,8 @@ fn main() {
 
     let mut nithu = Warrior::new("Nithu");
     let war_hammer = Weapon::new(WeaponKind::WarHammer);
-    if !nithu.has_weapon() {
-        nithu.take_weapon(war_hammer);
+    if nithu.weapon().is_none() {
+        nithu.give_weapon(war_hammer);
     }
     let jacket = Protection::new(ProtectionKind::Jacket);
     if nithu.can_wear_protection(&jacket, BodyPartKind::Torso) {
@@ -80,8 +80,8 @@ fn main() {
 
     let mut finul = Warrior::new("Finul");
     let hammer = Weapon::new(WeaponKind::Hammer);
-    if !finul.has_weapon() {
-        finul.take_weapon(hammer);
+    if finul.weapon().is_none() {
+        finul.give_weapon(hammer);
     }
     let plastron = Protection::new(ProtectionKind::Plastron);
     if finul.can_wear_protection(&plastron, BodyPartKind::Torso) {
@@ -90,8 +90,8 @@ fn main() {
 
     let mut chei = Warrior::new("Chei");
     let hammer = Weapon::new(WeaponKind::Hammer);
-    if !chei.has_weapon() {
-        chei.take_weapon(hammer);
+    if chei.weapon().is_none() {
+        chei.give_weapon(hammer);
     }
     let helm = Protection::new(ProtectionKind::Helm);
     if chei.can_wear_protection(&helm, BodyPartKind::Head) {

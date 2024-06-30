@@ -1,3 +1,7 @@
+pub trait ApplyDamageModifier {
+    fn apply_damage_modifier(&self, base: u8) -> u8;
+}
+
 #[derive(Debug)]
 pub struct Modifier {
     value: i8,

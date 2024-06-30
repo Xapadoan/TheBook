@@ -1,7 +1,10 @@
+// pub mod show_action;
+
 use crate::virtual_timer::VirtualTimer;
-use crate::warrior::Warrior;
-use crate::fight_mechanics::IsUnconscious;
-use crate::weapon::CanHaveWeapon;
+use crate::warrior::assault::damage_summary::ApplyDamageSummary;
+use crate::warrior::{IsDead, IsUnconscious, Warrior};
+use crate::warrior::weapon::MayHaveWeapon;
+use crate::warrior::assault::Assault;
 
 #[derive(Debug)]
 pub struct Fight {
@@ -56,21 +59,25 @@ impl Fight {
 
         while turn < u8::MAX {
             println!("=== {turn} ===");
-            self.blue_corner.attack(&mut self.red_corner);
+            let blue_assault = self.blue_corner.assault(&mut self.red_corner);
+            dbg!(&blue_assault);
+            blue_assault.apply_damage_summary(&mut self.blue_corner, &mut self.red_corner);
             self.timer.add_time(2);
-            self.red_corner.attack(&mut self.blue_corner);
+            let red_assault = self.red_corner.assault(&mut self.blue_corner);
+            dbg!(&red_assault);
+            red_assault.apply_damage_summary(&mut self.red_corner, &mut self.blue_corner);
             self.timer.add_time(2);
             println!("\n");
             turn += 1;
-            self.blue_corner.apply_duration_damage(self.timer.absolute_time());
-            self.red_corner.apply_duration_damage(self.timer.absolute_time());
-            if self.blue_corner.is_dead() || self.blue_corner.is_unconscious() || !self.blue_corner.has_weapon() {
+            self.blue_corner.apply_duration_damages(self.timer.absolute_time());
+            self.red_corner.apply_duration_damages(self.timer.absolute_time());
+            if self.blue_corner.is_dead() || self.blue_corner.is_unconscious() || self.blue_corner.weapon().is_none() {
                 return FightResult {
                     winner: Some(self.red_corner),
                     end_reason: Fight::end_reason(&self.blue_corner),
                 };
             }
-            if self.red_corner.is_dead() || self.red_corner.is_unconscious() || !self.red_corner.has_weapon() {
+            if self.red_corner.is_dead() || self.red_corner.is_unconscious() || self.red_corner.weapon().is_none() {
                 return FightResult {
                     winner: Some(self.blue_corner),
                     end_reason: Fight::end_reason(&self.red_corner),

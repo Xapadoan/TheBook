@@ -1,8 +1,7 @@
 use std::fmt::Display;
 
 use crate::equipment::{HasRupture, RuptureTestResult};
-use crate::fight_mechanics::ApplyDamageModifier;
-use crate::modifiers::Modifier;
+use crate::modifiers::{ApplyDamageModifier, Modifier};
 use crate::dice::Dice;
 
 use super::body::body_part::BodyPartKind;
@@ -187,7 +186,7 @@ impl HasRupture for Protection {
 
     fn is_destroyed(&self) -> bool {
         match self.rupture {
-            Some(rup) => !rup > 0,
+            Some(rup) => !(rup > 0),
             None => false,
         }
     }
@@ -211,5 +210,45 @@ impl ApplyDamageModifier for Protection {
         } else {
             self.dmg_modifier.apply(base)
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn can_take_rupture_damage() {
+        let mut chain_mail = Protection::new(ProtectionKind::ChainMail);
+        let base_rupture = chain_mail.rupture.unwrap();
+        let rupture_damage = 1;
+        assert_eq!(chain_mail.rupture.unwrap(), base_rupture);
+        chain_mail.damage_rupture(rupture_damage);
+        assert_eq!(chain_mail.rupture.unwrap(), base_rupture - rupture_damage);
+    }
+
+    #[test]
+    fn is_destroyed_when_rupture_is_zero() {
+        let mut armlet = Protection::new(ProtectionKind::Armlet);
+
+        assert!(!armlet.is_destroyed());
+        armlet.damage_rupture(armlet.rupture.unwrap());
+        assert!(armlet.is_destroyed());
+    }
+
+    #[test]
+    fn should_apply_damage_modifier_unless_destroyed() {
+        let mut gambeson = Protection::new(ProtectionKind::Gambeson);
+
+        let raw_damage = 9;
+        let reduced_damage = gambeson.apply_damage_modifier(raw_damage);
+        assert!(
+            raw_damage > reduced_damage,
+            "Protection didn't reduce damage (raw: {}, reduced: {})", raw_damage, reduced_damage
+        );
+
+        gambeson.damage_rupture(gambeson.rupture.unwrap());
+        let reduced_damage = gambeson.apply_damage_modifier(raw_damage);
+        assert_eq!(raw_damage, reduced_damage);
     }
 }

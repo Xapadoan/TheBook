@@ -10,6 +10,14 @@ pub trait MayBeInjured {
     fn add_injury(&mut self, injury: Injury);
 }
 
+pub trait MayCauseInjury {
+    fn injury(&self) -> Option<&Injury>;
+}
+
+pub trait TakeInjury {
+    fn take_injury(&mut self) -> Option<Injury>;
+}
+
 #[derive(Debug)]
 pub enum InjuryKind {
     Severed,

@@ -1,14 +1,25 @@
 use crate::dice::Dice;
-use crate::equipment::{HasRupture, RuptureTestResult};
-use crate::modifiers::Modifier;
-use crate::warrior::body::body_part::{BodyPartKind, RandomFunctionalBodyPart};
+use crate::equipment::{HasRupture, MayHaveRuptureDamage, MayHaveTestedRupture, RuptureTestResult};
+use crate::modifiers::{ApplyDamageModifier, Modifier};
+use crate::warrior::assault::damage_summary::DamageSummary;
+use crate::warrior::assault::execute_action::ExecuteAction;
+use crate::warrior::assault::parry::parry_attempt::ParryThreshold;
+use crate::warrior::assault::show_action::ShowAction;
+use crate::warrior::assault::Assault;
+use crate::warrior::body::body_part::{BodyPartKind, RandomFunctionalBodyPart, MayTargetBodyPart};
 use crate::warrior::body::body_side::BodySide;
+use crate::warrior::body::{HasBody, HasMutableBody};
+use crate::warrior::duration_damage::MayHaveDurationDamage;
 use crate::warrior::protection::{Protectable, RandomProtectedBodyPart};
-use crate::warrior::body::injury::{Injury, InjuryKind, MayBeInjured};
-use super::fight_action::{ExecuteFightActionResult, ShowFightActionResult};
-use super::{ApplyDamageModifier, IsUnconscious, RollDamage, TakeDamage};
-use crate::warrior::Warrior;
+use crate::warrior::body::injury::{Injury, InjuryKind, MayBeInjured, MayCauseInjury, TakeInjury};
+use crate::warrior::weapon::{MayHaveMutableWeapon, MayHaveWeapon, TakeWeapon};
+use crate::warrior::{IsUnconscious, Name, RollDamage, TakeDamage, TakeReducedDamage};
+use crate::warrior::temporary_handicap::parries_miss::CanMissParries;
+use crate::warrior::temporary_handicap::assaults_miss::CanMissAssaults;
 
+use super::can_be_attacked::CanBeAttacked;
+
+#[derive(Debug)]
 pub enum CriticalHitKind {
     DeepIncision,
     ReallyDeepIncision,
@@ -39,6 +50,7 @@ pub enum CriticalHitKind {
     VitalOrganCrushed,
 }
 
+#[derive(Debug)]
 pub struct CriticalHitResult {
     kind: CriticalHitKind,
     body_part_kind: Option<BodyPartKind>,
@@ -49,7 +61,7 @@ pub struct CriticalHitResult {
 }
 
 impl CriticalHitResult {
-    fn new(victim: &Warrior, kind: CriticalHitKind) -> Self {
+    fn new<V: HasBody>(victim: &V, kind: CriticalHitKind) -> Self {
         match kind {
             CriticalHitKind::BrokenArm |
             CriticalHitKind::BrokenLeg => {
@@ -459,7 +471,7 @@ impl CriticalHitResult {
         }
     }
 
-    pub fn roll_sharp(victim: &Warrior) -> Self {
+    pub fn roll_sharp<V: HasBody>(victim: &V) -> Self {
         match Dice::D20.roll() {
             1 | 2 => Self::new(victim, CriticalHitKind::DeepIncision),
             3 | 4 => Self::new(victim, CriticalHitKind::ReallyDeepIncision),
@@ -480,7 +492,7 @@ impl CriticalHitResult {
         }
     }
 
-    pub fn roll_blunt(victim: &Warrior) -> Self {
+    pub fn roll_blunt<V: HasBody>(victim: &V) -> Self {
         match Dice::D20.roll() {
             1 | 2 => Self::new(victim, CriticalHitKind::ImpressiveBruise),
             3 | 4 => Self::new(victim, CriticalHitKind::ImpressiveBruiseAndLimbDislocation),
@@ -501,18 +513,150 @@ impl CriticalHitResult {
         }
     }
 
-    fn display_protection_or_limb(&self, victim: &Warrior) -> String {
+    pub fn display_protection_or_limb<V: HasBody>(&self, victim: &V) -> String {
         let body_part = victim.body().body_part(self.body_part_kind.as_ref().unwrap());
         match body_part.protected_by() {
             Some(protection) => protection.to_string(),
             None => body_part.kind().to_string()
         }
     }
+
+    pub fn kind(&self) -> &CriticalHitKind {
+        &self.kind
+    }
+
+    pub fn self_inflict<T>(&mut self, victim: &mut T) -> DamageSummary
+    where
+        T: RollDamage + CanMissParries + CanMissAssaults + MayHaveWeapon + MayHaveMutableWeapon + TakeWeapon + Name + HasMutableBody + TakeDamage + TakeReducedDamage + CanBeAttacked + ParryThreshold + IsUnconscious + MayHaveDurationDamage,
+    {
+        match self.target_body_part() {
+            Some(part) => {
+                let body_part = victim.body_mut().body_part_mut(part);
+                if self.injury().is_some() {
+                    body_part.add_injury(self.take_injury().unwrap());
+                }
+                if self.rupture_damage().is_some() && body_part.is_protected() {
+                    body_part.protected_by_mut().unwrap().damage_rupture(self.rupture_damage().unwrap())
+                }
+            },
+            None => {},
+        }
+        match self.kind() {
+            CriticalHitKind::KnockedOut => victim.set_unconscious(),
+            CriticalHitKind::SeveredGenitals |
+            CriticalHitKind::VitalOrganDamage => {
+                let reason = match self.kind() {
+                    CriticalHitKind::SeveredGenitals => format!("{} severed his genitals", victim.name()),
+                    CriticalHitKind::VitalOrganDamage => format!("{} damage a vital organ", victim.name()),
+                    _ => panic!("Match should not be possible")
+                };
+                victim.add_duration_damage(reason, 1)
+            },
+            _ => {},
+        }
+        let damage = self.apply_damage_modifier(victim.roll_damage());
+        // victim.take_damage(damage);
+        DamageSummary::new(damage)
+    }
 }
 
-impl ShowFightActionResult for CriticalHitResult {
-    fn show_fight_action_result(&self, assailant: &Warrior, victim: &Warrior) {
-        match &self.kind {
+pub trait CriticalHit {
+    fn critical_hit<V: HasBody>(&self, victim: &V) -> CriticalHitResult;
+}
+
+impl<A: MayHaveWeapon> CriticalHit for A {
+    fn critical_hit<V: HasBody>(&self, victim: &V) -> CriticalHitResult {
+        match self.weapon() {
+            None => panic!("Can't critical hit without weapon"),
+            Some(weapon) => if weapon.is_sharp() {
+                CriticalHitResult::roll_sharp(victim)
+            } else {
+                CriticalHitResult::roll_blunt(victim)
+            }
+        }
+    }
+}
+
+impl MayTargetBodyPart for CriticalHitResult {
+    fn target_body_part(&self) -> Option<&BodyPartKind> {
+        self.body_part_kind.as_ref()
+    }
+}
+
+impl MayHaveTestedRupture for CriticalHitResult {
+    fn rupture_test_result(&self) -> Option<&RuptureTestResult> {
+        self.rupture_test_result.as_ref()
+    }
+}
+
+impl ApplyDamageModifier for CriticalHitResult {
+    fn apply_damage_modifier(&self, base: u8) -> u8 {
+        self.dmg_modifier.apply(base)
+    }
+}
+
+impl MayHaveRuptureDamage for CriticalHitResult {
+    fn rupture_damage(&self) -> Option<u8> {
+        self.rupture_damage
+    }
+}
+
+impl MayCauseInjury for CriticalHitResult {
+    fn injury(&self) -> Option<&Injury> {
+        self.injury.as_ref()
+    }
+}
+
+impl TakeInjury for CriticalHitResult {
+    fn take_injury(&mut self) -> Option<Injury> {
+        self.injury.take()
+    }
+}
+
+impl ExecuteAction for CriticalHitResult {
+    fn execute<A, V>(&mut self, assailant: &mut A, victim: &mut V) -> DamageSummary
+    where
+        A: RollDamage + CanMissParries + CanMissAssaults + MayHaveWeapon + MayHaveMutableWeapon + TakeWeapon + Name + HasBody + TakeDamage + TakeReducedDamage + CanBeAttacked + ParryThreshold,
+        V: Assault + CriticalHit + Name + MayHaveWeapon + IsUnconscious + HasMutableBody + TakeDamage + MayHaveDurationDamage,
+    {
+        match self.target_body_part() {
+            Some(part) => {
+                let body_part = victim.body_mut().body_part_mut(part);
+                if self.injury().is_some() {
+                    body_part.add_injury(self.take_injury().unwrap());
+                }
+                if self.rupture_damage().is_some() && body_part.is_protected() {
+                    body_part.protected_by_mut().unwrap().damage_rupture(self.rupture_damage().unwrap())
+                }
+            },
+            None => {},
+        }
+        match self.kind() {
+            CriticalHitKind::KnockedOut => victim.set_unconscious(),
+            CriticalHitKind::SeveredGenitals |
+            CriticalHitKind::VitalOrganDamage => {
+                let reason = match self.kind() {
+                    CriticalHitKind::SeveredGenitals => format!("{} severed his genitals", assailant.name()),
+                    CriticalHitKind::VitalOrganDamage => format!("{} damage a vital organ", assailant.name()),
+                    _ => panic!("Match should not be possible")
+                };
+                victim.add_duration_damage(reason, 1)
+            },
+            _ => {},
+        }
+        let damage = self.apply_damage_modifier(assailant.roll_damage());
+        // victim.take_damage(damage);
+        DamageSummary::new(damage)
+    }
+}
+
+impl ShowAction for CriticalHitResult {
+    fn show<A, V>(&self, assailant: &A, victim: &V)
+    where
+        A: MayHaveWeapon + Name,
+        V: Name + HasBody,
+    {
+        match self.kind() {
             CriticalHitKind::AccurateHeavyBlowAndArmorDamage => {
                 println!(
                     "{} hits {} heavily, damaging his {}",
@@ -522,10 +666,10 @@ impl ShowFightActionResult for CriticalHitResult {
                 );
             }
             CriticalHitKind::BrokenArm | CriticalHitKind::BrokenHand | CriticalHitKind::BrokenLeg => {
-                println!("{} broke {}'s {}", assailant.name(), victim.name(), self.body_part_kind.as_ref().unwrap());
+                println!("{} broke {}'s {}", assailant.name(), victim.name(), self.target_body_part().unwrap());
             }
             CriticalHitKind::CrushedGenitals => {
-                let genitals = self.body_part_kind.as_ref().unwrap();
+                let genitals = self.target_body_part().unwrap();
                 if victim.body().body_part(genitals).is_severed() {
                     println!(
                         "{} smashed the air when {}'s {} should have been",
@@ -544,7 +688,7 @@ impl ShowFightActionResult for CriticalHitResult {
                 println!("{} severed {}'s genitals", assailant.name(), victim.name());
             }
             CriticalHitKind::GougedEye => {
-                let eye = victim.body().body_part(self.body_part_kind.as_ref().unwrap());
+                let eye = victim.body().body_part(self.target_body_part().unwrap());
                 if eye.is_severed() {
                     println!("{}'s {} is already gouged", victim.name(), eye.kind());
                 } else {
@@ -582,7 +726,7 @@ impl ShowFightActionResult for CriticalHitResult {
                 println!("{} opened {}'s skull wide", assailant.name(), victim.name());
             }
             CriticalHitKind::PartOfTheArmorIsDestroyed => {
-                match &self.rupture_test_result {
+                match self.rupture_test_result() {
                     Some(result) => match result {
                         RuptureTestResult::Fail => println!(
                             "{} destroyed {}'s {}",
@@ -601,7 +745,7 @@ impl ShowFightActionResult for CriticalHitResult {
                         "{} hits {}'s unprotected {}.",
                         assailant.name(),
                         victim.name(),
-                        self.body_part_kind.as_ref().unwrap(),
+                        self.target_body_part().unwrap(),
                     )
                 }
             }
@@ -623,7 +767,7 @@ impl ShowFightActionResult for CriticalHitResult {
                 println!("{} cut through {}'s head", assailant.name(), victim.name());
             }
             CriticalHitKind::SeveredArm | CriticalHitKind::SeveredFoot | CriticalHitKind::SeveredHand | CriticalHitKind::SeveredLeg => {
-                let body_part = victim.body().body_part(self.body_part_kind.as_ref().unwrap());
+                let body_part = victim.body().body_part(self.target_body_part().unwrap());
                 if body_part.is_severed() {
                     println!("{} slashed right where {}'s {} should be", assailant.name(), victim.name(), body_part.kind());
                 } else {
@@ -631,7 +775,7 @@ impl ShowFightActionResult for CriticalHitResult {
                 }
             }
             CriticalHitKind::SmashedFoot => {
-                let body_part = victim.body().body_part(self.body_part_kind.as_ref().unwrap());
+                let body_part = victim.body().body_part(self.target_body_part().unwrap());
                 if body_part.is_severed() {
                     println!(
                         "{} smashed the ground where {}'s {} should have been",
@@ -661,40 +805,19 @@ impl ShowFightActionResult for CriticalHitResult {
     }
 }
 
-impl ExecuteFightActionResult for CriticalHitResult {
-    fn execute(&mut self, assailant: &mut Warrior, victim: &mut Warrior) {
-        match &self.body_part_kind {
-            Some(part) => {
-                let body_part = victim.body_mut().body_part_mut(part);
-                if self.injury.is_some() {
-                    body_part.add_injury(self.injury.take().unwrap());
-                }
-                if self.rupture_damage.is_some() && body_part.is_protected() {
-                    body_part.protected_by_mut().unwrap().damage_rupture(self.rupture_damage.take().unwrap())
-                }
-            },
-            None => {},
-        }
-        match self.kind {
-            CriticalHitKind::KnockedOut => victim.set_unconscious(),
-            CriticalHitKind::SeveredGenitals |
-            CriticalHitKind::VitalOrganDamage => {
-                let reason = match self.kind {
-                    CriticalHitKind::SeveredGenitals => format!("{} severed his genitals", assailant.name()),
-                    CriticalHitKind::VitalOrganDamage => format!("{} damage a vital organ", assailant.name()),
-                    _ => panic!("Match should not be possible")
-                };
-                victim.add_duration_damage(reason, 1)
-            },
-            _ => {},
-        }
-        let damage = self.dmg_modifier.apply(assailant.roll_damage());
-        victim.take_damage(damage);
-    }
+pub trait SelfCriticalHit {
+    fn self_critical_hit(&self) -> CriticalHitResult;
 }
 
-impl ApplyDamageModifier for CriticalHitResult {
-    fn apply_damage_modifier(&self, base: u8) -> u8 {
-        self.dmg_modifier.apply(base)
+impl<T: MayHaveWeapon + HasBody> SelfCriticalHit for T {
+    fn self_critical_hit(&self) -> CriticalHitResult {
+        match self.weapon() {
+            Some(weapon) => if weapon.is_sharp() {
+                CriticalHitResult::roll_sharp(self)
+            } else {
+                CriticalHitResult::roll_blunt(self)
+            },
+            None => panic!("Can't critical hit without weapon")
+        }
     }
 }

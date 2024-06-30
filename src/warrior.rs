@@ -1,36 +1,54 @@
 pub mod body;
 pub mod protection;
 pub mod stats;
+pub mod assault;
+pub mod weapon;
+pub mod temporary_handicap;
+pub mod duration_damage;
 
+use assault::attack::attack_attempt::AttackThreshold;
+use assault::parry::parry_attempt::ParryThreshold;
 use body::Body;
 use body::body_part::BodyPartKind;
+use body::HasBody;
+use body::HasMutableBody;
 use protection::WearProtection;
 use stats::StatModifier;
 use stats::StatsManager;
 use stats::Stat;
+use temporary_handicap::TemporaryHandicap;
+use weapon::GiveWeapon;
+use weapon::MayHaveMutableWeapon;
+use weapon::MayHaveWeapon;
+use weapon::TakeWeapon;
+use weapon::Weapon;
+use temporary_handicap::parries_miss::{CanMissParries, ParriesMiss};
+use temporary_handicap::assaults_miss::{CanMissAssaults, AssaultsMiss};
+use duration_damage::{DurationDamage, MayHaveDurationDamage};
 
-use crate::dice::Dice;
-use crate::dice::RollResult;
-use crate::fight_mechanics::critical_hit::CriticalHitResult;
-use crate::fight_mechanics::duration_damage::DurationDamage;
-use crate::fight_mechanics::fight_action::ExecuteFightActionResult;
-use crate::fight_mechanics::fight_action::ShowFightActionResult;
-use crate::fight_mechanics::assaults_miss::AssaultsMiss;
-use crate::fight_mechanics::parries_miss::ParriesMiss;
-use crate::fight_mechanics::parry::ParryAttemptResult;
-use crate::fight_mechanics::attack::AttackAttemptResult;
-use crate::fight_mechanics::ApplyDamageModifier;
-use crate::fight_mechanics::CanMissAssaults;
-use crate::fight_mechanics::CanMissParries;
-use crate::fight_mechanics::CriticalHitOn;
-use crate::fight_mechanics::critical_parry::CriticalParry;
-use crate::fight_mechanics::IsUnconscious;
-use crate::fight_mechanics::TakeReducibleDamage;
-use crate::fight_mechanics::{ParryAttempt, AttackAttempt, TemporaryHandicap};
-use crate::fight_mechanics::{RollDamage, TakeDamage};
-use crate::modifiers::Modifier;
-use crate::weapon::CanHaveWeapon;
-use crate::weapon::Weapon;
+use crate::dice::{RollDamage, Dice};
+use crate::modifiers::{ApplyDamageModifier, Modifier};
+
+pub trait IsDead {
+    fn is_dead(&self) -> bool;
+}
+
+pub trait IsUnconscious {
+    fn is_unconscious(&self) -> bool;
+    fn set_unconscious(&mut self);
+}
+
+pub trait TakeDamage {
+    fn take_damage(&mut self, damage: u8);
+}
+
+pub trait TakeReducedDamage {
+    fn take_reduced_damage(&mut self, damage: u8);
+}
+
+pub trait Name {
+    fn name(&self) -> &String;
+}
 
 #[derive(Debug)]
 pub struct Warrior {
@@ -42,7 +60,7 @@ pub struct Warrior {
     parries_miss: Option<ParriesMiss>,
     is_unconscious: bool,
     body: Body,
-    duration_damage: Vec<DurationDamage>,
+    duration_damages: Vec<DurationDamage>,
 }
 
 impl Warrior {
@@ -56,7 +74,7 @@ impl Warrior {
             parries_miss: None,
             is_unconscious: false,
             body: Body::new(),
-            duration_damage: Vec::new(),
+            duration_damages: Vec::new(),
         }
     }
 
@@ -68,48 +86,20 @@ impl Warrior {
         println!("Hi ! I'm {}", self.name);
     }
 
-    pub fn is_dead(&self) -> bool {
-        self.health < 1
-    }
-
-    pub fn attack(&mut self, target: &mut Self) {
-        if !self.has_weapon() || !target.has_weapon() {
-            return;
-        }
-        if self.is_dead() || self.is_unconscious() {
-            return;
-        }
-        if self.must_miss_assault() {
-            self.miss_assault();
-            return;
-        }
-        println!("{} attacks {}", self.name, target.name);
-        let mut attack_attempt_result = self.attack_attempt();
-        attack_attempt_result.show_fight_action_result(self, target);
-        attack_attempt_result.execute(self, target);
-    }
-
-    pub fn body(&self) -> &Body {
-        &self.body
-    }
-
-    pub fn body_mut(&mut self) -> &mut Body {
-        &mut self.body
-    }
-
-    pub fn apply_duration_damage(&mut self, time_elapsed: u32) {
-        let mut damage = 0;
-        for duration_damage in &self.duration_damage {
+    pub fn apply_duration_damages(&mut self, time_elapsed: u32) {
+        let mut damages = 0;
+        for duration_damage in &mut self.duration_damages {
             if duration_damage.should_take_duration_damage(time_elapsed) {
-                damage += duration_damage.roll_damage();
-                println!("{} took duration damage because {}", self.name(), duration_damage.reason());
+                damages += duration_damage.roll_damage();
+                duration_damage.add_hit();
+                println!("{} took duration damage because {}", self.name, duration_damage.reason());
             }
         }
-        self.take_damage(damage);
+        self.take_damage(damages)
     }
 
     pub fn add_duration_damage(&mut self, reason: String, start_at: u32) {
-        self.duration_damage.push(DurationDamage::new(reason, start_at))
+        self.duration_damages.push(DurationDamage::new(reason, start_at))
     }
 }
 
@@ -118,11 +108,15 @@ impl CanMissParries for Warrior {
         self.parries_miss.is_some()
     }
 
+    fn must_miss_parry_reason(&self) -> &String {
+        self.parries_miss.as_ref().unwrap().reason()
+    }
+
     fn miss_parry(&mut self) {
         let misses = self.parries_miss.as_mut().unwrap();
-        misses.decrement_count();
+        misses.decrement_turns_count();
         println!("{} cannot parry because {}", self.name, misses.reason());
-        if misses.count() == 0 {
+        if misses.turns_left() == 0 {
             self.parries_miss = None;
         }
     }
@@ -137,11 +131,16 @@ impl CanMissAssaults for Warrior {
         self.assaults_miss.is_some()
     }
 
+    fn must_miss_assault_reason(&self) -> &String {
+        self.assaults_miss.as_ref().unwrap().reason()
+    }
+
     fn miss_assault(&mut self) {
+        dbg!(&self.assaults_miss);
         let misses = self.assaults_miss.as_mut().unwrap();
-        misses.decrement_count();
-        println!("{} cannot attack because {}", self.name, misses.reason());
-        if misses.count() == 0 {
+        misses.decrement_turns_count();
+        dbg!(&misses);
+        if misses.turns_left() == 0 {
             self.assaults_miss = None;
         }
     }
@@ -150,50 +149,6 @@ impl CanMissAssaults for Warrior {
         self.assaults_miss = Some(misses)
     }
 }
-
-impl AttackAttempt for Warrior {
-    fn attack_attempt(&self) -> AttackAttemptResult {
-        let success_threshold = self.modify_stat(self.stats_manager.attack_stat());
-        match Dice::D6.test_roll(Stat::consume(success_threshold)) {
-            RollResult::CriticalSuccess => AttackAttemptResult::CriticalSuccess,
-            RollResult::Success => AttackAttemptResult::Success,
-            RollResult::Failure => AttackAttemptResult::Failure,
-            RollResult::CriticalFailure => AttackAttemptResult::CriticalFailure
-        }
-    }
-}
-
-impl ParryAttempt for Warrior {
-    fn parry_attempt(&self) -> ParryAttemptResult {
-        if self.weapon.is_none() {
-            return ParryAttemptResult::Failure;
-        }
-        let success_threshold = self.modify_stat(self.stats_manager.parry_stat());
-        match Dice::D6.test_roll(Stat::consume(success_threshold)) {
-            RollResult::CriticalSuccess => ParryAttemptResult::CriticalSuccess,
-            RollResult::Success => ParryAttemptResult::Success,
-            RollResult::Failure => ParryAttemptResult::Failure,
-            RollResult::CriticalFailure => ParryAttemptResult::CriticalFailure
-        }
-    }
-}
-
-impl CriticalHitOn for Warrior {
-    fn critical_hit_on(&self, target: &Warrior) -> CriticalHitResult {
-        if self.weapon.is_none() {
-            println!("[WARN] bear hands fights is not implemented yet !");
-            return CriticalHitResult::roll_blunt(target);
-        }
-
-        if self.weapon.as_ref().unwrap().is_sharp() {
-            CriticalHitResult::roll_sharp(target)
-        } else {
-            CriticalHitResult::roll_blunt(target)
-        }
-    }
-}
-
-impl CriticalParry for Warrior {}
 
 impl IsUnconscious for Warrior {
     fn is_unconscious(&self) -> bool {
@@ -234,7 +189,7 @@ impl ApplyDamageModifier for Warrior {
     }
 }
 
-impl TakeReducibleDamage for Warrior {
+impl TakeReducedDamage for Warrior {
     fn take_reduced_damage(&mut self, damage: u8) {
         self.take_damage(self.apply_damage_modifier(damage));
     }
@@ -265,28 +220,72 @@ impl StatModifier for Warrior {
     }
 }
 
-impl CanHaveWeapon for Warrior {
-    fn drop_weapon(&mut self) -> Option<Weapon> {
+impl MayHaveWeapon for Warrior {
+    fn weapon(&self) -> Option<&Weapon> {
+        self.weapon.as_ref()
+    }
+}
+
+impl MayHaveMutableWeapon for Warrior {
+    fn weapon_mut(&mut self) -> Option<&mut Weapon> {
+        self.weapon.as_mut()
+    }
+}
+
+impl TakeWeapon for Warrior {
+    fn take_weapon(&mut self) -> Option<Weapon> {
         if self.weapon.is_none() {
             None
         } else {
             self.weapon.take()
         }
     }
+}
 
-    fn has_weapon(&self) -> bool {
-        self.weapon.is_some()
-    }
-
-    fn take_weapon(&mut self, weapon: Weapon) {
+impl GiveWeapon for Warrior {
+    fn give_weapon(&mut self, weapon: Weapon) {
         self.weapon = Some(weapon)
     }
+}
 
-    fn weapon(&self) -> Option<&Weapon> {
-        self.weapon.as_ref()
+impl IsDead for Warrior {
+    fn is_dead(&self) -> bool {
+        self.health < 1
     }
+}
 
-    fn weapon_mut(&mut self) -> Option<&mut Weapon> {
-        self.weapon.as_mut()
+impl HasBody for Warrior {
+    fn body(&self) -> &Body {
+        &self.body
+    }
+}
+
+impl HasMutableBody for Warrior {
+    fn body_mut(&mut self) -> &mut Body {
+        &mut self.body
+    }
+}
+
+impl Name for Warrior {
+    fn name(&self) -> &String {
+        &self.name
+    }
+}
+
+impl MayHaveDurationDamage for Warrior {
+    fn add_duration_damage(&mut self, reason: String, start_at: u32) {
+        self.duration_damages.push(DurationDamage::new(reason, start_at))
+    }
+}
+
+impl AttackThreshold for Warrior {
+    fn attack_threshold(&self) -> u8 {
+        Stat::consume(self.modify_stat(self.stats_manager.attack_stat()))
+    }
+}
+
+impl ParryThreshold for Warrior {
+    fn parry_threshold(&self) -> u8 {
+        Stat::consume(self.modify_stat(self.stats_manager.parry_stat()))
     }
 }

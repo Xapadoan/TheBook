@@ -5,10 +5,9 @@ pub mod injury;
 use injury::MayBeInjured;
 use rand::Rng;
 
-use body_part::{BodyPart, BodyPartKind, RandomFunctionalBodyPart};
+use body_part::{BodyPart, BodyPartKind, FingerName, RandomFunctionalBodyPart};
 use body_side::BodySide;
-use crate::fight_mechanics::ApplyDamageModifier;
-use crate::modifiers::Modifier;
+use crate::modifiers::{ApplyDamageModifier, Modifier};
 use super::protection::{Protectable, Protection, RandomProtectedBodyPart, WearProtection};
 use super::stats::{Stat, StatModifier};
 
@@ -29,6 +28,16 @@ pub struct Body {
     left_leg: BodyPart,
     right_leg: BodyPart,
     genitals: BodyPart,
+    left_thumb: BodyPart,
+    right_thumb: BodyPart,
+    left_pointer_finger: BodyPart,
+    right_pointer_finger: BodyPart,
+    left_middle_finger: BodyPart,
+    right_middle_finger: BodyPart,
+    left_ring_finger: BodyPart,
+    right_ring_finger: BodyPart,
+    left_pinky_finger: BodyPart,
+    right_pinky_finger: BodyPart,
 }
 
 impl Body {
@@ -49,6 +58,16 @@ impl Body {
             left_leg: BodyPart::new(BodyPartKind::Arm(BodySide::Left)),
             right_leg: BodyPart::new(BodyPartKind::Leg(BodySide::Right)),
             genitals: BodyPart::new(BodyPartKind::Genitals),
+            left_thumb: BodyPart::new(BodyPartKind::Finger(BodySide::Left, FingerName::Thumb)),
+            right_thumb: BodyPart::new(BodyPartKind::Finger(BodySide::Right, FingerName::Thumb)),
+            left_pointer_finger: BodyPart::new(BodyPartKind::Finger(BodySide::Left, FingerName::PointerFinger)),
+            right_pointer_finger: BodyPart::new(BodyPartKind::Finger(BodySide::Right, FingerName::PointerFinger)),
+            left_middle_finger: BodyPart::new(BodyPartKind::Finger(BodySide::Left, FingerName::MiddleFinger)),
+            right_middle_finger: BodyPart::new(BodyPartKind::Finger(BodySide::Right, FingerName::MiddleFinger)),
+            left_ring_finger: BodyPart::new(BodyPartKind::Finger(BodySide::Left, FingerName::RingFinger)),
+            right_ring_finger: BodyPart::new(BodyPartKind::Finger(BodySide::Right, FingerName::RingFinger)),
+            left_pinky_finger: BodyPart::new(BodyPartKind::Finger(BodySide::Left, FingerName::PinkyFinger)),
+            right_pinky_finger: BodyPart::new(BodyPartKind::Finger(BodySide::Right, FingerName::PinkyFinger)),
         }
     }
 
@@ -81,6 +100,22 @@ impl Body {
                 BodySide::Right => &mut self.right_leg,
             }
             BodyPartKind::Torso => &mut self.torso,
+            BodyPartKind::Finger(side, name) => match side {
+                BodySide::Left => match name {
+                    FingerName::Thumb => &mut self.left_thumb,
+                    FingerName::PointerFinger => &mut self.left_pointer_finger,
+                    FingerName::MiddleFinger => &mut self.left_middle_finger,
+                    FingerName::RingFinger => &mut self.left_ring_finger,
+                    FingerName::PinkyFinger => &mut self.left_pinky_finger
+                },
+                BodySide::Right => match name {
+                    FingerName::Thumb => &mut self.right_thumb,
+                    FingerName::PointerFinger => &mut self.right_pointer_finger,
+                    FingerName::MiddleFinger => &mut self.right_middle_finger,
+                    FingerName::RingFinger => &mut self.right_ring_finger,
+                    FingerName::PinkyFinger => &mut self.right_pinky_finger
+                }
+            }
         }
     }
 
@@ -113,6 +148,22 @@ impl Body {
                 BodySide::Right => &self.right_leg,
             }
             BodyPartKind::Torso => &self.torso,
+            BodyPartKind::Finger(side, name) => match side {
+                BodySide::Left => match name {
+                    FingerName::Thumb => &self.left_thumb,
+                    FingerName::PointerFinger => &self.left_pointer_finger,
+                    FingerName::MiddleFinger => &self.left_middle_finger,
+                    FingerName::RingFinger => &self.left_ring_finger,
+                    FingerName::PinkyFinger => &self.left_pinky_finger
+                },
+                BodySide::Right => match name {
+                    FingerName::Thumb => &self.right_thumb,
+                    FingerName::PointerFinger => &self.right_pointer_finger,
+                    FingerName::MiddleFinger => &self.right_middle_finger,
+                    FingerName::RingFinger => &self.right_ring_finger,
+                    FingerName::PinkyFinger => &self.right_pinky_finger
+                }
+            }
         }
     }
 
@@ -143,6 +194,16 @@ impl ApplyDamageModifier for Body {
         base = self.left_leg.apply_damage_modifier(base);
         base = self.right_leg.apply_damage_modifier(base);
         base = self.genitals.apply_damage_modifier(base);
+        base =  self.right_thumb.apply_damage_modifier(base);
+        base =  self.left_thumb.apply_damage_modifier(base);
+        base =  self.right_pointer_finger.apply_damage_modifier(base);
+        base =  self.left_pointer_finger.apply_damage_modifier(base);
+        base =  self.right_middle_finger.apply_damage_modifier(base);
+        base =  self.left_middle_finger.apply_damage_modifier(base);
+        base =  self.right_ring_finger.apply_damage_modifier(base);
+        base =  self.left_ring_finger.apply_damage_modifier(base);
+        base =  self.right_pinky_finger.apply_damage_modifier(base);
+        base =  self.left_pinky_finger.apply_damage_modifier(base);
         return base;
     }
 }
@@ -170,7 +231,8 @@ impl WearProtection for Body {
                 BodySide::Left => self.left_leg.is_protected(),
                 BodySide::Right => self.right_leg.is_protected(),
             }
-            BodyPartKind::Torso => self.torso.is_protected()
+            BodyPartKind::Torso => self.torso.is_protected(),
+            BodyPartKind::Finger(_, _) => false,
         };
 
         if is_already_protected {
@@ -202,7 +264,8 @@ impl WearProtection for Body {
                 BodySide::Left => self.left_leg.attach_protection(protection),
                 BodySide::Right => self.right_leg.attach_protection(protection),
             }
-            BodyPartKind::Torso => self.torso.attach_protection(protection)
+            BodyPartKind::Torso => self.torso.attach_protection(protection),
+            BodyPartKind::Finger(_, _) => panic!("Trying to wear protection on a finger"),
         }
     }
 }
@@ -357,4 +420,12 @@ impl StatModifier for Body {
         }
         stat
     }
+}
+
+pub trait HasBody {
+    fn body(&self) -> &Body;
+}
+
+pub trait HasMutableBody {
+    fn body_mut(&mut self) -> &mut Body;
 }
