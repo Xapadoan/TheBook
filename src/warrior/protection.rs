@@ -1,6 +1,6 @@
 use std::fmt::Display;
 
-use crate::equipment::{HasRupture, RuptureTestResult};
+use crate::equipment::{HasRupture, RuptureTestResult, RUPTURE_MAX};
 use crate::modifiers::{ApplyDamageModifier, Modifier};
 use crate::dice::Dice;
 
@@ -176,17 +176,16 @@ impl HasRupture for Protection {
             return;
         }
         let mut rup = self.rupture.unwrap();
-        if damage < rup {
-            rup -= damage;
-        } else {
-            rup = 0;
-        }
+        rup = match rup.checked_add(damage) {
+            Some(result) => result,
+            None => RUPTURE_MAX + 1,
+        };
         self.rupture = Some(rup);
     }
 
     fn is_destroyed(&self) -> bool {
         match self.rupture {
-            Some(rup) => !(rup > 0),
+            Some(rup) => rup > RUPTURE_MAX,
             None => false,
         }
     }
@@ -218,22 +217,21 @@ mod tests {
     use super::*;
 
     #[test]
-    fn can_take_rupture_damage() {
-        let mut chain_mail = Protection::new(ProtectionKind::ChainMail);
-        let base_rupture = chain_mail.rupture.unwrap();
-        let rupture_damage = 1;
-        assert_eq!(chain_mail.rupture.unwrap(), base_rupture);
-        chain_mail.damage_rupture(rupture_damage);
-        assert_eq!(chain_mail.rupture.unwrap(), base_rupture - rupture_damage);
-    }
+    fn protection_damage_rupture() {
+        let mut plastron = Protection::new(ProtectionKind::Plastron);
+        assert_eq!(plastron.rupture, Some(4));
+        assert!(!plastron.is_destroyed());
+        plastron.damage_rupture(1);
+        assert_eq!(plastron.rupture, Some(5));
+        assert!(!plastron.is_destroyed());
+        plastron.damage_rupture(1);
+        assert_eq!(plastron.rupture, Some(6));
+        assert!(plastron.is_destroyed());
 
-    #[test]
-    fn is_destroyed_when_rupture_is_zero() {
-        let mut armlet = Protection::new(ProtectionKind::Armlet);
-
-        assert!(!armlet.is_destroyed());
-        armlet.damage_rupture(armlet.rupture.unwrap());
-        assert!(armlet.is_destroyed());
+        let mut plastron = Protection::new(ProtectionKind::Plastron);
+        assert!(!plastron.is_destroyed());
+        plastron.damage_rupture(u8::MAX);
+        assert!(plastron.is_destroyed());
     }
 
     #[test]
