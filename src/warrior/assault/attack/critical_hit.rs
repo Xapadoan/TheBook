@@ -804,20 +804,3 @@ impl ShowAction for CriticalHitResult {
         }
     }
 }
-
-pub trait SelfCriticalHit {
-    fn self_critical_hit(&self) -> CriticalHitResult;
-}
-
-impl<T: MayHaveWeapon + HasBody> SelfCriticalHit for T {
-    fn self_critical_hit(&self) -> CriticalHitResult {
-        match self.weapon() {
-            Some(weapon) => if weapon.is_sharp() {
-                CriticalHitResult::roll_sharp(self)
-            } else {
-                CriticalHitResult::roll_blunt(self)
-            },
-            None => panic!("Can't critical hit without weapon")
-        }
-    }
-}
