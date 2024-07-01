@@ -43,10 +43,20 @@ pub trait CanParry {
     fn can_parry(&self) -> CanParryResult;
 }
 
-impl<T: MayHaveWeapon + CanMissParries> CanParry for T {
+impl<T: MayHaveWeapon + CanMissParries + IsDead + IsUnconscious> CanParry for T {
     fn can_parry(&self) -> CanParryResult {
+        if self.is_dead() {
+            return CanParryResult { can_parry: false, reason: Some(CantParryReason::IsDead) };
+        }
+        if self.is_unconscious() {
+            return CanParryResult { can_parry: false, reason: Some(CantParryReason::IsUnconscious) };
+        }
         match self.weapon() {
-            Some(_) => CanParryResult { can_parry: true, reason: None },
+            Some(_) => if self.must_miss_parry() {
+                CanParryResult { can_parry: false, reason: Some(CantParryReason::MustMissParry) }
+            } else {
+                CanParryResult { can_parry: true, reason: None }
+            },
             None => CanParryResult { can_parry: false, reason: Some(CantParryReason::NoWeapon) },
         }
     }
