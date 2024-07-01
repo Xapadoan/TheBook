@@ -92,7 +92,7 @@ impl ExecuteAction for CriticalParryResult {
                 }
             },
             CriticalParryResult::AssailantFalls => {
-                assailant.will_miss_parries(ParriesMiss::new(1, String::from("he fell on the ground")));
+                assailant.will_miss_parries(ParriesMiss::new(2, String::from("he fell on the ground")));
                 victim.assault(assailant);
                 victim.assault(assailant);
             },
@@ -100,10 +100,10 @@ impl ExecuteAction for CriticalParryResult {
                 assailant.take_reduced_damage(victim.roll_damage());
             },
             CriticalParryResult::AssailantRepelled => {
-                assailant.will_miss_assault(AssaultsMiss::new(0, format!("he was repelled by {}", victim.name())));
+                assailant.will_miss_assault(AssaultsMiss::new(1, format!("he was repelled by {}", victim.name())));
             },
             CriticalParryResult::AssailantTrips => {
-                assailant.will_miss_parries(ParriesMiss::new(0, String::from("he is off balance")));
+                assailant.will_miss_parries(ParriesMiss::new(1, String::from("he is off balance")));
                 victim.assault(assailant);
             },
             CriticalParryResult::RegularParry => {}
