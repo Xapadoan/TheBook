@@ -17,3 +17,5 @@ pub trait MayHaveTestedRupture {
 pub trait MayHaveRuptureDamage {
     fn rupture_damage(&self) -> Option<u8>;
 }
+
+pub const RUPTURE_MAX: u8 = 5;

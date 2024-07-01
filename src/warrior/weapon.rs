@@ -3,7 +3,7 @@ use std::fmt::Display;
 use crate::modifiers::Modifier;
 use crate::dice::{RollDamage, Dice};
 use crate::warrior::stats::{Stat, StatModifier};
-use crate::equipment::{HasRupture, RuptureTestResult};
+use crate::equipment::{HasRupture, RuptureTestResult, RUPTURE_MAX};
 
 pub trait MayHaveWeapon {
     fn weapon(&self) -> Option<&Weapon>;
@@ -134,17 +134,16 @@ impl HasRupture for Weapon {
             return;
         }
         let mut rup = self.rupture.unwrap();
-        if damage < rup {
-            rup -= damage;
-        } else {
-            rup = 0;
-        }
+        rup = match rup.checked_add(damage) {
+            Some(result) => result,
+            None => RUPTURE_MAX + 1,
+        };
         self.rupture = Some(rup);
     }
 
     fn is_destroyed(&self) -> bool {
         match self.rupture {
-            Some(rup) => !rup > 0,
+            Some(rup) => rup > RUPTURE_MAX,
             None => false,
         }
     }
@@ -158,5 +157,28 @@ impl HasRupture for Weapon {
             },
             None => RuptureTestResult::Success,
         }
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn weapon_damage_rupture() {
+        let mut sword = Weapon::new(WeaponKind::Sword);
+        assert_eq!(sword.rupture, Some(4));
+        assert!(!sword.is_destroyed());
+        sword.damage_rupture(1);
+        assert_eq!(sword.rupture, Some(5));
+        assert!(!sword.is_destroyed());
+        sword.damage_rupture(1);
+        assert_eq!(sword.rupture, Some(6));
+        assert!(sword.is_destroyed());
+
+        let mut sword = Weapon::new(WeaponKind::Sword);
+        assert!(!sword.is_destroyed());
+        sword.damage_rupture(u8::MAX);
+        assert!(sword.is_destroyed());
     }
 }
