@@ -1,10 +1,12 @@
 use attack::attack_attempt::AttackAttemptResult;
 use attack::critical_hit::CriticalHit;
-use attack::{Attack, AttackResult};
+// use attack::{Attack, AttackResult};
+use attack::Attack;
 use damage_summary::{ApplyDamageSummary, DamageSummary};
 use execute_action::ExecuteAction;
 use parry::parry_attempt::ParryThreshold;
-use parry::{Parry, ParryResult};
+// use parry::{Parry, ParryResult};
+use parry::Parry;
 use show_action::ShowAction;
 
 use crate::dice::RollDamage;
@@ -26,8 +28,8 @@ mod clumsiness;
 
 #[derive(Debug)]
 pub struct AssaultResult {
-    attack: AttackResult,
-    parry: Option<ParryResult>,
+    // attack: AttackResult,
+    // parry: Option<ParryResult>,
     damage_summary: DamageSummary,
 }
 
@@ -46,7 +48,8 @@ impl Assault for Warrior {
         let mut attack = self.attack(victim);
         attack.show(self, victim);
         let mut damage_summary = attack.execute(self, victim);
-        let parry = match attack.attack_attempt() {
+        // let parry = match attack.attack_attempt() {
+        match attack.attack_attempt() {
             Some(attack_attempt) => match attack_attempt {
                 AttackAttemptResult::Success => {
                     let mut parry_result = victim.parry(self);
@@ -63,8 +66,8 @@ impl Assault for Warrior {
         };
 
         AssaultResult {
-            attack,
-            parry,
+            // attack,
+            // parry,
             damage_summary,
         }
     }

@@ -21,9 +21,9 @@ impl DamageSummary {
         }
     }
 
-    pub fn add_damage_to_victim(&mut self, damage: u8) {
-        self.to_victim += damage;
-    }
+    // pub fn add_damage_to_victim(&mut self, damage: u8) {
+    //     self.to_victim += damage;
+    // }
 
     pub fn add_damage_to_assailant(&mut self, damage: u8) {
         self.to_assailant += damage;

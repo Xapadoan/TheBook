@@ -97,10 +97,6 @@ impl Warrior {
         }
         self.take_damage(damages)
     }
-
-    pub fn add_duration_damage(&mut self, reason: String, start_at: u32) {
-        self.duration_damages.push(DurationDamage::new(reason, start_at))
-    }
 }
 
 impl CanMissParries for Warrior {

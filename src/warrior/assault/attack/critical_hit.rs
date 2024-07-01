@@ -100,7 +100,7 @@ impl CriticalHitResult {
                             InjuryKind::Broken,
                             attack,
                             parry,
-                            format!("{} is broken", body_part.kind()),
+                            // format!("{} is broken", body_part.kind()),
                         ))
                     }
                 }
@@ -134,15 +134,16 @@ impl CriticalHitResult {
                         injury: None,
                     };
                 } else  {
-                    let (attack, parry) = match &body_part_kind {
+                    let (injury_kind, attack, parry) = match &body_part_kind {
                         BodyPartKind::Hand(side) => match side {
-                            BodySide::Left => (-2, -3),
-                            BodySide::Right => (-5, -6),
+                            BodySide::Left => (InjuryKind::Broken, -2, -3),
+                            BodySide::Right => (InjuryKind::Broken, -5, -6),
                         },
-                        BodyPartKind::Foot(_) => (-2, -2),
-                        BodyPartKind::Knee(_) => (-1, -2),
+                        BodyPartKind::Foot(_) => (InjuryKind::Broken, -2, -2),
+                        BodyPartKind::Knee(_) => (InjuryKind::Dislocated, -1, -2),
                         _ => panic!("Match should not be possible")
                     };
+                    
                     Self {
                         kind,
                         body_part_kind: Some(body_part_kind),
@@ -150,10 +151,10 @@ impl CriticalHitResult {
                         rupture_damage: None,
                         dmg_modifier: Modifier::new(3),
                         injury: Some(Injury::new(
-                            InjuryKind::Broken,
+                            injury_kind,
                             attack,
                             parry,
-                            format!("{} is broken", body_part.kind()),
+                            // format!("{} is broken", body_part.kind()),
                         ))
                     }
                 }
@@ -181,7 +182,7 @@ impl CriticalHitResult {
                             InjuryKind::Broken,
                             0,
                             0,
-                            format!("{} were crushed", genitals.kind())
+                            // format!("{} were crushed", genitals.kind())
                         ))
                     }
                 }
@@ -218,7 +219,7 @@ impl CriticalHitResult {
                         InjuryKind::Gouged,
                         -1,
                         -2,
-                        format!("{} is gouged", body_part_kind)
+                        // format!("{} is gouged", body_part_kind)
                     ))
                 };
                 Self {
@@ -346,7 +347,7 @@ impl CriticalHitResult {
                     InjuryKind::Severed,
                     attack,
                     parry,
-                    format!("{} is severed", body_part.kind())
+                    // format!("{} is severed", body_part.kind())
                 );
                 match body_part.protected_by() {
                     Some(protection) => {
@@ -412,7 +413,7 @@ impl CriticalHitResult {
                     InjuryKind::Severed,
                     attack,
                     parry,
-                    format!("{} is severed", body_part.kind())
+                    // format!("{} is severed", body_part.kind())
                 );
                 match body_part.protected_by() {
                     Some(protection) => {

@@ -15,7 +15,7 @@ pub trait Protectable {
     fn protected_by(&self) -> Option<&Protection>;
     fn protected_by_mut(&mut self) -> Option<&mut Protection>;
     fn attach_protection(&mut self, protection: Protection);
-    fn detach_protection(&mut self) -> Option<Protection>;
+    // fn detach_protection(&mut self) -> Option<Protection>;
 }
 
 pub trait WearProtection {

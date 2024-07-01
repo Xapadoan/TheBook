@@ -122,7 +122,7 @@ impl ExecuteAction for ClumsinessResult {
                         InjuryKind::Gouged,
                         -1,
                         -2,
-                        String::from("he gouged is own eye")
+                        // String::from("he gouged is own eye")
                     )
                 )
             },
@@ -132,7 +132,7 @@ impl ExecuteAction for ClumsinessResult {
                         InjuryKind::Severed,
                         0,
                         0,
-                        String::from("he cut is own finger")
+                        // String::from("he cut is own finger")
                     )
                 )
             },
