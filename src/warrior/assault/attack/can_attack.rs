@@ -9,7 +9,7 @@ use crate::warrior::body::{HasBody, HasMutableBody};
 use crate::warrior::duration_damage::MayHaveDurationDamage;
 use crate::warrior::temporary_handicap::parries_miss::CanMissParries;
 use crate::warrior::weapon::{MayHaveMutableWeapon, MayHaveWeapon, TakeWeapon};
-use crate::warrior::{IsDead, IsUnconscious, Name, TakeDamage, TakeReducedDamage};
+use crate::warrior::{IsDead, IsUnconscious, HasName, TakeDamage, TakeReducedDamage};
 use crate::warrior::temporary_handicap::assaults_miss::CanMissAssaults;
 
 use super::can_be_attacked::CantBeAttackedReason;
@@ -28,8 +28,8 @@ pub enum CantAttackReason {
 impl ShowAction for CantAttackReason {
     fn show<A, V>(&self, assailant: &A, victim: &V)
     where
-        A: CanMissAssaults + MayHaveWeapon + Name,
-        V: MayHaveWeapon + Name + HasBody + CanMissParries
+        A: CanMissAssaults + MayHaveWeapon + HasName,
+        V: MayHaveWeapon + HasName + HasBody + CanMissParries
     {
         match self {
             CantAttackReason::IsDead => println!("{} can't attack because he is dead", assailant.name()),
@@ -44,8 +44,8 @@ impl ShowAction for CantAttackReason {
 impl ExecuteAction for CanAttackResult {
     fn execute<A, V>(&mut self, assailant: &mut A, _: &mut V) -> DamageSummary
     where
-        A: ApplyDamageModifier + CriticalHit + RollDamage + CanMissParries + CanMissAssaults + MayHaveWeapon + MayHaveMutableWeapon + TakeWeapon + Name + HasBody + TakeDamage + TakeReducedDamage + CanBeAttacked + ParryThreshold + IsUnconscious + HasMutableBody + Assault + IsDead + MayHaveDurationDamage,
-        V: ApplyDamageModifier + CriticalHit + RollDamage + Assault + Name + MayHaveWeapon + IsUnconscious + HasMutableBody + CanMissAssaults + CanMissParries + MayHaveMutableWeapon + TakeWeapon + HasBody + TakeReducedDamage + TakeDamage + ParryThreshold + IsUnconscious + HasMutableBody + IsDead + MayHaveDurationDamage
+        A: ApplyDamageModifier + CriticalHit + RollDamage + CanMissParries + CanMissAssaults + MayHaveWeapon + MayHaveMutableWeapon + TakeWeapon + HasName + HasBody + TakeDamage + TakeReducedDamage + CanBeAttacked + ParryThreshold + IsUnconscious + HasMutableBody + Assault + IsDead + MayHaveDurationDamage,
+        V: ApplyDamageModifier + CriticalHit + RollDamage + Assault + HasName + MayHaveWeapon + IsUnconscious + HasMutableBody + CanMissAssaults + CanMissParries + MayHaveMutableWeapon + TakeWeapon + HasBody + TakeReducedDamage + TakeDamage + ParryThreshold + IsUnconscious + HasMutableBody + IsDead + MayHaveDurationDamage
     {
         match &self.reason {
             Some(reason) => match reason {

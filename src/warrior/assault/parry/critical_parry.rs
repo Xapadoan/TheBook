@@ -9,7 +9,7 @@ use crate::warrior::assault::show_action::ShowAction;
 use crate::warrior::assault::Assault;
 use crate::warrior::body::{HasBody, HasMutableBody};
 use crate::warrior::duration_damage::MayHaveDurationDamage;
-use crate::warrior::{IsDead, IsUnconscious, Name, TakeDamage, TakeReducedDamage};
+use crate::warrior::{IsDead, IsUnconscious, HasName, TakeDamage, TakeReducedDamage};
 use crate::warrior::weapon::{MayHaveMutableWeapon, MayHaveWeapon, TakeWeapon};
 use crate::warrior::temporary_handicap::parries_miss::{CanMissParries, ParriesMiss};
 use crate::warrior::temporary_handicap::assaults_miss::{CanMissAssaults, AssaultsMiss};
@@ -31,11 +31,11 @@ pub enum CriticalParryResult {
 }
 
 pub trait CriticalParry {
-    fn critical_parry<A: CriticalHit + RollDamage + CanMissParries + CanMissAssaults + MayHaveWeapon + MayHaveMutableWeapon + TakeWeapon + Name + HasBody + TakeDamage + TakeReducedDamage + CanBeAttacked + ParryThreshold + IsUnconscious + HasMutableBody + Assault + IsDead + MayHaveDurationDamage>(&mut self, assailant: &mut A) -> CriticalParryResult;
+    fn critical_parry<A: CriticalHit + RollDamage + CanMissParries + CanMissAssaults + MayHaveWeapon + MayHaveMutableWeapon + TakeWeapon + HasName + HasBody + TakeDamage + TakeReducedDamage + CanBeAttacked + ParryThreshold + IsUnconscious + HasMutableBody + Assault + IsDead + MayHaveDurationDamage>(&mut self, assailant: &mut A) -> CriticalParryResult;
 }
 
-impl<T: CriticalHit + RollDamage + Assault + CriticalHit + Name + MayHaveWeapon + CanMissAssaults + CanMissParries + MayHaveMutableWeapon + TakeWeapon + HasBody + TakeReducedDamage + TakeDamage + ParryThreshold + IsUnconscious + HasMutableBody + IsDead + MayHaveDurationDamage> CriticalParry for T {
-    fn critical_parry<A: CriticalHit + RollDamage + CanMissParries + CanMissAssaults + MayHaveWeapon + MayHaveMutableWeapon + TakeWeapon + Name + HasBody + TakeDamage + TakeReducedDamage + CanBeAttacked + ParryThreshold + IsUnconscious + HasMutableBody + Assault + IsDead + MayHaveDurationDamage>(&mut self, assailant: &mut A) -> CriticalParryResult {
+impl<T: CriticalHit + RollDamage + Assault + CriticalHit + HasName + MayHaveWeapon + CanMissAssaults + CanMissParries + MayHaveMutableWeapon + TakeWeapon + HasBody + TakeReducedDamage + TakeDamage + ParryThreshold + IsUnconscious + HasMutableBody + IsDead + MayHaveDurationDamage> CriticalParry for T {
+    fn critical_parry<A: CriticalHit + RollDamage + CanMissParries + CanMissAssaults + MayHaveWeapon + MayHaveMutableWeapon + TakeWeapon + HasName + HasBody + TakeDamage + TakeReducedDamage + CanBeAttacked + ParryThreshold + IsUnconscious + HasMutableBody + Assault + IsDead + MayHaveDurationDamage>(&mut self, assailant: &mut A) -> CriticalParryResult {
         match Dice::D20.roll() {
             1 | 2 => CriticalParryResult::RegularParry,
             3..=5 => CriticalParryResult::AssailantRepelled,
@@ -58,8 +58,8 @@ impl<T: CriticalHit + RollDamage + Assault + CriticalHit + Name + MayHaveWeapon 
 impl ExecuteAction for CriticalParryResult {
     fn execute<A, V>(&mut self, assailant: &mut A, victim: &mut V) -> DamageSummary
     where
-        A: ApplyDamageModifier + CriticalHit + RollDamage + CanMissParries + CanMissAssaults + MayHaveWeapon + MayHaveMutableWeapon + TakeWeapon + Name + HasBody + TakeDamage + TakeReducedDamage + CanBeAttacked + ParryThreshold + IsUnconscious + HasMutableBody + Assault + IsDead + MayHaveDurationDamage,
-        V: ApplyDamageModifier + CriticalHit + RollDamage + Assault + CriticalHit + Name + MayHaveWeapon + CanMissAssaults + CanMissParries + MayHaveMutableWeapon + TakeWeapon + HasBody + TakeReducedDamage + TakeDamage + ParryThreshold + IsUnconscious + HasMutableBody + IsDead + MayHaveDurationDamage,
+        A: ApplyDamageModifier + CriticalHit + RollDamage + CanMissParries + CanMissAssaults + MayHaveWeapon + MayHaveMutableWeapon + TakeWeapon + HasName + HasBody + TakeDamage + TakeReducedDamage + CanBeAttacked + ParryThreshold + IsUnconscious + HasMutableBody + Assault + IsDead + MayHaveDurationDamage,
+        V: ApplyDamageModifier + CriticalHit + RollDamage + Assault + CriticalHit + HasName + MayHaveWeapon + CanMissAssaults + CanMissParries + MayHaveMutableWeapon + TakeWeapon + HasBody + TakeReducedDamage + TakeDamage + ParryThreshold + IsUnconscious + HasMutableBody + IsDead + MayHaveDurationDamage,
     {
         let mut damage_summary = DamageSummary::new(0);
         match self {
@@ -115,8 +115,8 @@ impl ExecuteAction for CriticalParryResult {
 impl ShowAction for CriticalParryResult {
     fn show<A, V>(&self, assailant: &A, victim: &V)
     where
-        A: MayHaveWeapon + Name,
-        V: HasBody + Name
+        A: MayHaveWeapon + HasName,
+        V: HasBody + HasName
     {
         println!("{} parries perfectly", victim.name());
         match self {

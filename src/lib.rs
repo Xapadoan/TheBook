@@ -5,6 +5,7 @@ mod equipment;
 mod tournament;
 mod warrior;
 mod virtual_timer;
+mod name;
 
 use std::error::Error;
 

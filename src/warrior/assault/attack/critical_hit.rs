@@ -13,7 +13,7 @@ use crate::warrior::duration_damage::MayHaveDurationDamage;
 use crate::warrior::protection::{Protectable, RandomProtectedBodyPart};
 use crate::warrior::body::injury::{Injury, InjuryKind, MayBeInjured, MayCauseInjury, TakeInjury};
 use crate::warrior::weapon::{MayHaveMutableWeapon, MayHaveWeapon, TakeWeapon};
-use crate::warrior::{IsUnconscious, Name, RollDamage, TakeDamage, TakeReducedDamage};
+use crate::warrior::{IsUnconscious, HasName, RollDamage, TakeDamage, TakeReducedDamage};
 use crate::warrior::temporary_handicap::parries_miss::CanMissParries;
 use crate::warrior::temporary_handicap::assaults_miss::CanMissAssaults;
 
@@ -528,7 +528,7 @@ impl CriticalHitResult {
 
     pub fn self_inflict<T>(&mut self, victim: &mut T) -> DamageSummary
     where
-        T: RollDamage + CanMissParries + CanMissAssaults + MayHaveWeapon + MayHaveMutableWeapon + TakeWeapon + Name + HasMutableBody + TakeDamage + TakeReducedDamage + CanBeAttacked + ParryThreshold + IsUnconscious + MayHaveDurationDamage,
+        T: RollDamage + CanMissParries + CanMissAssaults + MayHaveWeapon + MayHaveMutableWeapon + TakeWeapon + HasName + HasMutableBody + TakeDamage + TakeReducedDamage + CanBeAttacked + ParryThreshold + IsUnconscious + MayHaveDurationDamage,
     {
         match self.target_body_part() {
             Some(part) => {
@@ -617,8 +617,8 @@ impl TakeInjury for CriticalHitResult {
 impl ExecuteAction for CriticalHitResult {
     fn execute<A, V>(&mut self, assailant: &mut A, victim: &mut V) -> DamageSummary
     where
-        A: RollDamage + CanMissParries + CanMissAssaults + MayHaveWeapon + MayHaveMutableWeapon + TakeWeapon + Name + HasBody + TakeDamage + TakeReducedDamage + CanBeAttacked + ParryThreshold,
-        V: Assault + CriticalHit + Name + MayHaveWeapon + IsUnconscious + HasMutableBody + TakeDamage + MayHaveDurationDamage,
+        A: RollDamage + CanMissParries + CanMissAssaults + MayHaveWeapon + MayHaveMutableWeapon + TakeWeapon + HasName + HasBody + TakeDamage + TakeReducedDamage + CanBeAttacked + ParryThreshold,
+        V: Assault + CriticalHit + HasName + MayHaveWeapon + IsUnconscious + HasMutableBody + TakeDamage + MayHaveDurationDamage,
     {
         match self.target_body_part() {
             Some(part) => {
@@ -654,8 +654,8 @@ impl ExecuteAction for CriticalHitResult {
 impl ShowAction for CriticalHitResult {
     fn show<A, V>(&self, assailant: &A, victim: &V)
     where
-        A: MayHaveWeapon + Name,
-        V: Name + HasBody,
+        A: MayHaveWeapon + HasName,
+        V: HasName + HasBody,
     {
         match self.kind() {
             CriticalHitKind::AccurateHeavyBlowAndArmorDamage => {

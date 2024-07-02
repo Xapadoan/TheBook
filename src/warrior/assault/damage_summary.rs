@@ -1,4 +1,4 @@
-use crate::warrior::{Name, TakeDamage};
+use crate::warrior::{HasName, TakeDamage};
 use crate::warrior::body::HasBody;
 use crate::warrior::temporary_handicap::assaults_miss::CanMissAssaults;
 use crate::warrior::weapon::MayHaveWeapon;
@@ -50,8 +50,8 @@ impl ApplyDamageSummary for DamageSummary {
 impl ShowAction for DamageSummary {
     fn show<A, V>(&self, assailant: &A, victim: &V)
         where
-            A: MayHaveWeapon + Name + CanMissAssaults,
-            V: Name + HasBody
+            A: MayHaveWeapon + HasName + CanMissAssaults,
+            V: HasName + HasBody
     {
         if self.to_victim > 0 {
             println!("{} took {} points of damage", victim.name(), self.to_victim);

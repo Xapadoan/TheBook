@@ -9,7 +9,7 @@ use crate::warrior::duration_damage::MayHaveDurationDamage;
 use crate::warrior::weapon::{MayHaveMutableWeapon, MayHaveWeapon, TakeWeapon};
 use crate::warrior::temporary_handicap::parries_miss::CanMissParries;
 use crate::warrior::temporary_handicap::assaults_miss::CanMissAssaults;
-use crate::warrior::{IsDead, IsUnconscious, Name, TakeDamage, TakeReducedDamage};
+use crate::warrior::{IsDead, IsUnconscious, HasName, TakeDamage, TakeReducedDamage};
 
 use super::clumsiness::{Clumsiness, ClumsinessResult};
 use super::damage_summary::DamageSummary;
@@ -38,11 +38,11 @@ impl ParryResult {
 }
 
 pub trait Parry {
-    fn parry<A: CriticalHit + RollDamage + CanMissParries + CanMissAssaults + MayHaveWeapon + MayHaveMutableWeapon + TakeWeapon + Name + HasBody + TakeDamage + TakeReducedDamage + CanBeAttacked + ParryThreshold + IsUnconscious + HasMutableBody + Assault + IsDead + MayHaveDurationDamage>(&mut self, assailant: &mut A) -> ParryResult;
+    fn parry<A: CriticalHit + RollDamage + CanMissParries + CanMissAssaults + MayHaveWeapon + MayHaveMutableWeapon + TakeWeapon + HasName + HasBody + TakeDamage + TakeReducedDamage + CanBeAttacked + ParryThreshold + IsUnconscious + HasMutableBody + Assault + IsDead + MayHaveDurationDamage>(&mut self, assailant: &mut A) -> ParryResult;
 }
 
 impl<T: CanParry + ParryAttempt + CriticalParry + Clumsiness> Parry for T {
-    fn parry<A: CriticalHit + RollDamage + CanMissParries + CanMissAssaults + MayHaveWeapon + MayHaveMutableWeapon + TakeWeapon + Name + HasBody + TakeDamage + TakeReducedDamage + CanBeAttacked + ParryThreshold + IsUnconscious + HasMutableBody + Assault + IsDead + MayHaveDurationDamage>(&mut self, assailant: &mut A) -> ParryResult {
+    fn parry<A: CriticalHit + RollDamage + CanMissParries + CanMissAssaults + MayHaveWeapon + MayHaveMutableWeapon + TakeWeapon + HasName + HasBody + TakeDamage + TakeReducedDamage + CanBeAttacked + ParryThreshold + IsUnconscious + HasMutableBody + Assault + IsDead + MayHaveDurationDamage>(&mut self, assailant: &mut A) -> ParryResult {
         let can_parry = self.can_parry();
         if !can_parry.can_parry() {
             return ParryResult {
@@ -81,8 +81,8 @@ impl<T: CanParry + ParryAttempt + CriticalParry + Clumsiness> Parry for T {
 impl ShowAction for ParryResult {
     fn show<A, V>(&self, assailant: &A, victim: &V)
     where
-        A: MayHaveWeapon + Name + CanMissAssaults,
-        V: MayHaveWeapon + Name + HasBody + CanMissParries
+        A: MayHaveWeapon + HasName + CanMissAssaults,
+        V: MayHaveWeapon + HasName + HasBody + CanMissParries
     {
         let parry_possibility = self.can_parry();
         if !parry_possibility.can_parry() {
@@ -102,8 +102,8 @@ impl ShowAction for ParryResult {
 impl ExecuteAction for ParryResult {
     fn execute<A, V>(&mut self, assailant: &mut A, victim: &mut V) -> DamageSummary
     where
-        A: ApplyDamageModifier + CriticalHit + RollDamage + CanMissParries + CanMissAssaults + MayHaveWeapon + MayHaveMutableWeapon + TakeWeapon + Name + HasBody + TakeDamage + TakeReducedDamage + CanBeAttacked + ParryThreshold + IsUnconscious + HasMutableBody + Assault + IsDead + MayHaveDurationDamage,
-        V: CriticalHit + RollDamage + Assault + CriticalHit + Name + MayHaveWeapon + IsUnconscious + HasMutableBody + CanMissAssaults + CanMissParries + MayHaveMutableWeapon + TakeWeapon + HasBody + TakeReducedDamage + ApplyDamageModifier + TakeDamage + ParryThreshold + IsUnconscious + HasMutableBody + IsDead + MayHaveDurationDamage
+        A: ApplyDamageModifier + CriticalHit + RollDamage + CanMissParries + CanMissAssaults + MayHaveWeapon + MayHaveMutableWeapon + TakeWeapon + HasName + HasBody + TakeDamage + TakeReducedDamage + CanBeAttacked + ParryThreshold + IsUnconscious + HasMutableBody + Assault + IsDead + MayHaveDurationDamage,
+        V: CriticalHit + RollDamage + Assault + CriticalHit + HasName + MayHaveWeapon + IsUnconscious + HasMutableBody + CanMissAssaults + CanMissParries + MayHaveMutableWeapon + TakeWeapon + HasBody + TakeReducedDamage + ApplyDamageModifier + TakeDamage + ParryThreshold + IsUnconscious + HasMutableBody + IsDead + MayHaveDurationDamage
     {
         let parry_possibility = self.can_parry();
         if !parry_possibility.can_parry() {

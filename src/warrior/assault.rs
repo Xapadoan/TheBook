@@ -13,7 +13,7 @@ use crate::dice::RollDamage;
 use crate::modifiers::ApplyDamageModifier;
 
 use super::weapon::{MayHaveMutableWeapon, MayHaveWeapon, TakeWeapon};
-use super::{IsDead, IsUnconscious, Name, TakeDamage, TakeReducedDamage, Warrior};
+use super::{IsDead, IsUnconscious, HasName, TakeDamage, TakeReducedDamage, Warrior};
 use super::body::{HasBody, HasMutableBody};
 use super::temporary_handicap::parries_miss::CanMissParries;
 use super::temporary_handicap::assaults_miss::CanMissAssaults;
@@ -40,11 +40,11 @@ impl ApplyDamageSummary for AssaultResult {
 }
 
 pub trait Assault {
-    fn assault<V: ApplyDamageModifier + Assault + CriticalHit + MayHaveDurationDamage + IsDead + ParryThreshold + TakeReducedDamage + TakeWeapon + MayHaveMutableWeapon + CanMissParries + CanMissAssaults + HasMutableBody + IsUnconscious + MayHaveWeapon + RollDamage + TakeDamage + Name + HasBody>(&mut self, victim: &mut V) -> AssaultResult;
+    fn assault<V: ApplyDamageModifier + Assault + CriticalHit + MayHaveDurationDamage + IsDead + ParryThreshold + TakeReducedDamage + TakeWeapon + MayHaveMutableWeapon + CanMissParries + CanMissAssaults + HasMutableBody + IsUnconscious + MayHaveWeapon + RollDamage + TakeDamage + HasName + HasBody>(&mut self, victim: &mut V) -> AssaultResult;
 }
 
 impl Assault for Warrior {
-    fn assault<V: ApplyDamageModifier + Assault + CriticalHit + MayHaveDurationDamage + IsDead + ParryThreshold + TakeReducedDamage + TakeWeapon + MayHaveMutableWeapon + CanMissParries + CanMissAssaults + HasMutableBody + IsUnconscious + MayHaveWeapon + RollDamage + TakeDamage + Name + HasBody>(&mut self, victim: &mut V) -> AssaultResult {
+    fn assault<V: ApplyDamageModifier + Assault + CriticalHit + MayHaveDurationDamage + IsDead + ParryThreshold + TakeReducedDamage + TakeWeapon + MayHaveMutableWeapon + CanMissParries + CanMissAssaults + HasMutableBody + IsUnconscious + MayHaveWeapon + RollDamage + TakeDamage + HasName + HasBody>(&mut self, victim: &mut V) -> AssaultResult {
         let mut attack = self.attack(victim);
         attack.show(self, victim);
         let mut damage_summary = attack.execute(self, victim);

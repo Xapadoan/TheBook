@@ -13,7 +13,7 @@ use crate::modifiers::ApplyDamageModifier;
 use crate::warrior::body::{HasBody, HasMutableBody};
 use crate::warrior::duration_damage::MayHaveDurationDamage;
 use crate::warrior::weapon::{MayHaveMutableWeapon, MayHaveWeapon, TakeWeapon};
-use crate::warrior::{IsDead, IsUnconscious, Name, TakeDamage, TakeReducedDamage};
+use crate::warrior::{IsDead, IsUnconscious, HasName, TakeDamage, TakeReducedDamage};
 use crate::warrior::temporary_handicap::parries_miss::CanMissParries;
 use crate::warrior::temporary_handicap::assaults_miss::CanMissAssaults;
 
@@ -40,11 +40,11 @@ impl AttackResult {
 }
 
 pub trait Attack {
-    fn attack<V: Assault + CriticalHit + MayHaveDurationDamage + IsDead + ParryThreshold + TakeReducedDamage + TakeWeapon + MayHaveMutableWeapon + CanMissParries + CanMissAssaults + HasMutableBody + IsUnconscious + MayHaveWeapon + RollDamage + TakeDamage + Name + HasBody>(&mut self, victim: &mut V) -> AttackResult;
+    fn attack<V: Assault + CriticalHit + MayHaveDurationDamage + IsDead + ParryThreshold + TakeReducedDamage + TakeWeapon + MayHaveMutableWeapon + CanMissParries + CanMissAssaults + HasMutableBody + IsUnconscious + MayHaveWeapon + RollDamage + TakeDamage + HasName + HasBody>(&mut self, victim: &mut V) -> AttackResult;
 }
 
-impl<A: CanAttack + AttackAttempt + CriticalHit + RollDamage + MayHaveWeapon + Name + CanMissAssaults + Clumsiness> Attack for A {
-    fn attack<V: Assault + CriticalHit + MayHaveDurationDamage + IsDead + ParryThreshold + TakeReducedDamage + TakeWeapon + MayHaveMutableWeapon + CanMissParries + CanMissAssaults + HasMutableBody + IsUnconscious + MayHaveWeapon + RollDamage + TakeDamage + Name + HasBody>(&mut self, victim: &mut V) -> AttackResult {
+impl<A: CanAttack + AttackAttempt + CriticalHit + RollDamage + MayHaveWeapon + HasName + CanMissAssaults + Clumsiness> Attack for A {
+    fn attack<V: Assault + CriticalHit + MayHaveDurationDamage + IsDead + ParryThreshold + TakeReducedDamage + TakeWeapon + MayHaveMutableWeapon + CanMissParries + CanMissAssaults + HasMutableBody + IsUnconscious + MayHaveWeapon + RollDamage + TakeDamage + HasName + HasBody>(&mut self, victim: &mut V) -> AttackResult {
         let can_attack = self.can_attack(victim);
         if !can_attack.can_attack() {
             return AttackResult {
@@ -83,8 +83,8 @@ impl<A: CanAttack + AttackAttempt + CriticalHit + RollDamage + MayHaveWeapon + N
 impl ShowAction for AttackResult {
     fn show<A, V>(&self, assailant: &A, victim: &V)
         where
-            A: MayHaveWeapon + Name + CanMissAssaults,
-            V: MayHaveWeapon + Name + HasBody + CanMissParries
+            A: MayHaveWeapon + HasName + CanMissAssaults,
+            V: MayHaveWeapon + HasName + HasBody + CanMissParries
     {
         let attack_possibility = self.can_attack();
         if !attack_possibility.can_attack() {
@@ -104,8 +104,8 @@ impl ShowAction for AttackResult {
 impl ExecuteAction for AttackResult {
     fn execute<A, V>(&mut self, assailant: &mut A, victim: &mut V) -> DamageSummary
     where
-        A: ApplyDamageModifier + CriticalHit + RollDamage + CanMissParries + CanMissAssaults + MayHaveWeapon + MayHaveMutableWeapon + TakeWeapon + Name + HasBody + TakeDamage + TakeReducedDamage + CanBeAttacked + ParryThreshold + IsUnconscious + HasMutableBody + Assault + IsDead + MayHaveDurationDamage,
-        V: ApplyDamageModifier + CriticalHit + RollDamage + CanMissParries + Assault + CriticalHit + Name + MayHaveWeapon + IsUnconscious + HasMutableBody + CanMissAssaults + CanMissParries + MayHaveMutableWeapon + TakeWeapon + HasBody + TakeReducedDamage + TakeDamage + ParryThreshold + IsUnconscious + HasMutableBody + IsDead + MayHaveDurationDamage
+        A: ApplyDamageModifier + CriticalHit + RollDamage + CanMissParries + CanMissAssaults + MayHaveWeapon + MayHaveMutableWeapon + TakeWeapon + HasName + HasBody + TakeDamage + TakeReducedDamage + CanBeAttacked + ParryThreshold + IsUnconscious + HasMutableBody + Assault + IsDead + MayHaveDurationDamage,
+        V: ApplyDamageModifier + CriticalHit + RollDamage + CanMissParries + Assault + CriticalHit + HasName + MayHaveWeapon + IsUnconscious + HasMutableBody + CanMissAssaults + CanMissParries + MayHaveMutableWeapon + TakeWeapon + HasBody + TakeReducedDamage + TakeDamage + ParryThreshold + IsUnconscious + HasMutableBody + IsDead + MayHaveDurationDamage
     {
         let attack_possibility = self.can_attack();
         if !attack_possibility.can_attack() {
