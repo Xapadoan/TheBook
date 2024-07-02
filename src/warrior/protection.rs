@@ -67,60 +67,64 @@ impl Protection {
     pub fn new(kind: ProtectionKind) -> Self {
         match kind {
             ProtectionKind::Boot => Self {
-                kind: ProtectionKind::Boot,
+                kind,
                 dmg_modifier: Modifier::new(0),
                 rupture: Some(5),
                 display_name: String::from("shabby leather boots")
             },
             ProtectionKind::Gauntlet => Self {
-                kind: ProtectionKind::Gauntlet,
+                kind,
                 dmg_modifier: Modifier::new(0),
                 rupture: Some(5),
                 display_name: String::from("leather gauntlet"),
             },
             ProtectionKind::Armlet => Self {
-                kind: ProtectionKind::Armlet,
+                kind,
                 dmg_modifier: Modifier::new(-1),
                 rupture: Some(5),
                 display_name: String::from("heavy coarse metal armlet"),
             },
             ProtectionKind::ChainMail => Self {
-                kind: ProtectionKind::ChainMail,
+                kind,
                 dmg_modifier: Modifier::new(-4),
                 rupture: Some(3),
                 display_name: String::from("sleeveless basic chain mail"),
             },
             ProtectionKind::Gambeson => Self {
-                kind: ProtectionKind::Gambeson,
+                kind,
                 dmg_modifier: Modifier::new(-2),
                 rupture: Some(4),
                 display_name: String::from("basic gambeson with sleeves"),
             },
             ProtectionKind::Greave => Self {
-                kind: ProtectionKind::Armlet,
+                kind,
                 dmg_modifier: Modifier::new(-1),
                 rupture: Some(5),
                 display_name: String::from("heavy coarse metal greave"),
             },
             ProtectionKind::Helm => Self {
-                kind: ProtectionKind::Helm,
+                kind,
                 dmg_modifier: Modifier::new(0),
                 rupture: Some(5),
                 display_name: String::from("Leather helmet"),
             },
             ProtectionKind::Jacket => Self {
-                kind: ProtectionKind::Jacket,
+                kind,
                 dmg_modifier: Modifier::new(-2),
                 rupture: Some(5),
                 display_name: String::from("reinforced canvas jacket with sleeves"),
             },
             ProtectionKind::Plastron => Self {
-                kind: ProtectionKind::Armlet,
+                kind,
                 dmg_modifier: Modifier::new(-3),
                 rupture: Some(4),
                 display_name: String::from("basic leather plastron"),
             },
         }
+    }
+
+    pub fn kind<'a>(&'a self) -> &'a ProtectionKind {
+        &self.kind
     }
 
     pub fn can_be_equipped_on(&self, body_part: BodyPartKind) -> bool {
