@@ -1,3 +1,5 @@
+use serde::{Deserialize, Serialize};
+
 #[derive(Debug)]
 pub enum Stat {
     Attack(u8),
@@ -17,7 +19,7 @@ pub trait StatModifier {
     fn modify_stat(&self, base: Stat) -> Stat;
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct StatsManager {
     nat_attack: u8,
     nat_parry: u8,

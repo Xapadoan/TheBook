@@ -1,5 +1,6 @@
 use std::fmt::Display;
 use rand::Rng;
+use serde::{Deserialize, Serialize};
 
 use crate::equipment::{HasRupture, RuptureTestResult, RUPTURE_MAX};
 use crate::gen_random::GenRandom;
@@ -25,7 +26,7 @@ pub trait WearProtection {
     fn wear_protection(&mut self, protection: Protection, body_part: BodyPartKind);
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub enum ProtectionKind {
     Gambeson,
     Jacket,
@@ -55,7 +56,7 @@ impl GenRandom for ProtectionKind {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Protection {
     kind: ProtectionKind,
     dmg_modifier: Modifier,

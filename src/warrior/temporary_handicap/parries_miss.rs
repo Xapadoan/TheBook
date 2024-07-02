@@ -1,3 +1,5 @@
+use serde::{Deserialize, Serialize};
+
 use super::TemporaryHandicap;
 
 pub trait CanMissParries {
@@ -7,7 +9,7 @@ pub trait CanMissParries {
     fn miss_parry(&mut self);
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct ParriesMiss {
     count: u8,
     reason: String,

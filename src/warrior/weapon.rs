@@ -1,6 +1,7 @@
 use std::fmt::Display;
 
 use rand::Rng;
+use serde::{Deserialize, Serialize};
 
 use crate::gen_random::GenRandom;
 use crate::modifiers::Modifier;
@@ -24,7 +25,7 @@ pub trait GiveWeapon {
     fn give_weapon(&mut self, weapon: Weapon);
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub enum WeaponKind {
     Sword,
     GreatSword,
@@ -48,7 +49,7 @@ impl GenRandom for WeaponKind {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Weapon {
     kind: WeaponKind,
     dmg_modifier: Modifier,
