@@ -7,11 +7,12 @@ use rand::Rng;
 
 use body_part::{BodyPart, BodyPartKind, FingerName, RandomFunctionalBodyPart};
 use body_side::BodySide;
+use serde::{Deserialize, Serialize};
 use crate::modifiers::{ApplyDamageModifier, Modifier};
 use super::protection::{Protectable, Protection, RandomProtectedBodyPart, WearProtection};
 use super::stats::{Stat, StatModifier};
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Body {
     left_eye: BodyPart,
     right_eye: BodyPart,

@@ -1,3 +1,5 @@
+use serde::{Deserialize, Serialize};
+
 use super::TemporaryHandicap;
 
 pub trait CanMissAssaults {
@@ -7,7 +9,7 @@ pub trait CanMissAssaults {
     fn miss_assault(&mut self);
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct AssaultsMiss {
     reason: String,
     count: u8,

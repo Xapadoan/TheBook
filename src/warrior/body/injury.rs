@@ -1,3 +1,5 @@
+use serde::{Deserialize, Serialize};
+
 use crate::{modifiers::Modifier, warrior::stats::{Stat, StatModifier}};
 
 pub trait MayBeInjured {
@@ -18,7 +20,7 @@ pub trait TakeInjury {
     fn take_injury(&mut self) -> Option<Injury>;
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub enum InjuryKind {
     Severed,
     Dislocated,
@@ -26,7 +28,7 @@ pub enum InjuryKind {
     Gouged,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Injury {
     kind: InjuryKind,
     attack_modifier: Modifier,

@@ -1,10 +1,11 @@
 use std::fmt::Display;
 
+use serde::{Deserialize, Serialize};
+
 use crate::dice::Dice;
 use crate::gen_random::GenRandom;
 
-#[derive(Debug)]
-#[derive(Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum BodySide {
     Left,
     Right,

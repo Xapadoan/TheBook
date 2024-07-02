@@ -1,5 +1,7 @@
 use std::fmt::Display;
 
+use serde::{Deserialize, Serialize};
+
 use crate::modifiers::ApplyDamageModifier;
 use crate::equipment::HasRupture;
 
@@ -12,7 +14,7 @@ pub trait MayTargetBodyPart {
     fn target_body_part(&self) -> Option<&BodyPartKind>;
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub enum FingerName {
     Thumb,
     PointerFinger,
@@ -33,7 +35,7 @@ impl Display for FingerName {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub enum BodyPartKind {
     Eye(BodySide),
     Finger(BodySide, FingerName),
@@ -68,7 +70,7 @@ pub trait RandomFunctionalBodyPart {
     fn random_functional_body_part(&self) -> BodyPartKind;
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct BodyPart {
     kind: BodyPartKind,
     protection: Option<Protection>,

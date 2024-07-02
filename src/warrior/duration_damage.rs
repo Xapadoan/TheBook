@@ -1,6 +1,8 @@
+use serde::{Deserialize, Serialize};
+
 use crate::dice::{RollDamage, Dice};
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct DurationDamage {
     interval_sec: u32,
     reason: String,

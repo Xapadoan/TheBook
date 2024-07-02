@@ -6,6 +6,7 @@ pub mod weapon;
 pub mod temporary_handicap;
 pub mod duration_damage;
 mod warrior_name;
+pub mod warrior_save_manager;
 
 use assault::attack::attack_attempt::AttackThreshold;
 use assault::parry::parry_attempt::ParryThreshold;
@@ -14,6 +15,7 @@ use body::body_part::BodyPartKind;
 use body::HasBody;
 use body::HasMutableBody;
 use protection::WearProtection;
+use serde::{Serialize, Deserialize};
 use stats::StatModifier;
 use stats::StatsManager;
 use stats::Stat;
@@ -50,7 +52,7 @@ pub trait TakeReducedDamage {
     fn take_reduced_damage(&mut self, damage: u8);
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Warrior {
     name: WarriorName,
     stats_manager: StatsManager,

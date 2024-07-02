@@ -7,10 +7,15 @@ mod warrior;
 mod virtual_timer;
 mod name;
 mod gen_random;
+mod save {
+    pub mod save_manager;
+}
 
 use std::error::Error;
 
 use gen_random::GenRandom;
+use save::save_manager::{SaveManager, SavePathBuf};
+use warrior::warrior_save_manager::WarriorSaveManager;
 use warrior::Warrior;
 use warrior::weapon::{Weapon, GiveWeapon};
 use warrior::protection::{Protection, ProtectionKind, WearProtection};
@@ -36,17 +41,20 @@ impl Warrior {
 
 pub fn run() -> Result<(), Box<dyn Error>> {
 
-    let mut i = 0;
-    let mut contestants = Vec::new();
-    while i < 8 {
-        let mut warrior = Warrior::gen_random();
-        let weapon = Weapon::gen_random();
-        let protection = Protection::gen_random();
-        warrior.give_weapon(weapon);
-        warrior.wear_random_protection(protection);
-        contestants.push(warrior);
-        i += 1;
-    }
+    // let mut i = 0;
+    // let mut contestants = Vec::new();
+    // while i < 8 {
+    //     let mut warrior = Warrior::gen_random();
+    //     let weapon = Weapon::gen_random();
+    //     let protection = Protection::gen_random();
+    //     warrior.give_weapon(weapon);
+    //     warrior.wear_random_protection(protection);
+    //     contestants.push(warrior);
+    //     i += 1;
+    // }
+    let saver = WarriorSaveManager::build(SavePathBuf::from("saves"))?;
+    // saver.save(contestants, SavePathBuf::from("contestants.save"))?;
+    let mut contestants: Vec<Warrior> = saver.build_from_save(&SavePathBuf::from("contestants.save"))?;
 
     let mut tournament = Tournament::new(contestants);
 

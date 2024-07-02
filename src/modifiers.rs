@@ -1,8 +1,10 @@
+use serde::{Deserialize, Serialize};
+
 pub trait ApplyDamageModifier {
     fn apply_damage_modifier(&self, base: u8) -> u8;
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Modifier {
     value: i8,
 }
@@ -19,3 +21,4 @@ impl Modifier {
         }
     }
 }
+
