@@ -1,5 +1,6 @@
 use crate::dice::Dice;
 use crate::equipment::{HasRupture, MayHaveRuptureDamage, MayHaveTestedRupture, RuptureTestResult};
+use crate::gen_random::GenRandom;
 use crate::modifiers::{ApplyDamageModifier, Modifier};
 use crate::warrior::assault::damage_summary::DamageSummary;
 use crate::warrior::assault::execute_action::ExecuteAction;
@@ -65,7 +66,7 @@ impl CriticalHitResult {
         match kind {
             CriticalHitKind::BrokenArm |
             CriticalHitKind::BrokenLeg => {
-                let affected_side = BodySide::random();
+                let affected_side = BodySide::gen_random();
                 let body_part_kind = match kind {
                     CriticalHitKind::BrokenArm => BodyPartKind::Arm(affected_side),
                     CriticalHitKind::BrokenLeg => BodyPartKind::Leg(affected_side),
@@ -108,7 +109,7 @@ impl CriticalHitResult {
             CriticalHitKind::BrokenHand |
             CriticalHitKind::SmashedFoot |
             CriticalHitKind::KneeDislocation => {
-                let affected_side = BodySide::random();
+                let affected_side = BodySide::gen_random();
                 let parent_affected_side = affected_side.clone();
                 let body_part_kind = match kind {
                     CriticalHitKind::BrokenHand => BodyPartKind::Hand(affected_side),
@@ -210,7 +211,7 @@ impl CriticalHitResult {
                 }
             },
             CriticalHitKind::GougedEye => {
-                let body_part_kind = BodyPartKind::Eye(BodySide::random());
+                let body_part_kind = BodyPartKind::Eye(BodySide::gen_random());
                 let body_part = victim.body().body_part(&body_part_kind);
                 let injury = if body_part.is_gouged() {
                     None
@@ -313,7 +314,7 @@ impl CriticalHitResult {
             },
             CriticalHitKind::SeveredArm |
             CriticalHitKind::SeveredLeg => {
-                let affected_side = BodySide::random();
+                let affected_side = BodySide::gen_random();
                 let body_part_kind = match kind {
                     CriticalHitKind::SeveredArm => BodyPartKind::Arm(affected_side),
                     CriticalHitKind::SeveredLeg => BodyPartKind::Leg(affected_side),
@@ -377,7 +378,7 @@ impl CriticalHitResult {
             },
             CriticalHitKind::SeveredFoot |
             CriticalHitKind::SeveredHand => {
-                let affected_side = BodySide::random();
+                let affected_side = BodySide::gen_random();
                 let parent_affected_side = affected_side.clone();
                 let body_part_kind = match kind {
                     CriticalHitKind::SeveredHand => BodyPartKind::Hand(affected_side),

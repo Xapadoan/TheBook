@@ -1,5 +1,6 @@
 use crate::dice::{Dice, RollDamage};
 use crate::equipment::{HasRupture, RuptureTestResult};
+use crate::gen_random::GenRandom;
 use crate::modifiers::ApplyDamageModifier;
 use crate::warrior::body::body_part::{BodyPartKind, FingerName};
 use crate::warrior::body::body_side::BodySide;
@@ -32,7 +33,7 @@ impl<T: MayHaveWeapon + RollDamage + ApplyDamageModifier + CriticalHit> Clumsine
             16..=18 => ClumsinessResult::HitSelf,
             19 => ClumsinessResult::CriticalHitSelf,
             20 => {
-                let side = BodySide::random();
+                let side = BodySide::gen_random();
                 match Dice::D6.roll() {
                     1 | 2 => ClumsinessResult::LoseEye(BodyPartKind::Eye(side)),
                     3..=6 => match Dice::D6.roll() {

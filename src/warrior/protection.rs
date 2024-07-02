@@ -1,6 +1,8 @@
 use std::fmt::Display;
+use rand::Rng;
 
 use crate::equipment::{HasRupture, RuptureTestResult, RUPTURE_MAX};
+use crate::gen_random::GenRandom;
 use crate::modifiers::{ApplyDamageModifier, Modifier};
 use crate::dice::Dice;
 
@@ -34,6 +36,23 @@ pub enum ProtectionKind {
     Helm,
     Gauntlet,
     Boot,
+}
+
+impl GenRandom for ProtectionKind {
+    fn gen_random() -> Self {
+        match rand::thread_rng().gen_range(1..=9) {
+            1 => ProtectionKind::Armlet,
+            2 => ProtectionKind::Boot,
+            3 => ProtectionKind::ChainMail,
+            4 => ProtectionKind::Gambeson,
+            5 => ProtectionKind::Gauntlet,
+            6 => ProtectionKind::Greave,
+            7 => ProtectionKind::Helm,
+            8 => ProtectionKind::Jacket,
+            9 => ProtectionKind::Plastron,
+            other => panic!("{other} is out of range")
+        }
+    }
 }
 
 #[derive(Debug)]
@@ -209,6 +228,12 @@ impl ApplyDamageModifier for Protection {
         } else {
             self.dmg_modifier.apply(base)
         }
+    }
+}
+
+impl GenRandom for Protection {
+    fn gen_random() -> Self {
+        Self::new(ProtectionKind::gen_random())
     }
 }
 

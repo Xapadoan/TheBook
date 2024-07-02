@@ -1,5 +1,8 @@
 use std::fmt::Display;
 
+use rand::Rng;
+
+use crate::gen_random::GenRandom;
 use crate::modifiers::Modifier;
 use crate::dice::{RollDamage, Dice};
 use crate::warrior::stats::{Stat, StatModifier};
@@ -29,6 +32,20 @@ pub enum WeaponKind {
     BattleAxe,
     Hammer,
     WarHammer,
+}
+
+impl GenRandom for WeaponKind {
+    fn gen_random() -> Self {
+        match rand::thread_rng().gen_range(1..=6) {
+            1 => WeaponKind::Sword,
+            2 => WeaponKind::GreatSword,
+            3 => WeaponKind::Axe,
+            4 => WeaponKind::BattleAxe,
+            5 => WeaponKind::Hammer,
+            6 => WeaponKind::WarHammer,
+            other => panic!("{other} not in range"),
+        }
+    }
 }
 
 #[derive(Debug)]
@@ -157,6 +174,12 @@ impl HasRupture for Weapon {
             },
             None => RuptureTestResult::Success,
         }
+    }
+}
+
+impl GenRandom for Weapon {
+    fn gen_random() -> Self {
+        Self::new(WeaponKind::gen_random())
     }
 }
 
