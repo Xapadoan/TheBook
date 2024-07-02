@@ -166,15 +166,6 @@ impl Body {
             }
         }
     }
-
-    pub fn random_protected_body_part_fallback_functional(&self) -> BodyPartKind {
-        let protected_body_part = self.random_protected_body_part();
-        if protected_body_part.is_some() {
-            protected_body_part.unwrap()
-        } else {
-            self.random_functional_body_part()
-        }
-    }
 }
 
 impl ApplyDamageModifier for Body {

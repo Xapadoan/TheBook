@@ -5,6 +5,7 @@ pub mod assault;
 pub mod weapon;
 pub mod temporary_handicap;
 pub mod duration_damage;
+mod warrior_name;
 
 use assault::attack::attack_attempt::AttackThreshold;
 use assault::parry::parry_attempt::ParryThreshold;
@@ -25,9 +26,12 @@ use weapon::Weapon;
 use temporary_handicap::parries_miss::{CanMissParries, ParriesMiss};
 use temporary_handicap::assaults_miss::{CanMissAssaults, AssaultsMiss};
 use duration_damage::{DurationDamage, MayHaveDurationDamage};
+use warrior_name::WarriorName;
 
 use crate::dice::{RollDamage, Dice};
+use crate::gen_random::GenRandom;
 use crate::modifiers::{ApplyDamageModifier, Modifier};
+use crate::name::HasName;
 
 pub trait IsDead {
     fn is_dead(&self) -> bool;
@@ -46,13 +50,9 @@ pub trait TakeReducedDamage {
     fn take_reduced_damage(&mut self, damage: u8);
 }
 
-pub trait Name {
-    fn name(&self) -> &String;
-}
-
 #[derive(Debug)]
 pub struct Warrior {
-    name: String,
+    name: WarriorName,
     stats_manager: StatsManager,
     health: u8,
     weapon: Option<Weapon>,
@@ -64,9 +64,9 @@ pub struct Warrior {
 }
 
 impl Warrior {
-    pub fn new(name: &str) -> Self {
+    fn new(name: WarriorName) -> Self {
         Self {
-            name: String::from(name),
+            name,
             stats_manager: StatsManager::new(),
             health: 30,
             weapon: None,
@@ -76,10 +76,6 @@ impl Warrior {
             body: Body::new(),
             duration_damages: Vec::new(),
         }
-    }
-
-    pub fn name(&self) -> &String {
-        &self.name
     }
 
     pub fn present_self(&self) {
@@ -96,10 +92,6 @@ impl Warrior {
             }
         }
         self.take_damage(damages)
-    }
-
-    pub fn add_duration_damage(&mut self, reason: String, start_at: u32) {
-        self.duration_damages.push(DurationDamage::new(reason, start_at))
     }
 }
 
@@ -266,8 +258,8 @@ impl HasMutableBody for Warrior {
     }
 }
 
-impl Name for Warrior {
-    fn name(&self) -> &String {
+impl HasName for Warrior {
+    fn name<'a>(&'a self) -> &'a WarriorName {
         &self.name
     }
 }
@@ -287,5 +279,11 @@ impl AttackThreshold for Warrior {
 impl ParryThreshold for Warrior {
     fn parry_threshold(&self) -> u8 {
         Stat::consume(self.modify_stat(self.stats_manager.parry_stat()))
+    }
+}
+
+impl GenRandom for Warrior {
+    fn gen_random() -> Self {
+        Self::new(WarriorName::gen_random())
     }
 }

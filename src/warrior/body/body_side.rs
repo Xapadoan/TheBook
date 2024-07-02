@@ -1,6 +1,7 @@
 use std::fmt::Display;
 
 use crate::dice::Dice;
+use crate::gen_random::GenRandom;
 
 #[derive(Debug)]
 #[derive(Clone)]
@@ -9,8 +10,8 @@ pub enum BodySide {
     Right,
 }
 
-impl BodySide {
-    pub fn random() -> Self {
+impl GenRandom for  BodySide {
+    fn gen_random() -> Self {
         match Dice::D6.roll() {
             1..=3 => Self::Right,
             4..=6 => Self::Left,

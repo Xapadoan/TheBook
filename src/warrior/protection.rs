@@ -1,6 +1,8 @@
 use std::fmt::Display;
+use rand::Rng;
 
 use crate::equipment::{HasRupture, RuptureTestResult, RUPTURE_MAX};
+use crate::gen_random::GenRandom;
 use crate::modifiers::{ApplyDamageModifier, Modifier};
 use crate::dice::Dice;
 
@@ -15,7 +17,7 @@ pub trait Protectable {
     fn protected_by(&self) -> Option<&Protection>;
     fn protected_by_mut(&mut self) -> Option<&mut Protection>;
     fn attach_protection(&mut self, protection: Protection);
-    fn detach_protection(&mut self) -> Option<Protection>;
+    // fn detach_protection(&mut self) -> Option<Protection>;
 }
 
 pub trait WearProtection {
@@ -36,6 +38,23 @@ pub enum ProtectionKind {
     Boot,
 }
 
+impl GenRandom for ProtectionKind {
+    fn gen_random() -> Self {
+        match rand::thread_rng().gen_range(1..=9) {
+            1 => ProtectionKind::Armlet,
+            2 => ProtectionKind::Boot,
+            3 => ProtectionKind::ChainMail,
+            4 => ProtectionKind::Gambeson,
+            5 => ProtectionKind::Gauntlet,
+            6 => ProtectionKind::Greave,
+            7 => ProtectionKind::Helm,
+            8 => ProtectionKind::Jacket,
+            9 => ProtectionKind::Plastron,
+            other => panic!("{other} is out of range")
+        }
+    }
+}
+
 #[derive(Debug)]
 pub struct Protection {
     kind: ProtectionKind,
@@ -48,60 +67,64 @@ impl Protection {
     pub fn new(kind: ProtectionKind) -> Self {
         match kind {
             ProtectionKind::Boot => Self {
-                kind: ProtectionKind::Boot,
+                kind,
                 dmg_modifier: Modifier::new(0),
                 rupture: Some(5),
                 display_name: String::from("shabby leather boots")
             },
             ProtectionKind::Gauntlet => Self {
-                kind: ProtectionKind::Gauntlet,
+                kind,
                 dmg_modifier: Modifier::new(0),
                 rupture: Some(5),
                 display_name: String::from("leather gauntlet"),
             },
             ProtectionKind::Armlet => Self {
-                kind: ProtectionKind::Armlet,
+                kind,
                 dmg_modifier: Modifier::new(-1),
                 rupture: Some(5),
                 display_name: String::from("heavy coarse metal armlet"),
             },
             ProtectionKind::ChainMail => Self {
-                kind: ProtectionKind::ChainMail,
+                kind,
                 dmg_modifier: Modifier::new(-4),
                 rupture: Some(3),
                 display_name: String::from("sleeveless basic chain mail"),
             },
             ProtectionKind::Gambeson => Self {
-                kind: ProtectionKind::Gambeson,
+                kind,
                 dmg_modifier: Modifier::new(-2),
                 rupture: Some(4),
                 display_name: String::from("basic gambeson with sleeves"),
             },
             ProtectionKind::Greave => Self {
-                kind: ProtectionKind::Armlet,
+                kind,
                 dmg_modifier: Modifier::new(-1),
                 rupture: Some(5),
                 display_name: String::from("heavy coarse metal greave"),
             },
             ProtectionKind::Helm => Self {
-                kind: ProtectionKind::Helm,
+                kind,
                 dmg_modifier: Modifier::new(0),
                 rupture: Some(5),
                 display_name: String::from("Leather helmet"),
             },
             ProtectionKind::Jacket => Self {
-                kind: ProtectionKind::Jacket,
+                kind,
                 dmg_modifier: Modifier::new(-2),
                 rupture: Some(5),
                 display_name: String::from("reinforced canvas jacket with sleeves"),
             },
             ProtectionKind::Plastron => Self {
-                kind: ProtectionKind::Armlet,
+                kind,
                 dmg_modifier: Modifier::new(-3),
                 rupture: Some(4),
                 display_name: String::from("basic leather plastron"),
             },
         }
+    }
+
+    pub fn kind<'a>(&'a self) -> &'a ProtectionKind {
+        &self.kind
     }
 
     pub fn can_be_equipped_on(&self, body_part: BodyPartKind) -> bool {
@@ -209,6 +232,12 @@ impl ApplyDamageModifier for Protection {
         } else {
             self.dmg_modifier.apply(base)
         }
+    }
+}
+
+impl GenRandom for Protection {
+    fn gen_random() -> Self {
+        Self::new(ProtectionKind::gen_random())
     }
 }
 

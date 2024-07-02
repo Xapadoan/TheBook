@@ -5,6 +5,7 @@ use crate::warrior::assault::damage_summary::ApplyDamageSummary;
 use crate::warrior::{IsDead, IsUnconscious, Warrior};
 use crate::warrior::weapon::MayHaveWeapon;
 use crate::warrior::assault::Assault;
+use crate::name::HasName;
 
 #[derive(Debug)]
 pub struct Fight {

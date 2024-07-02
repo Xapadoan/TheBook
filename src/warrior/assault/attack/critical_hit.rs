@@ -1,5 +1,6 @@
 use crate::dice::Dice;
 use crate::equipment::{HasRupture, MayHaveRuptureDamage, MayHaveTestedRupture, RuptureTestResult};
+use crate::gen_random::GenRandom;
 use crate::modifiers::{ApplyDamageModifier, Modifier};
 use crate::warrior::assault::damage_summary::DamageSummary;
 use crate::warrior::assault::execute_action::ExecuteAction;
@@ -13,7 +14,7 @@ use crate::warrior::duration_damage::MayHaveDurationDamage;
 use crate::warrior::protection::{Protectable, RandomProtectedBodyPart};
 use crate::warrior::body::injury::{Injury, InjuryKind, MayBeInjured, MayCauseInjury, TakeInjury};
 use crate::warrior::weapon::{MayHaveMutableWeapon, MayHaveWeapon, TakeWeapon};
-use crate::warrior::{IsUnconscious, Name, RollDamage, TakeDamage, TakeReducedDamage};
+use crate::warrior::{IsUnconscious, HasName, RollDamage, TakeDamage, TakeReducedDamage};
 use crate::warrior::temporary_handicap::parries_miss::CanMissParries;
 use crate::warrior::temporary_handicap::assaults_miss::CanMissAssaults;
 
@@ -65,7 +66,7 @@ impl CriticalHitResult {
         match kind {
             CriticalHitKind::BrokenArm |
             CriticalHitKind::BrokenLeg => {
-                let affected_side = BodySide::random();
+                let affected_side = BodySide::gen_random();
                 let body_part_kind = match kind {
                     CriticalHitKind::BrokenArm => BodyPartKind::Arm(affected_side),
                     CriticalHitKind::BrokenLeg => BodyPartKind::Leg(affected_side),
@@ -100,7 +101,7 @@ impl CriticalHitResult {
                             InjuryKind::Broken,
                             attack,
                             parry,
-                            format!("{} is broken", body_part.kind()),
+                            // format!("{} is broken", body_part.kind()),
                         ))
                     }
                 }
@@ -108,7 +109,7 @@ impl CriticalHitResult {
             CriticalHitKind::BrokenHand |
             CriticalHitKind::SmashedFoot |
             CriticalHitKind::KneeDislocation => {
-                let affected_side = BodySide::random();
+                let affected_side = BodySide::gen_random();
                 let parent_affected_side = affected_side.clone();
                 let body_part_kind = match kind {
                     CriticalHitKind::BrokenHand => BodyPartKind::Hand(affected_side),
@@ -134,15 +135,16 @@ impl CriticalHitResult {
                         injury: None,
                     };
                 } else  {
-                    let (attack, parry) = match &body_part_kind {
+                    let (injury_kind, attack, parry) = match &body_part_kind {
                         BodyPartKind::Hand(side) => match side {
-                            BodySide::Left => (-2, -3),
-                            BodySide::Right => (-5, -6),
+                            BodySide::Left => (InjuryKind::Broken, -2, -3),
+                            BodySide::Right => (InjuryKind::Broken, -5, -6),
                         },
-                        BodyPartKind::Foot(_) => (-2, -2),
-                        BodyPartKind::Knee(_) => (-1, -2),
+                        BodyPartKind::Foot(_) => (InjuryKind::Broken, -2, -2),
+                        BodyPartKind::Knee(_) => (InjuryKind::Dislocated, -1, -2),
                         _ => panic!("Match should not be possible")
                     };
+                    
                     Self {
                         kind,
                         body_part_kind: Some(body_part_kind),
@@ -150,10 +152,10 @@ impl CriticalHitResult {
                         rupture_damage: None,
                         dmg_modifier: Modifier::new(3),
                         injury: Some(Injury::new(
-                            InjuryKind::Broken,
+                            injury_kind,
                             attack,
                             parry,
-                            format!("{} is broken", body_part.kind()),
+                            // format!("{} is broken", body_part.kind()),
                         ))
                     }
                 }
@@ -181,7 +183,7 @@ impl CriticalHitResult {
                             InjuryKind::Broken,
                             0,
                             0,
-                            format!("{} were crushed", genitals.kind())
+                            // format!("{} were crushed", genitals.kind())
                         ))
                     }
                 }
@@ -209,7 +211,7 @@ impl CriticalHitResult {
                 }
             },
             CriticalHitKind::GougedEye => {
-                let body_part_kind = BodyPartKind::Eye(BodySide::random());
+                let body_part_kind = BodyPartKind::Eye(BodySide::gen_random());
                 let body_part = victim.body().body_part(&body_part_kind);
                 let injury = if body_part.is_gouged() {
                     None
@@ -218,7 +220,7 @@ impl CriticalHitResult {
                         InjuryKind::Gouged,
                         -1,
                         -2,
-                        format!("{} is gouged", body_part_kind)
+                        // format!("{} is gouged", body_part_kind)
                     ))
                 };
                 Self {
@@ -312,7 +314,7 @@ impl CriticalHitResult {
             },
             CriticalHitKind::SeveredArm |
             CriticalHitKind::SeveredLeg => {
-                let affected_side = BodySide::random();
+                let affected_side = BodySide::gen_random();
                 let body_part_kind = match kind {
                     CriticalHitKind::SeveredArm => BodyPartKind::Arm(affected_side),
                     CriticalHitKind::SeveredLeg => BodyPartKind::Leg(affected_side),
@@ -346,7 +348,7 @@ impl CriticalHitResult {
                     InjuryKind::Severed,
                     attack,
                     parry,
-                    format!("{} is severed", body_part.kind())
+                    // format!("{} is severed", body_part.kind())
                 );
                 match body_part.protected_by() {
                     Some(protection) => {
@@ -376,7 +378,7 @@ impl CriticalHitResult {
             },
             CriticalHitKind::SeveredFoot |
             CriticalHitKind::SeveredHand => {
-                let affected_side = BodySide::random();
+                let affected_side = BodySide::gen_random();
                 let parent_affected_side = affected_side.clone();
                 let body_part_kind = match kind {
                     CriticalHitKind::SeveredHand => BodyPartKind::Hand(affected_side),
@@ -412,7 +414,7 @@ impl CriticalHitResult {
                     InjuryKind::Severed,
                     attack,
                     parry,
-                    format!("{} is severed", body_part.kind())
+                    // format!("{} is severed", body_part.kind())
                 );
                 match body_part.protected_by() {
                     Some(protection) => {
@@ -527,7 +529,7 @@ impl CriticalHitResult {
 
     pub fn self_inflict<T>(&mut self, victim: &mut T) -> DamageSummary
     where
-        T: RollDamage + CanMissParries + CanMissAssaults + MayHaveWeapon + MayHaveMutableWeapon + TakeWeapon + Name + HasMutableBody + TakeDamage + TakeReducedDamage + CanBeAttacked + ParryThreshold + IsUnconscious + MayHaveDurationDamage,
+        T: RollDamage + CanMissParries + CanMissAssaults + MayHaveWeapon + MayHaveMutableWeapon + TakeWeapon + HasName + HasMutableBody + TakeDamage + TakeReducedDamage + CanBeAttacked + ParryThreshold + IsUnconscious + MayHaveDurationDamage,
     {
         match self.target_body_part() {
             Some(part) => {
@@ -616,8 +618,8 @@ impl TakeInjury for CriticalHitResult {
 impl ExecuteAction for CriticalHitResult {
     fn execute<A, V>(&mut self, assailant: &mut A, victim: &mut V) -> DamageSummary
     where
-        A: RollDamage + CanMissParries + CanMissAssaults + MayHaveWeapon + MayHaveMutableWeapon + TakeWeapon + Name + HasBody + TakeDamage + TakeReducedDamage + CanBeAttacked + ParryThreshold,
-        V: Assault + CriticalHit + Name + MayHaveWeapon + IsUnconscious + HasMutableBody + TakeDamage + MayHaveDurationDamage,
+        A: RollDamage + CanMissParries + CanMissAssaults + MayHaveWeapon + MayHaveMutableWeapon + TakeWeapon + HasName + HasBody + TakeDamage + TakeReducedDamage + CanBeAttacked + ParryThreshold,
+        V: Assault + CriticalHit + HasName + MayHaveWeapon + IsUnconscious + HasMutableBody + TakeDamage + MayHaveDurationDamage,
     {
         match self.target_body_part() {
             Some(part) => {
@@ -653,8 +655,8 @@ impl ExecuteAction for CriticalHitResult {
 impl ShowAction for CriticalHitResult {
     fn show<A, V>(&self, assailant: &A, victim: &V)
     where
-        A: MayHaveWeapon + Name,
-        V: Name + HasBody,
+        A: MayHaveWeapon + HasName,
+        V: HasName + HasBody,
     {
         match self.kind() {
             CriticalHitKind::AccurateHeavyBlowAndArmorDamage => {
@@ -801,23 +803,6 @@ impl ShowAction for CriticalHitResult {
                     victim.name()
                 );
             }
-        }
-    }
-}
-
-pub trait SelfCriticalHit {
-    fn self_critical_hit(&self) -> CriticalHitResult;
-}
-
-impl<T: MayHaveWeapon + HasBody> SelfCriticalHit for T {
-    fn self_critical_hit(&self) -> CriticalHitResult {
-        match self.weapon() {
-            Some(weapon) => if weapon.is_sharp() {
-                CriticalHitResult::roll_sharp(self)
-            } else {
-                CriticalHitResult::roll_blunt(self)
-            },
-            None => panic!("Can't critical hit without weapon")
         }
     }
 }

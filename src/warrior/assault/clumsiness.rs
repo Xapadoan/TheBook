@@ -1,5 +1,6 @@
 use crate::dice::{Dice, RollDamage};
 use crate::equipment::{HasRupture, RuptureTestResult};
+use crate::gen_random::GenRandom;
 use crate::modifiers::ApplyDamageModifier;
 use crate::warrior::body::body_part::{BodyPartKind, FingerName};
 use crate::warrior::body::body_side::BodySide;
@@ -8,7 +9,7 @@ use crate::warrior::body::HasBody;
 use crate::warrior::temporary_handicap::assaults_miss::{AssaultsMiss, CanMissAssaults};
 use crate::warrior::temporary_handicap::parries_miss::CanMissParries;
 use crate::warrior::weapon::{MayHaveMutableWeapon, MayHaveWeapon, TakeWeapon};
-use crate::warrior::Name;
+use crate::warrior::HasName;
 
 use super::attack::critical_hit::CriticalHit;
 use super::damage_summary::DamageSummary;
@@ -32,7 +33,7 @@ impl<T: MayHaveWeapon + RollDamage + ApplyDamageModifier + CriticalHit> Clumsine
             16..=18 => ClumsinessResult::HitSelf,
             19 => ClumsinessResult::CriticalHitSelf,
             20 => {
-                let side = BodySide::random();
+                let side = BodySide::gen_random();
                 match Dice::D6.roll() {
                     1 | 2 => ClumsinessResult::LoseEye(BodyPartKind::Eye(side)),
                     3..=6 => match Dice::D6.roll() {
@@ -66,8 +67,8 @@ pub enum ClumsinessResult {
 impl ShowAction for ClumsinessResult {
     fn show<A, V>(&self, assailant: &A, victim: &V)
     where
-        A: Name + MayHaveWeapon + CanMissAssaults,
-        V: Name + MayHaveWeapon + HasBody + CanMissParries
+        A: HasName + MayHaveWeapon + CanMissAssaults,
+        V: HasName + MayHaveWeapon + HasBody + CanMissParries
     {
         match self {
             ClumsinessResult::BreakWeapon(rupture_test_result) => match rupture_test_result {
@@ -88,8 +89,8 @@ impl ShowAction for ClumsinessResult {
 impl ExecuteAction for ClumsinessResult {
     fn execute<A, V>(&mut self, assailant: &mut A, _: &mut V) -> super::damage_summary::DamageSummary
     where
-        A: ApplyDamageModifier + CriticalHit + RollDamage + CanMissParries + CanMissAssaults + MayHaveWeapon + MayHaveMutableWeapon + TakeWeapon + Name + HasBody + crate::warrior::TakeDamage + crate::warrior::TakeReducedDamage + super::parry::parry_attempt::ParryThreshold + crate::warrior::IsUnconscious + crate::warrior::body::HasMutableBody + crate::warrior::IsDead + crate::warrior::duration_damage::MayHaveDurationDamage + super::Assault + super::attack::can_be_attacked::CanBeAttacked,
-        V: ApplyDamageModifier + CriticalHit + RollDamage + CanMissParries + CanMissAssaults + MayHaveWeapon + MayHaveMutableWeapon + TakeWeapon + Name + HasBody + crate::warrior::TakeDamage + crate::warrior::TakeReducedDamage + super::parry::parry_attempt::ParryThreshold + crate::warrior::IsUnconscious + crate::warrior::body::HasMutableBody + crate::warrior::IsDead + crate::warrior::duration_damage::MayHaveDurationDamage + super::Assault + crate::warrior::IsUnconscious + crate::warrior::body::HasMutableBody
+        A: ApplyDamageModifier + CriticalHit + RollDamage + CanMissParries + CanMissAssaults + MayHaveWeapon + MayHaveMutableWeapon + TakeWeapon + HasName + HasBody + crate::warrior::TakeDamage + crate::warrior::TakeReducedDamage + super::parry::parry_attempt::ParryThreshold + crate::warrior::IsUnconscious + crate::warrior::body::HasMutableBody + crate::warrior::IsDead + crate::warrior::duration_damage::MayHaveDurationDamage + super::Assault + super::attack::can_be_attacked::CanBeAttacked,
+        V: ApplyDamageModifier + CriticalHit + RollDamage + CanMissParries + CanMissAssaults + MayHaveWeapon + MayHaveMutableWeapon + TakeWeapon + HasName + HasBody + crate::warrior::TakeDamage + crate::warrior::TakeReducedDamage + super::parry::parry_attempt::ParryThreshold + crate::warrior::IsUnconscious + crate::warrior::body::HasMutableBody + crate::warrior::IsDead + crate::warrior::duration_damage::MayHaveDurationDamage + super::Assault + crate::warrior::IsUnconscious + crate::warrior::body::HasMutableBody
     {
         let mut damage_summary = DamageSummary::new(0);
         match self {
@@ -122,7 +123,7 @@ impl ExecuteAction for ClumsinessResult {
                         InjuryKind::Gouged,
                         -1,
                         -2,
-                        String::from("he gouged is own eye")
+                        // String::from("he gouged is own eye")
                     )
                 )
             },
@@ -132,7 +133,7 @@ impl ExecuteAction for ClumsinessResult {
                         InjuryKind::Severed,
                         0,
                         0,
-                        String::from("he cut is own finger")
+                        // String::from("he cut is own finger")
                     )
                 )
             },

@@ -106,9 +106,9 @@ impl Protectable for BodyPart {
         self.protection = Some(protection);
     }
 
-    fn detach_protection(&mut self) -> Option<Protection> {
-        self.protection.take()
-    }
+    // fn detach_protection(&mut self) -> Option<Protection> {
+    //     self.protection.take()
+    // }
 }
 
 impl ApplyDamageModifier for BodyPart {
@@ -126,25 +126,25 @@ impl MayBeInjured for BodyPart {
         self.injuries.len() > 0        
     }
 
-    fn is_broken(&self) -> bool {
-        for injury in self.injuries() {
-            match injury.kind() {
-                InjuryKind::Broken => return true,
-                _ => {},
-            }
-        }
-        false
-    }
+    // fn is_broken(&self) -> bool {
+    //     for injury in self.injuries() {
+    //         match injury.kind() {
+    //             InjuryKind::Broken => return true,
+    //             _ => {},
+    //         }
+    //     }
+    //     false
+    // }
 
-    fn is_dislocated(&self) -> bool {
-        for injury in self.injuries() {
-            match injury.kind() {
-                InjuryKind::Dislocated => return true,
-                _ => {},
-            }
-        }
-        false
-    }
+    // fn is_dislocated(&self) -> bool {
+    //     for injury in self.injuries() {
+    //         match injury.kind() {
+    //             InjuryKind::Dislocated => return true,
+    //             _ => {},
+    //         }
+    //     }
+    //     false
+    // }
 
     fn is_gouged(&self) -> bool {
         for injury in self.injuries() {
