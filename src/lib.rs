@@ -10,9 +10,15 @@ mod gen_random;
 mod save {
     pub mod save_manager;
 }
+pub mod player {
+    pub mod main;
+    pub mod cli_creator;
+}
 
 use std::error::Error;
 
+use player::cli_creator::CliPlayerCreator;
+use player::main::Player;
 use gen_random::GenRandom;
 use save::save_manager::{SaveManager, SavePathBuf};
 use warrior::warrior_save_manager::WarriorSaveManager;
@@ -40,24 +46,16 @@ impl Warrior {
 }
 
 pub fn run() -> Result<(), Box<dyn Error>> {
+    let builder = CliPlayerCreator::new();
+    let player = Player::build(&builder)?;
 
-    // let mut i = 0;
-    // let mut contestants = Vec::new();
-    // while i < 8 {
-    //     let mut warrior = Warrior::gen_random();
-    //     let weapon = Weapon::gen_random();
-    //     let protection = Protection::gen_random();
-    //     warrior.give_weapon(weapon);
-    //     warrior.wear_random_protection(protection);
-    //     contestants.push(warrior);
-    //     i += 1;
-    // }
-    let saver = WarriorSaveManager::build(SavePathBuf::from("saves"))?;
+    dbg!(&player);
+    // let saver = WarriorSaveManager::build(SavePathBuf::from("saves"))?;
     // saver.save(contestants, SavePathBuf::from("contestants.save"))?;
-    let mut contestants: Vec<Warrior> = saver.build_from_save(&SavePathBuf::from("contestants.save"))?;
+//     let mut contestants: Vec<Warrior> = saver.build_from_save(&SavePathBuf::from("contestants.save"))?;
 
-    let mut tournament = Tournament::new(contestants);
+//     let mut tournament = Tournament::new(contestants);
 
-    tournament.fight_round(0);
+//     tournament.fight_round(0);
     Ok(())
 }
