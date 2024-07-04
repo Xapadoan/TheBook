@@ -6,7 +6,6 @@ pub mod weapon;
 pub mod temporary_handicap;
 pub mod duration_damage;
 mod warrior_name;
-pub mod warrior_save_manager;
 
 use assault::attack::attack_attempt::AttackThreshold;
 use assault::parry::parry_attempt::ParryThreshold;
@@ -20,6 +19,7 @@ use stats::StatModifier;
 use stats::StatsManager;
 use stats::Stat;
 use temporary_handicap::TemporaryHandicap;
+use uuid::Uuid;
 use weapon::GiveWeapon;
 use weapon::MayHaveMutableWeapon;
 use weapon::MayHaveWeapon;
@@ -34,6 +34,7 @@ use crate::dice::{RollDamage, Dice};
 use crate::gen_random::GenRandom;
 use crate::modifiers::{ApplyDamageModifier, Modifier};
 use crate::name::HasName;
+use crate::repository::main::UniqueEntity;
 
 pub trait IsDead {
     fn is_dead(&self) -> bool;
@@ -54,6 +55,7 @@ pub trait TakeReducedDamage {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Warrior {
+    uuid: Uuid,
     name: WarriorName,
     stats_manager: StatsManager,
     health: u8,
@@ -66,8 +68,9 @@ pub struct Warrior {
 }
 
 impl Warrior {
-    fn new(name: WarriorName) -> Self {
+    fn new(uuid: Uuid, name: WarriorName) -> Self {
         Self {
+            uuid,
             name,
             stats_manager: StatsManager::new(),
             health: 30,
@@ -286,6 +289,12 @@ impl ParryThreshold for Warrior {
 
 impl GenRandom for Warrior {
     fn gen_random() -> Self {
-        Self::new(WarriorName::gen_random())
+        Self::new(Uuid::new_v4(), WarriorName::gen_random())
+    }
+}
+
+impl UniqueEntity for Warrior {
+    fn uuid<'a>(&'a self) -> &'a Uuid {
+        &self.uuid
     }
 }

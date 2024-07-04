@@ -7,21 +7,25 @@ mod warrior;
 mod virtual_timer;
 mod name;
 mod gen_random;
-mod save {
-    pub mod save_manager;
-}
 pub mod player {
     pub mod main;
     pub mod cli_creator;
+    pub mod cli_logger;
+}
+pub mod repository {
+    pub mod main;
+    pub mod file_repository;
 }
 
 use std::error::Error;
+use std::path::{Path, PathBuf};
 
 use player::cli_creator::CliPlayerCreator;
+use player::cli_logger::CliPlayerLogger;
 use player::main::Player;
 use gen_random::GenRandom;
-use save::save_manager::{SaveManager, SavePathBuf};
-use warrior::warrior_save_manager::WarriorSaveManager;
+use repository::file_repository::{FileRepository};
+use repository::main::{Repository, UniqueEntity};
 use warrior::Warrior;
 use warrior::weapon::{Weapon, GiveWeapon};
 use warrior::protection::{Protection, ProtectionKind, WearProtection};
@@ -46,9 +50,13 @@ impl Warrior {
 }
 
 pub fn run() -> Result<(), Box<dyn Error>> {
-    let builder = CliPlayerCreator::new();
-    let player = Player::build(&builder)?;
-
+    let repo = FileRepository::build(PathBuf::from("player"))?;
+    let mut builder = CliPlayerLogger::new(repo);
+    let player = Player::build(&mut builder)?;
+    // let mut builder = CliPlayerCreator::new();
+    // let player = Player::build(&mut builder)?;
+    // let repo = FileRepository::build(PathBuf::from("./player"))?;
+    // repo.create(&player)?;
     dbg!(&player);
     // let saver = WarriorSaveManager::build(SavePathBuf::from("saves"))?;
     // saver.save(contestants, SavePathBuf::from("contestants.save"))?;
