@@ -264,7 +264,7 @@ impl HasMutableBody for Warrior {
 }
 
 impl HasName for Warrior {
-    fn name<'a>(&'a self) -> &'a WarriorName {
+    fn name(&self) -> &WarriorName {
         &self.name
     }
 }

@@ -1,8 +1,6 @@
 use std::error::Error;
 use std::io;
-use std::fs;
 
-use uuid::uuid;
 use uuid::Uuid;
 
 use crate::name::HasName;

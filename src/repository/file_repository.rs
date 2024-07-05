@@ -23,7 +23,7 @@ impl FileRepository {
     pub fn build(path: PathBuf) -> Result<Self, Box<dyn Error>> {
         let repo = Self::new(path);
         if !repo.path.as_path().try_exists()? {
-            fs::create_dir(repo.path.as_path())?;
+            fs::create_dir_all(repo.path.as_path())?;
         }
         Ok(repo)
     }

@@ -1,8 +1,10 @@
 mod dice;
-mod fight;
 mod modifiers;
 mod equipment;
-mod tournament;
+mod tournament {
+    pub mod main;
+    mod fight;
+}
 mod warrior;
 mod virtual_timer;
 mod name;
@@ -18,11 +20,13 @@ pub mod repository {
 }
 
 use std::error::Error;
+use std::io;
 use std::path::{Path, PathBuf};
 
+use name::HasName;
 use player::cli_creator::CliPlayerCreator;
 use player::cli_logger::CliPlayerLogger;
-use player::main::Player;
+use player::main::{Player, PlayerBuilder, WarriorsManager};
 use gen_random::GenRandom;
 use repository::file_repository::{FileRepository};
 use repository::main::{Repository, UniqueEntity};
@@ -31,7 +35,7 @@ use warrior::weapon::{Weapon, GiveWeapon};
 use warrior::protection::{Protection, ProtectionKind, WearProtection};
 use warrior::body::body_part::BodyPartKind;
 use warrior::body::body_side::BodySide;
-use tournament::Tournament;
+use tournament::main::Tournament;
 
 impl Warrior {
     fn wear_random_protection(&mut self, protection: Protection) {
@@ -50,20 +54,57 @@ impl Warrior {
 }
 
 pub fn run() -> Result<(), Box<dyn Error>> {
-    let repo = FileRepository::build(PathBuf::from("player"))?;
-    let mut builder = CliPlayerLogger::new(repo);
-    let player = Player::build(&mut builder)?;
-    // let mut builder = CliPlayerCreator::new();
-    // let player = Player::build(&mut builder)?;
-    // let repo = FileRepository::build(PathBuf::from("./player"))?;
-    // repo.create(&player)?;
-    dbg!(&player);
-    // let saver = WarriorSaveManager::build(SavePathBuf::from("saves"))?;
-    // saver.save(contestants, SavePathBuf::from("contestants.save"))?;
-//     let mut contestants: Vec<Warrior> = saver.build_from_save(&SavePathBuf::from("contestants.save"))?;
+    let mut player = welcome_player()?;
+    play(&mut player)?;
+    Ok(())
+}
 
-//     let mut tournament = Tournament::new(contestants);
+fn welcome_player() -> Result<Player, Box<dyn Error>> {
+    let repo = FileRepository::build(PathBuf::from("saves/players"))?;
+    println!("Do you already have an account ?\n (Y / N)");
+    let mut user_response = String::new();
+    io::stdin().read_line(&mut user_response)?;
+    let player = if user_response.trim().to_lowercase() == "y" {
+        let mut builder = CliPlayerLogger::new(repo);
+        Player::build(&mut builder)?
+    } else  {
+        let mut builder = CliPlayerCreator::new();
+        let tmp = Player::build(&mut builder)?;
+        repo.create(&tmp)?;
+        tmp
+    };
+    Ok(player)
+}
 
-//     tournament.fight_round(0);
+fn play(player: &mut Player) -> Result<(), Box<dyn Error>> {
+    let mut tournament = Tournament::new("Lame Assist Merit Erect", 8);
+    println!("A tournament, the {} will start soon, do you want to send warriors ?", tournament.name());
+    let mut user_response = String::new();
+    io::stdin().read_line(&mut user_response)?;
+    if user_response.trim().to_lowercase() != "y" {
+        println!("Ok Bye !");
+        return Ok(());
+    }
+    println!("Select a warrior:");
+    let mut i = 0;
+    let warriors = player.warriors_mut();
+    while i < warriors.len() {
+        println!("{}. {}", i + 1, warriors[i].name());
+        i += 1;
+    }
+    user_response.clear();
+    io::stdin().read_line(&mut user_response)?;
+    let mut index: usize = user_response.trim().parse()?;
+    index -= 1;
+    let warrior = &mut warriors[index];
+    tournament.add_contestant(warrior)?;
+
+    let mut w = Warrior::gen_random();
+    let we = Weapon::gen_random();
+    w.give_weapon(we);
+    tournament.add_contestant(&mut w)?;
+
+    tournament.auto();
+    dbg!(warrior);
     Ok(())
 }

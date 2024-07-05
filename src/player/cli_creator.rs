@@ -1,7 +1,9 @@
 use std::io;
 use std::error::Error;
 
-use crate::{gen_random::GenRandom, warrior::Warrior};
+use crate::gen_random::GenRandom;
+use crate::warrior::weapon::{GiveWeapon, Weapon};
+use crate::warrior::Warrior;
 
 use super::main::{PlayerBuildFinalStep, PlayerBuildStepDisplayName, PlayerBuildStepUserName, PlayerBuilder};
 
@@ -30,7 +32,9 @@ impl PlayerBuilder for CliPlayerCreator {
         let mut i = 0;
         let mut warriors = Vec::new();
         while i < 8 {
-            let warrior = Warrior::gen_random();
+            let mut warrior = Warrior::gen_random();
+            let weapon = Weapon::gen_random();
+            warrior.give_weapon(weapon);
             warriors.push(warrior);
             i += 1;
         }

@@ -1,5 +1,4 @@
 use std::error::Error;
-use std::path::Path;
 
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
@@ -10,6 +9,7 @@ use crate::warrior::Warrior;
 
 pub trait WarriorsManager {
     fn warriors<'a>(&'a self) -> &'a Vec<Warrior>;
+    fn warriors_mut<'a>(&'a mut self) -> &'a mut Vec<Warrior>;
     fn give_warrior(&mut self, warrior: Warrior);
     fn take_warrior(&mut self, uuid: &Uuid) -> Option<Warrior>;
 }
@@ -37,6 +37,10 @@ impl HasName for Player {
 impl WarriorsManager for Player {
     fn warriors<'a>(&'a self) -> &'a Vec<Warrior> {
         &self.warriors
+    }
+
+    fn warriors_mut<'a>(&'a mut self) -> &'a mut Vec<Warrior> {
+        self.warriors.as_mut()
     }
 
     fn give_warrior(&mut self, warrior: Warrior) {
