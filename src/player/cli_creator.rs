@@ -1,7 +1,10 @@
 use std::io;
 use std::error::Error;
+use std::path::PathBuf;
 
 use crate::gen_random::GenRandom;
+use crate::repository::file_repository::FileRepository;
+use crate::repository::main::Repository;
 use crate::warrior::weapon::{GiveWeapon, Weapon};
 use crate::warrior::Warrior;
 
@@ -31,10 +34,12 @@ impl PlayerBuilder for CliPlayerCreator {
     fn get_warriors(&mut self, previous_step: PlayerBuildStepDisplayName) -> Result<super::main::PlayerBuildFinalStep, Box<dyn Error>> {
         let mut i = 0;
         let mut warriors = Vec::new();
+        let repo = FileRepository::build(PathBuf::from("saves/warriors"))?;
         while i < 8 {
             let mut warrior = Warrior::gen_random();
             let weapon = Weapon::gen_random();
             warrior.give_weapon(weapon);
+            repo.create(&warrior)?;
             warriors.push(warrior);
             i += 1;
         }

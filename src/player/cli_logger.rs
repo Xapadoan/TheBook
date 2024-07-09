@@ -4,6 +4,7 @@ use std::io;
 use uuid::Uuid;
 
 use crate::name::HasName;
+use crate::repository::file_repository::FileRepository;
 use crate::repository::main::Repository;
 use crate::repository::main::UniqueEntity;
 use crate::warrior::Warrior;
@@ -12,22 +13,24 @@ use super::main::{Player, WarriorsManager};
 use super::main::PlayerBuildFinalStep;
 use super::main::PlayerBuildStepDisplayName;
 use super::main::{PlayerBuildStepUserName, PlayerBuilder};
+use super::repository::PlayerRepository;
 
-pub struct CliPlayerLogger<R: Repository<Player>> {
-    repo: R,
+pub struct CliPlayerLogger {
+    repo: PlayerRepository<FileRepository>,
     player: Option<Player>,
 }
 
-impl<R: Repository<Player>> CliPlayerLogger<R> {
-    pub fn new(repo: R) -> Self {
-        Self {
+impl CliPlayerLogger {
+    pub fn build() -> Result<Self, Box<dyn Error>> {
+        let repo = PlayerRepository::build()?;
+        Ok(Self {
             repo,
             player: None,
-        }
+        })
     }
 }
 
-impl<R: Repository<Player>> PlayerBuilder for CliPlayerLogger<R> {
+impl PlayerBuilder for CliPlayerLogger {
     fn get_username(&mut self) -> Result<PlayerBuildStepUserName, Box<dyn Error>> {
         println!("Welcome back, enter your uuid:");
         let mut str = String::new();

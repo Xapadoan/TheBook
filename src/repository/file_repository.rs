@@ -1,5 +1,5 @@
 use std::error::Error;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::io::{BufReader, Write};
 use std::fs;
 
@@ -27,26 +27,34 @@ impl FileRepository {
         }
         Ok(repo)
     }
+
+    pub fn full_path<P: AsRef<Path>>(&self, path: P) -> PathBuf {
+        self.path.join(path)
+    }
 }
 
 impl<T: Serialize + DeserializeOwned + UniqueEntity> Repository<T> for FileRepository {
     fn create(&self, item: &T) -> Result<(), Box<dyn Error>> {
-        let mut full_path = self.path.clone();
-        full_path.push(format!("{}.save", item.uuid().to_string()));
+        let path = self.full_path(format!("{}.save", item.uuid().to_string()));
         let str = serde_json::to_string(&item)?;
-        let mut file = fs::File::create(&full_path)?;
+        let mut file = fs::File::create(&path)?;
         file.write(str.as_bytes())?;
         Ok(())
     }
 
     fn get_by_uuid(&self, uuid: &Uuid) -> Result<T, Box<dyn Error>> {
-        let mut full_path = self.path.clone();
-        full_path.push(format!("{}.save", uuid.to_string()));
-        dbg!(&full_path);
-        let file = fs::File::open(full_path)?;
+        let path = self.full_path(format!("{}.save", uuid.to_string()));
+        let file = fs::File::open(path)?;
         let buf = BufReader::new(file);
         let item: T = serde_json::from_reader(buf)?;
         Ok(item)
+    }
+
+    fn update(&self, uuid: &Uuid, item: &T) -> Result<(), Box<dyn Error>> {
+        let path = self.full_path(format!("{}.save", uuid.to_string()));
+        let str = serde_json::to_string(&item)?;
+        fs::write(path, str)?;
+        Ok(())
     }
 }
 
