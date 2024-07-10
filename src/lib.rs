@@ -34,6 +34,8 @@ use gen_random::GenRandom;
 use player::repository::PlayerRepository;
 use repository::file_repository::FileRepository;
 use repository::main::{Repository, UniqueEntity};
+use tournament::main::Tournament;
+use uuid::Uuid;
 use warrior::Warrior;
 use warrior::weapon::{Weapon, GiveWeapon};
 use warrior::protection::{Protection, ProtectionKind, WearProtection};
@@ -58,8 +60,8 @@ impl Warrior {
 
 pub fn run() -> Result<(), Box<dyn Error>> {
     let mut player = welcome_player()?;
-    dbg!(&player);
-    // play(&mut player)?;
+    player.replace_dead_warriors()?;
+    play(&mut player)?;
     Ok(())
 }
 
@@ -80,67 +82,93 @@ fn welcome_player() -> Result<Player, Box<dyn Error>> {
     Ok(player)
 }
 
-// fn play(player: &mut Player) -> Result<(), Box<dyn Error>> {
-//     let mut tournament = Tournament::gen_random();
-//     println!("A tournament, the {} will start soon, do you want to send warriors ? (Y/N)", tournament.name());
-//     let mut user_response = String::new();
-//     io::stdin().read_line(&mut user_response)?;
-//     if user_response.trim().to_lowercase() != "y" {
-//         println!("Ok Bye !");
-//         return Ok(());
-//     }
-//     println!("Select a warrior:");
-//     let mut i = 0;
-//     let warriors = player.warriors_mut();
-//     while i < warriors.len() {
-//         println!("{}. {}", i + 1, warriors[i].name());
-//         i += 1;
-//     }
-//     user_response.clear();
-//     io::stdin().read_line(&mut user_response)?;
-//     let mut index: usize = user_response.trim().parse()?;
-//     index -= 1;
-//     let warrior = &mut warriors[index];
-//     tournament.add_contestant(warrior)?;
+fn play(player: &mut Player) -> Result<(), Box<dyn Error>> {
+    let mut tournament = Tournament::gen_random();
+    println!("A tournament, the {} will start soon, do you want to send warriors ? (Y/N)", tournament.name());
+    let mut user_response = String::new();
+    io::stdin().read_line(&mut user_response)?;
+    if user_response.trim().to_lowercase() != "y" {
+        println!("Ok Bye !");
+        return Ok(());
+    }
+    println!("Select a warrior:");
+    let mut i = 0;
+    let warriors = player.warriors_mut();
+    while i < warriors.len() {
+        println!("{}. {}", i + 1, warriors[i].name());
+        i += 1;
+    }
+    user_response.clear();
+    io::stdin().read_line(&mut user_response)?;
+    let mut index: usize = user_response.trim().parse()?;
+    index -= 1;
+    let warrior = &mut warriors[index];
+    tournament.add_contestant(warrior)?;
 
-//     let mut w = Warrior::gen_random();
-//     let we = Weapon::gen_random();
-//     w.give_weapon(we);
-//     tournament.add_contestant(&mut w)?;
+    let repo = FileRepository::build(PathBuf::from("saves/warriors"))?;
+    let mut w_uuids: Vec<Uuid> = vec![];
 
-//     let mut w = Warrior::gen_random();
-//     let we = Weapon::gen_random();
-//     w.give_weapon(we);
-//     tournament.add_contestant(&mut w)?;
+    let mut w = Warrior::gen_random();
+    let we = Weapon::gen_random();
+    w.give_weapon(we);
+    if tournament.add_contestant(&mut w).is_ok() {
+        repo.create(&w)?;
+        w_uuids.push(w.uuid().clone());
+    }
 
-//     let mut w = Warrior::gen_random();
-//     let we = Weapon::gen_random();
-//     w.give_weapon(we);
-//     tournament.add_contestant(&mut w)?;
+    let mut w = Warrior::gen_random();
+    let we = Weapon::gen_random();
+    w.give_weapon(we);
+    if tournament.add_contestant(&mut w).is_ok() {
+        repo.create(&w)?;
+        w_uuids.push(w.uuid().clone());
+    }
 
-//     let mut w = Warrior::gen_random();
-//     let we = Weapon::gen_random();
-//     w.give_weapon(we);
-//     tournament.add_contestant(&mut w)?;
+    let mut w = Warrior::gen_random();
+    let we = Weapon::gen_random();
+    w.give_weapon(we);
+    if tournament.add_contestant(&mut w).is_ok() {
+        repo.create(&w)?;
+        w_uuids.push(w.uuid().clone());
+    }
 
-//     let mut w = Warrior::gen_random();
-//     let we = Weapon::gen_random();
-//     w.give_weapon(we);
-//     tournament.add_contestant(&mut w)?;
+    let mut w = Warrior::gen_random();
+    let we = Weapon::gen_random();
+    w.give_weapon(we);
+    if tournament.add_contestant(&mut w).is_ok() {
+        repo.create(&w)?;
+        w_uuids.push(w.uuid().clone());
+    }
 
-//     let mut w = Warrior::gen_random();
-//     let we = Weapon::gen_random();
-//     w.give_weapon(we);
-//     tournament.add_contestant(&mut w)?;
+    let mut w = Warrior::gen_random();
+    let we = Weapon::gen_random();
+    w.give_weapon(we);
+    if tournament.add_contestant(&mut w).is_ok() {
+        repo.create(&w)?;
+        w_uuids.push(w.uuid().clone());
+    }
 
-//     let mut w = Warrior::gen_random();
-//     let we = Weapon::gen_random();
-//     w.give_weapon(we);
-//     tournament.add_contestant(&mut w)?;
+    let mut w = Warrior::gen_random();
+    let we = Weapon::gen_random();
+    w.give_weapon(we);
+    if tournament.add_contestant(&mut w).is_ok() {
+        repo.create(&w)?;
+        w_uuids.push(w.uuid().clone());
+    }
 
-//     tournament.auto();
-//     let repo = FileRepository::build(PathBuf::from("saves/players"))?;
-//     dbg!(warrior);
-//     repo.update(player.uuid(), player)?;
-//     Ok(())
-// }
+    let mut w = Warrior::gen_random();
+    let we = Weapon::gen_random();
+    w.give_weapon(we);
+    if tournament.add_contestant(&mut w).is_ok() {
+        repo.create(&w)?;
+        w_uuids.push(w.uuid().clone());
+    }
+
+    tournament.auto()?;
+
+    for uuid in w_uuids {
+        repo.delete(&uuid)?;
+    }
+
+    Ok(())
+}

@@ -1,11 +1,16 @@
 use std::error::Error;
+use std::path::PathBuf;
 
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
+use crate::gen_random::GenRandom;
 use crate::name::{HasName, Name};
-use crate::repository::main::UniqueEntity;
-use crate::warrior::Warrior;
+use crate::repository::file_repository::FileRepository;
+use crate::repository::main::{Repository, UniqueEntity};
+use crate::warrior::{IsDead, Warrior};
+
+use super::repository::PlayerRepository;
 
 pub trait WarriorsManager {
     fn warriors<'a>(&'a self) -> &'a Vec<Warrior>;
@@ -25,6 +30,28 @@ pub struct Player {
 impl Player {
     pub fn username<'a>(&'a self) -> &'a Name {
         &self.username
+    }
+
+    pub fn replace_dead_warriors(&mut self) -> Result<(), Box<dyn Error>> {
+        let mut dead_warriors_uuids: Vec<Uuid> = vec![];
+        for warrior in self.warriors() {
+            if warrior.is_dead() {
+                dead_warriors_uuids.push(warrior.uuid().clone());
+            }
+        }
+        for uuid in dead_warriors_uuids {
+            if let Some(w) = self.take_warrior(&uuid) {
+                println!("{} died during the last tournament", w.name());
+                let repo: FileRepository<Warrior> = FileRepository::build(PathBuf::from("saves/warriors"))?;
+                repo.delete(w.uuid())?;
+            }
+            let w = Warrior::gen_random();
+            println!("{} will join your team", w.name());
+            self.give_warrior(w);
+        }
+        let repo = PlayerRepository::build()?;
+        repo.update(self.uuid(), self)?;
+        Ok(())
     }
 }
 
