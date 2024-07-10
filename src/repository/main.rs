@@ -9,4 +9,6 @@ pub trait UniqueEntity {
 pub trait Repository<T> {
     fn create(&self, item: &T) -> Result<(), Box<dyn Error>>;
     fn get_by_uuid(&self, uuid: &Uuid) -> Result<T, Box<dyn Error>>;
+    fn update(&self, uuid: &Uuid, item: &T) -> Result<(), Box<dyn Error>>;
+    fn delete(&self, uuid: &Uuid) -> Result<(), Box<dyn Error>>;
 }

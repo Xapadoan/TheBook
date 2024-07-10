@@ -1,4 +1,5 @@
 use std::error::Error;
+use std::marker::PhantomData;
 use std::path::{Path, PathBuf};
 use std::io::{BufReader, Write};
 use std::fs;
@@ -9,14 +10,16 @@ use uuid::Uuid;
 
 use super::main::{Repository, UniqueEntity};
 
-pub struct FileRepository {
-    path: PathBuf
+pub struct FileRepository<T> {
+    path: PathBuf,
+    phantom: PhantomData<T>
 }
 
-impl FileRepository {
+impl<T> FileRepository<T> {
     fn new(path: PathBuf) -> Self {
         Self {
             path,
+            phantom: PhantomData
         }
     }
 
@@ -33,7 +36,7 @@ impl FileRepository {
     }
 }
 
-impl<T: Serialize + DeserializeOwned + UniqueEntity> Repository<T> for FileRepository {
+impl<T: Serialize + DeserializeOwned + UniqueEntity> Repository<T> for FileRepository<T> {
     fn create(&self, item: &T) -> Result<(), Box<dyn Error>> {
         let path = self.full_path(format!("{}.save", item.uuid().to_string()));
         let str = serde_json::to_string(&item)?;
@@ -54,6 +57,12 @@ impl<T: Serialize + DeserializeOwned + UniqueEntity> Repository<T> for FileRepos
         let path = self.full_path(format!("{}.save", uuid.to_string()));
         let str = serde_json::to_string(&item)?;
         fs::write(path, str)?;
+        Ok(())
+    }
+
+    fn delete(&self, uuid: &Uuid) -> Result<(), Box<dyn Error>> {
+        let path = self.full_path(format!("{}.save", uuid.to_string()));
+        fs::remove_file(path)?;
         Ok(())
     }
 }
@@ -83,7 +92,7 @@ mod tests {
             fs::remove_dir(&path)?;
         }
 
-        let repo = FileRepository::build(path)?;
+        let repo: FileRepository<TestFileRepositoryItem> = FileRepository::build(path)?;
         if !repo.path.as_path().try_exists()? {
             Err("File not found".into())
         } else {

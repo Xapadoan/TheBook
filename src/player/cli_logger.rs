@@ -13,10 +13,11 @@ use super::main::{Player, WarriorsManager};
 use super::main::PlayerBuildFinalStep;
 use super::main::PlayerBuildStepDisplayName;
 use super::main::{PlayerBuildStepUserName, PlayerBuilder};
+use super::repository::PlayerDTOFile;
 use super::repository::PlayerRepository;
 
 pub struct CliPlayerLogger {
-    repo: PlayerRepository<FileRepository>,
+    repo: PlayerRepository<FileRepository<PlayerDTOFile>, FileRepository<Warrior>>,
     player: Option<Player>,
 }
 

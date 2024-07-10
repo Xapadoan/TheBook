@@ -40,17 +40,18 @@ impl UniqueEntity for PlayerDTOFile {
     }
 }
 
-struct PlayerBuilderFromRepo {
+struct PlayerBuilderFromRepo<'a, T: Repository<Warrior>> {
     dto: PlayerDTOFile,
+    warriors_repo: &'a T
 }
 
-impl PlayerBuilderFromRepo {
-    fn new(dto: PlayerDTOFile) -> Self {
-        Self { dto }
+impl<'a, T: Repository<Warrior>> PlayerBuilderFromRepo<'a, T> {
+    fn new(dto: PlayerDTOFile, warriors_repo: &'a T) -> Self {
+        Self { dto, warriors_repo }
     }
 }
 
-impl PlayerBuilder for PlayerBuilderFromRepo {
+impl<'a, T: Repository<Warrior>> PlayerBuilder for PlayerBuilderFromRepo<'a, T> {
     fn get_username(&mut self) -> Result<PlayerBuildStepUserName, Box<dyn Error>> {
         Ok(PlayerBuildStepUserName::new(self.dto.username.clone()))
     }
@@ -60,41 +61,41 @@ impl PlayerBuilder for PlayerBuilderFromRepo {
     }
 
     fn get_warriors(&mut self, previous_step: PlayerBuildStepDisplayName) -> Result<super::main::PlayerBuildFinalStep, Box<dyn Error>> {
-        let warrior_repository = FileRepository::build(PathBuf::from("saves/warriors"))?;
         let mut warriors: Vec<Warrior> = vec![];
         for warrior_uuid in &self.dto.warrior_ids {
-            let warrior: Warrior = warrior_repository.get_by_uuid(&warrior_uuid)?;
+            let warrior: Warrior = self.warriors_repo.get_by_uuid(&warrior_uuid)?;
             warriors.push(warrior);
         }
         Ok(PlayerBuildFinalStep::new(warriors, previous_step))
     }
 }
 
-pub struct PlayerRepository<T: Repository<PlayerDTOFile>> {
-    dto_repo: T
+pub struct PlayerRepository<T: Repository<PlayerDTOFile>, K: Repository<Warrior>> {
+    dto_repo: T,
+    warriors_repo: K
 }
 
-impl PlayerRepository<FileRepository> {
+impl PlayerRepository<FileRepository<PlayerDTOFile>, FileRepository<Warrior>> {
     pub fn build() -> Result<Self, Box<dyn Error>> {
         let dto_repo = FileRepository::build(PathBuf::from("saves/players"))?;
-        Ok(Self { dto_repo })
+        let warriors_repo = FileRepository::build(PathBuf::from("saves/warriors"))?;
+        Ok(Self { dto_repo, warriors_repo })
     }
 }
 
-impl<T: Repository<PlayerDTOFile>> Repository<Player> for PlayerRepository<T> {
+impl<T: Repository<PlayerDTOFile>, K: Repository<Warrior>> Repository<Player> for PlayerRepository<T, K> {
     fn create(&self, item: &Player) -> Result<(), Box<dyn Error>> {
         let cto = PlayerDTOFile::from(item);
         self.dto_repo.create(&cto)?;
-        let warrior_repository = FileRepository::build(PathBuf::from("saves/warriors"))?;
         for warrior in item.warriors() {
-            warrior_repository.create(warrior)?;
+            self.warriors_repo.create(warrior)?;
         }
         Ok(())
     }
 
     fn get_by_uuid(&self, uuid: &Uuid) -> Result<Player, Box<dyn Error>> {
         let dto = self.dto_repo.get_by_uuid(uuid)?;
-        let mut builder = PlayerBuilderFromRepo::new(dto);
+        let mut builder = PlayerBuilderFromRepo::new(dto, &self.warriors_repo);
         let player = Player::build(&mut builder)?;
         Ok(player)
     }
@@ -102,10 +103,18 @@ impl<T: Repository<PlayerDTOFile>> Repository<Player> for PlayerRepository<T> {
     fn update(&self, uuid: &Uuid, item: &Player) -> Result<(), Box<dyn Error>> {
         let cto = PlayerDTOFile::from(item);
         self.dto_repo.update(uuid, &cto)?;
-        let warrior_repository = FileRepository::build(PathBuf::from("saves/warriors"))?;
         for warrior in item.warriors() {
-            warrior_repository.update(warrior.uuid(), warrior)?;
+            self.warriors_repo.update(warrior.uuid(), warrior)?;
         }
+        Ok(())
+    }
+
+    fn delete(&self, uuid: &Uuid) -> Result<(), Box<dyn Error>> {
+        let dto = self.dto_repo.get_by_uuid(uuid)?;
+        for warrior_id in dto.warrior_ids {
+            self.warriors_repo.delete(&warrior_id)?;
+        }
+        self.dto_repo.delete(uuid);
         Ok(())
     }
 }
