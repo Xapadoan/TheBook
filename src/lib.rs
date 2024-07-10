@@ -1,13 +1,11 @@
 mod dice;
 mod modifiers;
 mod equipment;
-// mod tournament {
-//     pub mod main;
-//     mod fight;
-//     mod name;
-//     mod contestant;
-//     mod test;
-// }
+mod tournament {
+    pub mod main;
+    mod fight;
+    mod name;
+}
 mod warrior;
 mod virtual_timer;
 mod name;
@@ -41,7 +39,6 @@ use warrior::weapon::{Weapon, GiveWeapon};
 use warrior::protection::{Protection, ProtectionKind, WearProtection};
 use warrior::body::body_part::BodyPartKind;
 use warrior::body::body_side::BodySide;
-// use tournament::main::Tournament;
 
 impl Warrior {
     fn wear_random_protection(&mut self, protection: Protection) {
