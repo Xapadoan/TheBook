@@ -1,4 +1,5 @@
 use std::error::Error;
+use std::fmt::Display;
 use std::path::PathBuf;
 
 use serde::{Deserialize, Serialize};
@@ -133,9 +134,9 @@ impl PlayerBuildFinalStep {
 }
 
 pub trait PlayerBuilder {
-    fn get_username(&mut self) -> Result<PlayerBuildStepUserName, Box<dyn Error>>;
-    fn get_display_name(&mut self, previous_step: PlayerBuildStepUserName) -> Result<PlayerBuildStepDisplayName, Box<dyn Error>>;
-    fn get_warriors(&mut self, previous_step: PlayerBuildStepDisplayName) -> Result<PlayerBuildFinalStep, Box<dyn Error>>;
+    fn get_username(&mut self) -> Result<PlayerBuildStepUserName, PlayerBuildError>;
+    fn get_display_name(&mut self, previous_step: PlayerBuildStepUserName) -> Result<PlayerBuildStepDisplayName, PlayerBuildError>;
+    fn get_warriors(&mut self, previous_step: PlayerBuildStepDisplayName) -> Result<PlayerBuildFinalStep, PlayerBuildError>;
 }
 
 impl Player {
@@ -148,7 +149,7 @@ impl Player {
         }
     }
 
-    pub fn build(builder: &mut impl PlayerBuilder) -> Result<Player, Box<dyn Error>> {
+    pub fn build(builder: &mut impl PlayerBuilder) -> Result<Player, PlayerBuildError> {
         let username_step = builder.get_username()?;
         let display_name_step = builder.get_display_name(username_step)?;
         let final_step = builder.get_warriors(display_name_step)?;
@@ -161,3 +162,24 @@ impl UniqueEntity for Player {
         &self.uuid
     }
 }
+
+#[derive(Debug)]
+pub struct PlayerBuildError {
+    message: String,
+}
+
+impl PlayerBuildError {
+    pub fn new(message: String) -> Self {
+        Self {
+            message: format!("PlayerBuildError:\n{message}")
+        }
+    }
+}
+
+impl Display for PlayerBuildError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.message)
+    }
+}
+
+impl Error for PlayerBuildError {}

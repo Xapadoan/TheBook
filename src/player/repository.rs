@@ -5,11 +5,11 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use crate::name::{HasName, Name};
-use crate::repository::main::{Repository, UniqueEntity};
+use crate::repository::main::{Repository, RepositoryError, UniqueEntity};
 use crate::repository::file_repository::FileRepository;
 use crate::warrior::Warrior;
 
-use super::main::{Player, PlayerBuildFinalStep, PlayerBuildStepDisplayName, PlayerBuildStepUserName, PlayerBuilder, WarriorsManager};
+use super::main::{Player, PlayerBuildError, PlayerBuildFinalStep, PlayerBuildStepDisplayName, PlayerBuildStepUserName, PlayerBuilder, WarriorsManager};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct PlayerDTOFile {
@@ -52,15 +52,15 @@ impl<'a, T: Repository<Warrior>> PlayerBuilderFromRepo<'a, T> {
 }
 
 impl<'a, T: Repository<Warrior>> PlayerBuilder for PlayerBuilderFromRepo<'a, T> {
-    fn get_username(&mut self) -> Result<PlayerBuildStepUserName, Box<dyn Error>> {
+    fn get_username(&mut self) -> Result<PlayerBuildStepUserName, PlayerBuildError> {
         Ok(PlayerBuildStepUserName::new(self.dto.username.clone()))
     }
 
-    fn get_display_name(&mut self, previous_step: super::main::PlayerBuildStepUserName) -> Result<PlayerBuildStepDisplayName, Box<dyn Error>> {
+    fn get_display_name(&mut self, previous_step: super::main::PlayerBuildStepUserName) -> Result<PlayerBuildStepDisplayName, PlayerBuildError> {
         Ok(PlayerBuildStepDisplayName::new(self.dto.display_name.clone(), previous_step))
     }
 
-    fn get_warriors(&mut self, previous_step: PlayerBuildStepDisplayName) -> Result<super::main::PlayerBuildFinalStep, Box<dyn Error>> {
+    fn get_warriors(&mut self, previous_step: PlayerBuildStepDisplayName) -> Result<PlayerBuildFinalStep, PlayerBuildError> {
         let mut warriors: Vec<Warrior> = vec![];
         for warrior_uuid in &self.dto.warrior_ids {
             let warrior: Warrior = self.warriors_repo.get_by_uuid(&warrior_uuid)?;
@@ -84,7 +84,7 @@ impl PlayerRepository<FileRepository<PlayerDTOFile>, FileRepository<Warrior>> {
 }
 
 impl<T: Repository<PlayerDTOFile>, K: Repository<Warrior>> Repository<Player> for PlayerRepository<T, K> {
-    fn create(&self, item: &Player) -> Result<(), Box<dyn Error>> {
+    fn create(&self, item: &Player) -> Result<(), RepositoryError> {
         let cto = PlayerDTOFile::from(item);
         self.dto_repo.create(&cto)?;
         for warrior in item.warriors() {
@@ -93,7 +93,7 @@ impl<T: Repository<PlayerDTOFile>, K: Repository<Warrior>> Repository<Player> fo
         Ok(())
     }
 
-    fn get_by_uuid(&self, uuid: &Uuid) -> Result<Player, Box<dyn Error>> {
+    fn get_by_uuid(&self, uuid: &Uuid) -> Result<Player, RepositoryError> {
         let dto = self.dto_repo.get_by_uuid(uuid)?;
         let mut builder = PlayerBuilderFromRepo::new(dto, &self.warriors_repo);
         let player = Player::build(&mut builder)?;
@@ -114,7 +114,13 @@ impl<T: Repository<PlayerDTOFile>, K: Repository<Warrior>> Repository<Player> fo
         for warrior_id in dto.warrior_ids {
             self.warriors_repo.delete(&warrior_id)?;
         }
-        self.dto_repo.delete(uuid);
+        self.dto_repo.delete(uuid)?;
         Ok(())
+    }
+}
+
+impl From<PlayerBuildError> for RepositoryError {
+    fn from(value: PlayerBuildError) -> Self {
+        Self::new(format!("Repository PlayerBuildError:\n{}", value))
     }
 }

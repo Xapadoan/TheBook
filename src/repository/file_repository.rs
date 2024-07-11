@@ -1,14 +1,14 @@
 use std::error::Error;
 use std::marker::PhantomData;
 use std::path::{Path, PathBuf};
-use std::io::{BufReader, Write};
+use std::io::{self, BufReader, Write};
 use std::fs;
 
 use serde::de::DeserializeOwned;
 use serde::Serialize;
 use uuid::Uuid;
 
-use super::main::{Repository, UniqueEntity};
+use super::main::{Repository, RepositoryError, UniqueEntity};
 
 pub struct FileRepository<T> {
     path: PathBuf,
@@ -23,7 +23,7 @@ impl<T> FileRepository<T> {
         }
     }
 
-    pub fn build(path: PathBuf) -> Result<Self, Box<dyn Error>> {
+    pub fn build(path: PathBuf) -> Result<Self, RepositoryError> {
         let repo = Self::new(path);
         if !repo.path.as_path().try_exists()? {
             fs::create_dir_all(repo.path.as_path())?;
@@ -37,7 +37,7 @@ impl<T> FileRepository<T> {
 }
 
 impl<T: Serialize + DeserializeOwned + UniqueEntity> Repository<T> for FileRepository<T> {
-    fn create(&self, item: &T) -> Result<(), Box<dyn Error>> {
+    fn create(&self, item: &T) -> Result<(), RepositoryError> {
         let path = self.full_path(format!("{}.save", item.uuid().to_string()));
         let str = serde_json::to_string(&item)?;
         let mut file = fs::File::create(&path)?;
@@ -45,7 +45,7 @@ impl<T: Serialize + DeserializeOwned + UniqueEntity> Repository<T> for FileRepos
         Ok(())
     }
 
-    fn get_by_uuid(&self, uuid: &Uuid) -> Result<T, Box<dyn Error>> {
+    fn get_by_uuid(&self, uuid: &Uuid) -> Result<T, RepositoryError> {
         let path = self.full_path(format!("{}.save", uuid.to_string()));
         let file = fs::File::open(path)?;
         let buf = BufReader::new(file);
@@ -64,6 +64,18 @@ impl<T: Serialize + DeserializeOwned + UniqueEntity> Repository<T> for FileRepos
         let path = self.full_path(format!("{}.save", uuid.to_string()));
         fs::remove_file(path)?;
         Ok(())
+    }
+}
+
+impl From<serde_json::Error> for RepositoryError {
+    fn from(value: serde_json::Error) -> Self {
+        Self::new(format!("FileRepository serde_json::Error:\n{value}"))
+    }
+}
+
+impl From<io::Error> for RepositoryError {
+    fn from(value: io::Error) -> Self {
+        Self::new(format!("FileRepository io::Error:\n{value}"))
     }
 }
 
@@ -108,6 +120,7 @@ mod tests {
         fs::File::create("./tests/file")?;
 
         let item = TestFileRepositoryItem { uuid: Uuid::new_v4() };
-        repo.create(&item)
+        repo.create(&item)?;
+        Ok(())
     }
 }
