@@ -1,4 +1,5 @@
 use rand::Rng;
+use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 use std::error::Error;
 use std::fmt::{Debug, Display};
@@ -8,7 +9,7 @@ use crate::gen_random::GenRandom;
 use crate::name::{HasName, Name};
 use crate::random_dictionary::RandomDictionary;
 use crate::repository::file_repository::FileRepository;
-use crate::repository::main::{Repository, UniqueEntity};
+use crate::repository::main::{Repository, RepositoryError, UniqueEntity};
 use crate::tournament::fight::FightResultKind;
 use crate::warrior::Warrior;
 
@@ -16,55 +17,58 @@ use super::fight::Fight;
 use super::name::TournamentNameDictionary;
 
 #[derive(Debug)]
-enum TournamentErrorKind {
-    AddContestantFailed(&'static str),
-    WarriorNotFound(String),
-}
-
-#[derive(Debug)]
-struct TournamentError {
-    kind: TournamentErrorKind,
+pub struct TournamentError {
+    message: String,
 }
 
 impl TournamentError {
-    fn new(kind: TournamentErrorKind) -> Self {
-        Self { kind }
-    } 
+    fn new(message: String) -> Self {
+        Self { message: format!("Tournament Error:\n{message}") }
+    }
 }
 
 impl Display for TournamentError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.kind.fmt(f)
+        write!(f, "{}", self.message)
     }
 }
 
 impl Error for TournamentError {}
 
+impl From<RepositoryError> for TournamentError {
+    fn from(value: RepositoryError) -> Self {
+        Self::new(format!("Tournament Repository Error:\n{value}"))
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Tournament {
+    uuid: Uuid,
     name: Name,
     max_contestants: usize,
     contestants_ids: Vec<Uuid>,
 }
 
 impl Tournament {
-    pub fn new(name: Name, max_contestants: usize) -> Self {
+    fn new(name: Name, max_contestants: usize) -> Self {
         Self {
+            uuid: Uuid::new_v4(),
             name,
             max_contestants,
             contestants_ids: vec![],
         }
     }
 
-    pub fn add_contestant(&mut self, warrior: &Warrior) -> Result<(), Box<dyn Error>> {
+    pub fn add_contestant(&mut self, warrior: &Warrior) -> Result<(), TournamentError> {
         if self.contestants_ids.len() + 1 > self.max_contestants {
-            return Err(Box::new(
-                TournamentError::new(
-                    TournamentErrorKind::AddContestantFailed("Tournament will not allow more contestants")
-                )
-            ))
+            return Err(TournamentError::new(String::from("Tournament will not allow more contestants")));
         }
         self.contestants_ids.push(warrior.uuid().clone());
         Ok(())
+    }
+
+    pub fn is_full(&self) -> bool {
+        self.contestants_ids.len() >= self.max_contestants
     }
 
     fn gen_random_pairs(&mut self) -> Vec<(Uuid, Uuid)> {
@@ -88,27 +92,7 @@ impl Tournament {
         pairs
     }
 
-    fn get_warriors<T: Repository<Warrior>>(
-        repo: &T,
-        uuid1: &Uuid,
-        uuid2: &Uuid,
-    ) -> Result<(Warrior, Warrior), Box<dyn Error>> {
-        let w1 = repo.get_by_uuid(uuid1);
-        if w1.is_err() {
-            return Err(Box::new(TournamentError::new(
-                TournamentErrorKind::WarriorNotFound(format!("Warrior not found (uuid: {uuid1})"))
-            )));
-        }
-        let w2 = repo.get_by_uuid(uuid2);
-        if w2.is_err() {
-            return Err(Box::new(TournamentError::new(
-                TournamentErrorKind::WarriorNotFound(format!("Warrior not found (uuid: {uuid2})"))
-            )));
-        }
-        Ok((w1.ok().unwrap(), w2.ok().unwrap()))
-    }
-
-    pub fn auto(&mut self) -> Result<(), Box<dyn Error>> {
+    pub fn auto(&mut self) -> Result<(), TournamentError> {
         let repo = FileRepository::build(PathBuf::from("saves/warriors"))?;
         let mut round = 0;
         dbg!(&self.contestants_ids);
@@ -118,7 +102,8 @@ impl Tournament {
             let pairs = self.gen_random_pairs();
             for pair in pairs {
                 dbg!(&pair);
-                let (warrior1, warrior2) = Self::get_warriors(&repo, &pair.1, &pair.0)?;
+                let warrior1 = repo.get_by_uuid(&pair.0)?;
+                let warrior2 = repo.get_by_uuid(&pair.1)?;
                 let result = Fight::new(warrior1, warrior2).auto();
                 match result.kind() {
                     FightResultKind::Victory(fighters) => {
@@ -134,6 +119,16 @@ impl Tournament {
             }
             len = self.contestants_ids.len();
             round += 1;
+        }
+        Ok(())
+    }
+
+    pub fn release_warriors(&self) -> Result<(), TournamentError> {
+        let warriors_repository : FileRepository<Warrior> = FileRepository::build(PathBuf::from("saves/warriors"))?;
+        for warrior_uuid in &self.contestants_ids {
+            let mut warrior = warriors_repository.get_by_uuid(&warrior_uuid)?;
+            warrior.set_current_tournament(None);
+            warriors_repository.update(&warrior_uuid, &warrior)?;
         }
         Ok(())
     }
@@ -161,6 +156,12 @@ impl GenRandom for Tournament {
     }
 }
 
+impl UniqueEntity for Tournament {
+    fn uuid<'a>(&'a self) -> &'a Uuid {
+        &self.uuid
+    }
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
@@ -168,6 +169,7 @@ mod test {
     #[test]
     fn should_not_accept_more_than_max_contestants() {
         let mut tournament = Tournament {
+            uuid: Uuid::new_v4(),
             name: TournamentNameDictionary::new().get_random_item(),
             max_contestants: 1,
             contestants_ids: vec![Uuid::new_v4()],
@@ -180,6 +182,7 @@ mod test {
     #[test]
     fn should_add_warrior_uuid_when_accepting() {
         let mut tournament = Tournament {
+            uuid: Uuid::new_v4(),
             name: TournamentNameDictionary::new().get_random_item(),
             max_contestants: 2,
             contestants_ids: vec![],

@@ -59,6 +59,7 @@ pub trait TakeReducedDamage {
 pub struct Warrior {
     uuid: Uuid,
     name: Name,
+    current_tournament: Option<Uuid>,
     stats_manager: StatsManager,
     health: u8,
     weapon: Option<Weapon>,
@@ -74,6 +75,7 @@ impl Warrior {
         Self {
             uuid,
             name,
+            current_tournament: None,
             stats_manager: StatsManager::new(),
             health: 30,
             weapon: None,
@@ -99,6 +101,10 @@ impl Warrior {
             }
         }
         self.take_damage(damages)
+    }
+
+    pub fn set_current_tournament(&mut self, tournament_uuid: Option<Uuid>) {
+        self.current_tournament = tournament_uuid
     }
 }
 

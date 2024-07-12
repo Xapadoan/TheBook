@@ -5,6 +5,7 @@ mod tournament {
     pub mod main;
     mod fight;
     mod name;
+    pub mod manager;
 }
 mod warrior;
 mod virtual_timer;
@@ -32,10 +33,8 @@ use player::cli_logger::CliPlayerLogger;
 use player::main::{Player, WarriorsManager};
 use gen_random::GenRandom;
 use player::repository::PlayerRepository;
-use repository::file_repository::FileRepository;
 use repository::main::{Repository, UniqueEntity};
-use tournament::main::Tournament;
-use uuid::Uuid;
+use tournament::manager::TournamentManager;
 use warrior::Warrior;
 use warrior::weapon::{Weapon, GiveWeapon};
 use warrior::protection::{Protection, ProtectionKind, WearProtection};
@@ -58,10 +57,14 @@ impl Warrior {
     }
 }
 
-pub fn run() -> Result<(), Box<dyn Error>> {
-    let mut player = welcome_player()?;
-    player.replace_dead_warriors()?;
-    play(&mut player)?;
+pub fn run(config: &Config) -> Result<(), Box<dyn Error>> {
+    if config.run_tournaments {
+        run_tournaments()?;
+    } else {
+        let mut player = welcome_player()?;
+        player.replace_dead_warriors()?;
+        play(&mut player)?;
+    }
     Ok(())
 }
 
@@ -82,8 +85,16 @@ fn welcome_player() -> Result<Player, Box<dyn Error>> {
     Ok(player)
 }
 
+fn run_tournaments() -> Result<(), Box<dyn Error>> {
+    let tournament_manager = TournamentManager::build()?;
+    tournament_manager.run_tournaments()?;
+    println!("Running tournaments");
+    Ok(())
+}
+
 fn play(player: &mut Player) -> Result<(), Box<dyn Error>> {
-    let mut tournament = Tournament::gen_random();
+    let tournament_manager = TournamentManager::build()?;
+    let mut tournament = tournament_manager.get_playable_tournament()?;
     println!("A tournament, the {} will start soon, do you want to send warriors ? (Y/N)", tournament.name());
     let mut user_response = String::new();
     io::stdin().read_line(&mut user_response)?;
@@ -91,6 +102,7 @@ fn play(player: &mut Player) -> Result<(), Box<dyn Error>> {
         println!("Ok Bye !");
         return Ok(());
     }
+
     println!("Select a warrior:");
     let mut i = 0;
     let warriors = player.warriors_mut();
@@ -103,72 +115,27 @@ fn play(player: &mut Player) -> Result<(), Box<dyn Error>> {
     let mut index: usize = user_response.trim().parse()?;
     index -= 1;
     let warrior = &mut warriors[index];
-    tournament.add_contestant(warrior)?;
+    tournament_manager.register_contestant(warrior, &mut tournament)?;
 
-    let repo = FileRepository::build(PathBuf::from("saves/warriors"))?;
-    let mut w_uuids: Vec<Uuid> = vec![];
-
-    let mut w = Warrior::gen_random();
-    let we = Weapon::gen_random();
-    w.give_weapon(we);
-    if tournament.add_contestant(&mut w).is_ok() {
-        repo.create(&w)?;
-        w_uuids.push(w.uuid().clone());
-    }
-
-    let mut w = Warrior::gen_random();
-    let we = Weapon::gen_random();
-    w.give_weapon(we);
-    if tournament.add_contestant(&mut w).is_ok() {
-        repo.create(&w)?;
-        w_uuids.push(w.uuid().clone());
-    }
-
-    let mut w = Warrior::gen_random();
-    let we = Weapon::gen_random();
-    w.give_weapon(we);
-    if tournament.add_contestant(&mut w).is_ok() {
-        repo.create(&w)?;
-        w_uuids.push(w.uuid().clone());
-    }
-
-    let mut w = Warrior::gen_random();
-    let we = Weapon::gen_random();
-    w.give_weapon(we);
-    if tournament.add_contestant(&mut w).is_ok() {
-        repo.create(&w)?;
-        w_uuids.push(w.uuid().clone());
-    }
-
-    let mut w = Warrior::gen_random();
-    let we = Weapon::gen_random();
-    w.give_weapon(we);
-    if tournament.add_contestant(&mut w).is_ok() {
-        repo.create(&w)?;
-        w_uuids.push(w.uuid().clone());
-    }
-
-    let mut w = Warrior::gen_random();
-    let we = Weapon::gen_random();
-    w.give_weapon(we);
-    if tournament.add_contestant(&mut w).is_ok() {
-        repo.create(&w)?;
-        w_uuids.push(w.uuid().clone());
-    }
-
-    let mut w = Warrior::gen_random();
-    let we = Weapon::gen_random();
-    w.give_weapon(we);
-    if tournament.add_contestant(&mut w).is_ok() {
-        repo.create(&w)?;
-        w_uuids.push(w.uuid().clone());
-    }
-
-    tournament.auto()?;
-
-    for uuid in w_uuids {
-        repo.delete(&uuid)?;
-    }
+    println!("{} registers for {}", warrior.name(), tournament.name());
 
     Ok(())
+}
+
+pub struct Config {
+    run_tournaments: bool,
+}
+
+impl Config {
+    pub fn new(args: &[String]) -> Self {
+        if args.len() < 2 {
+            return Self { run_tournaments: false };
+        }
+
+        if args[1] == "--run-tournaments" {
+            return Self { run_tournaments: true };
+        } else {
+            return Self { run_tournaments: false };
+        }
+    }
 }
