@@ -3,6 +3,7 @@ use attack::{Attack, AttackResult};
 use damage_summary::{ApplyDamageSummary, DamageSummary};
 use execute_action::ExecuteAction;
 use parry::{Parry, ParryResult};
+use serde::{Deserialize, Serialize};
 use show_action::ShowAction;
 use uuid::Uuid;
 
@@ -17,7 +18,7 @@ mod show_action;
 mod execute_action;
 mod clumsiness;
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct AssaultResult {
     assailant_uuid: Uuid,
     victim_uuid: Uuid,
@@ -27,7 +28,7 @@ pub struct AssaultResult {
 }
 
 impl ApplyDamageSummary for AssaultResult {
-    fn apply_damage_summary<T: TakeDamage>(self, assailant: &mut T, victim: &mut T) {
+    fn apply_damage_summary<T: TakeDamage>(&self, assailant: &mut T, victim: &mut T) {
         self.damage_summary.apply_damage_summary(assailant, victim)
     }
 }

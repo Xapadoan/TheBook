@@ -13,7 +13,7 @@ use crate::repository::main::{Repository, RepositoryError, UniqueEntity};
 use crate::tournament::fight::main::FightResultKind;
 use crate::warrior::Warrior;
 
-use super::fight::main::Fight;
+use super::fight::main::{Fight, FightError};
 use super::name::TournamentNameDictionary;
 
 #[derive(Debug)]
@@ -38,6 +38,12 @@ impl Error for TournamentError {}
 impl From<RepositoryError> for TournamentError {
     fn from(value: RepositoryError) -> Self {
         Self::new(format!("Tournament Repository Error:\n{value}"))
+    }
+}
+
+impl From<FightError> for TournamentError {
+    fn from(value: FightError) -> Self {
+        Self::new(format!("Fight Error:\n{value}"))
     }
 }
 
@@ -104,7 +110,7 @@ impl Tournament {
                 dbg!(&pair);
                 let warrior1 = repo.get_by_uuid(&pair.0)?;
                 let warrior2 = repo.get_by_uuid(&pair.1)?;
-                let result = Fight::new(warrior1, warrior2).auto();
+                let result = Fight::new(warrior1, warrior2).auto()?;
                 match result.kind() {
                     FightResultKind::Victory(fighters) => {
                         repo.update(fighters.winner().uuid(), fighters.winner())?;

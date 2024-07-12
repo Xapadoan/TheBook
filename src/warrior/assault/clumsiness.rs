@@ -1,3 +1,5 @@
+use serde::{Deserialize, Serialize};
+
 use crate::dice::{Dice, RollDamage};
 use crate::equipment::{HasRupture, RuptureTestResult};
 use crate::gen_random::GenRandom;
@@ -52,7 +54,7 @@ impl<T: MayHaveWeapon + RollDamage + ApplyDamageModifier + CriticalHit> Clumsine
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub enum ClumsinessResult {
     RegularFail,
     Fall,

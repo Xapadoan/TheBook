@@ -5,6 +5,7 @@ mod tournament {
     pub mod main;
     mod fight {
         pub mod main;
+        mod replay_data;
     }
     mod name;
     pub mod manager;

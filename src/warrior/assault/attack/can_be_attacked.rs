@@ -1,10 +1,12 @@
+use serde::{Deserialize, Serialize};
+
 use crate::warrior::assault::show_action::ShowAction;
 use crate::warrior::body::HasBody;
 use crate::warrior::temporary_handicap::assaults_miss::CanMissAssaults;
 use crate::warrior::weapon::MayHaveWeapon;
 use crate::warrior::{IsDead, IsUnconscious, HasName};
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub enum CantBeAttackedReason {
     IsDead,
     IsUnconscious,

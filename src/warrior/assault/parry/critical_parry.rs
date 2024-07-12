@@ -1,3 +1,5 @@
+use serde::{Deserialize, Serialize};
+
 use crate::dice::RollDamage;
 use crate::equipment::{HasRupture, RuptureTestResult};
 use crate::warrior::assault::attack::can_be_attacked::CanBeAttacked;
@@ -16,7 +18,7 @@ use crate::dice::Dice;
 
 use super::parry_attempt::ParryThreshold;
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub enum CriticalParryResult {
     RegularParry,
     AssailantRepelled,

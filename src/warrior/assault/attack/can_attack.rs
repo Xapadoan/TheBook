@@ -1,3 +1,5 @@
+use serde::{Deserialize, Serialize};
+
 use crate::warrior::assault::damage_summary::DamageSummary;
 use crate::warrior::assault::execute_action::ExecuteAction;
 use crate::warrior::assault::show_action::ShowAction;
@@ -10,7 +12,7 @@ use crate::warrior::temporary_handicap::assaults_miss::CanMissAssaults;
 use super::can_be_attacked::CantBeAttackedReason;
 use super::CanBeAttacked;
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub enum CantAttackReason {
     NoWeapon,
     IsDead,
@@ -48,7 +50,7 @@ impl ExecuteAction for CanAttackResult {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct CanAttackResult {
     can_attack: bool,
     reason: Option<CantAttackReason>,

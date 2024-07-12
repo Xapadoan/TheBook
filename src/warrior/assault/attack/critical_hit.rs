@@ -1,3 +1,5 @@
+use serde::{Deserialize, Serialize};
+
 use crate::dice::Dice;
 use crate::equipment::{HasRupture, MayHaveRuptureDamage, MayHaveTestedRupture, RuptureTestResult};
 use crate::gen_random::GenRandom;
@@ -19,7 +21,7 @@ use crate::warrior::temporary_handicap::assaults_miss::CanMissAssaults;
 
 use super::can_be_attacked::CanBeAttacked;
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub enum CriticalHitKind {
     DeepIncision,
     ReallyDeepIncision,
@@ -50,7 +52,7 @@ pub enum CriticalHitKind {
     VitalOrganCrushed,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct CriticalHitResult {
     kind: CriticalHitKind,
     body_part_kind: Option<BodyPartKind>,

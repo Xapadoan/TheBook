@@ -1,3 +1,5 @@
+use serde::{Deserialize, Serialize};
+
 use crate::warrior::{HasName, TakeDamage};
 use crate::warrior::body::HasBody;
 use crate::warrior::temporary_handicap::assaults_miss::CanMissAssaults;
@@ -5,9 +7,9 @@ use crate::warrior::weapon::MayHaveWeapon;
 use crate::warrior::assault::show_action::ShowAction;
 
 pub trait ApplyDamageSummary {
-    fn apply_damage_summary<T: TakeDamage>(self, assailant: &mut T, victim: &mut T);
+    fn apply_damage_summary<T: TakeDamage>(&self, assailant: &mut T, victim: &mut T);
 }
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct DamageSummary {
     to_assailant: u8,
     to_victim: u8,
@@ -41,7 +43,7 @@ impl DamageSummary {
 }
 
 impl ApplyDamageSummary for DamageSummary {
-    fn apply_damage_summary<T: TakeDamage>(self, assailant: &mut T, victim: &mut T) {
+    fn apply_damage_summary<T: TakeDamage>(&self, assailant: &mut T, victim: &mut T) {
         assailant.take_damage(self.to_assailant);
         victim.take_damage(self.to_victim);
     }

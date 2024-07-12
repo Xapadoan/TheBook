@@ -1,6 +1,8 @@
+use serde::{Deserialize, Serialize};
+
 use crate::dice::{Dice, TestRollResult};
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub enum ParryAttemptResult {
     CriticalFailure,
     Failure,

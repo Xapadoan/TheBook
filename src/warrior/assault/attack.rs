@@ -7,6 +7,7 @@ use attack_attempt::{AttackAttempt, AttackAttemptResult};
 use can_attack::{CanAttack, CanAttackResult};
 use can_be_attacked::CanBeAttacked;
 use critical_hit::{CriticalHit, CriticalHitResult};
+use serde::{Deserialize, Serialize};
 
 use crate::dice::RollDamage;
 use crate::warrior::body::{HasBody, HasMutableBody};
@@ -20,7 +21,7 @@ use super::clumsiness::{Clumsiness, ClumsinessResult};
 use super::damage_summary::DamageSummary;
 use super::{execute_action::ExecuteAction, parry::parry_attempt::ParryThreshold, show_action::ShowAction, Assault};
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct AttackResult {
     can_attack: CanAttackResult,
     attack_attempt: Option<AttackAttemptResult>,

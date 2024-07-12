@@ -1,3 +1,5 @@
+use serde::{Deserialize, Serialize};
+
 use crate::warrior::assault::damage_summary::DamageSummary;
 use crate::warrior::assault::execute_action::ExecuteAction;
 use crate::warrior::{HasName, IsDead, IsUnconscious, Warrior};
@@ -6,7 +8,7 @@ use crate::warrior::body::HasBody;
 use crate::warrior::temporary_handicap::parries_miss::CanMissParries;
 use crate::warrior::weapon::MayHaveWeapon;
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub enum CantParryReason {
     NoWeapon,
     IsDead,
@@ -14,7 +16,7 @@ pub enum CantParryReason {
     MustMissParry,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct CanParryResult {
     can_parry: bool,
     reason: Option<CantParryReason>

@@ -1,6 +1,7 @@
 use can_parry::{CanParry, CanParryResult};
 use critical_parry::{CriticalParry, CriticalParryResult};
 use parry_attempt::{ParryAttempt, ParryAttemptResult, ParryThreshold};
+use serde::{Deserialize, Serialize};
 
 use crate::dice::RollDamage;
 use crate::modifiers::ApplyDamageModifier;
@@ -19,7 +20,7 @@ pub mod can_parry;
 pub mod parry_attempt;
 pub mod critical_parry;
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct ParryResult {
     can_parry: CanParryResult,
     parry_attempt: Option<ParryAttemptResult>,
