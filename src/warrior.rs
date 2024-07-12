@@ -161,7 +161,6 @@ impl IsUnconscious for Warrior {
     }
 
     fn set_unconscious(&mut self) {
-        println!("{} falls unconscious", self.name);
         self.is_unconscious = true;
     }
 }

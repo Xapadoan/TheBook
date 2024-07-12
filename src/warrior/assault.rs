@@ -40,13 +40,13 @@ pub trait Assault {
 impl Assault for Warrior {
     fn assault(&mut self, victim: &mut Warrior) -> AssaultResult {
         let mut attack = self.attack(victim);
-        attack.show(self, victim);
+        // attack.show(self, victim);
         let mut damage_summary = attack.execute(self, victim);
         let parry = match attack.attack_attempt() {
             Some(attack_attempt) => match attack_attempt {
                 AttackAttemptResult::Success => {
                     let mut parry_result = victim.parry(self);
-                    parry_result.show(self, victim);
+                    // parry_result.show(self, victim);
                     damage_summary.merge(
                         parry_result.execute(self, victim),
                         false,

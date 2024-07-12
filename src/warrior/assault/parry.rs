@@ -111,7 +111,7 @@ impl ExecuteAction for ParryResult {
             ParryAttemptResult::CriticalFailure => self.critical_failure.as_mut().unwrap().execute(assailant, victim),
             ParryAttemptResult::Failure => {
                 let raw_damage = assailant.roll_damage();
-                println!("{} fails to parry and takes {} damage", victim.name(), raw_damage);
+                // println!("{} fails to parry and takes {} damage", victim.name(), raw_damage);
                 let damage = victim.apply_damage_modifier(raw_damage);
                 DamageSummary::new(damage)
             },

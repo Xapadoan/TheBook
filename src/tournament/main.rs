@@ -14,7 +14,9 @@ use crate::tournament::fight::main::FightResultKind;
 use crate::warrior::Warrior;
 
 use super::fight::main::{Fight, FightError};
+use super::fight::replay_data::{FightReplayBuilder, FightReplayBuilderError};
 use super::name::TournamentNameDictionary;
+use super::round_replay::{RoundReplayBuilder, RoundReplayBuilderError};
 
 #[derive(Debug)]
 pub struct TournamentError {
@@ -44,6 +46,18 @@ impl From<RepositoryError> for TournamentError {
 impl From<FightError> for TournamentError {
     fn from(value: FightError) -> Self {
         Self::new(format!("Fight Error:\n{value}"))
+    }
+}
+
+impl From<RoundReplayBuilderError> for TournamentError {
+    fn from(value: RoundReplayBuilderError) -> Self {
+        Self::new(format!("Round Replay Builder Error:\n{value}"))
+    }
+}
+
+impl From<FightReplayBuilderError> for TournamentError {
+    fn from(value: FightReplayBuilderError) -> Self {
+        Self::new(format!("Fight Replay Builder Error:\n{value}"))
     }
 }
 
@@ -79,9 +93,7 @@ impl Tournament {
 
     fn gen_random_pairs(&mut self) -> Vec<(Uuid, Uuid)> {
         let mut contestants_count = self.contestants_ids.len();
-        dbg!(contestants_count);
         let nb_fights = contestants_count / 2;
-        dbg!(&nb_fights);
 
         let mut pairs: Vec<(Uuid, Uuid)> = vec![];
         let mut i = 0;
@@ -99,18 +111,31 @@ impl Tournament {
     }
 
     pub fn auto(&mut self) -> Result<(), TournamentError> {
-        let repo = FileRepository::build(PathBuf::from("saves/warriors"))?;
-        let mut round = 0;
+        let repo: FileRepository<Warrior> = FileRepository::build(PathBuf::from("saves/warriors"))?;
         dbg!(&self.contestants_ids);
+        let mut round_index = 0;
         let mut len = self.contestants_ids.len();
         while len > 1 {
-            println!("Start Round: {}", round + 1);
+            let mut round_replay_builder = RoundReplayBuilder::build(
+                self.uuid(),
+                round_index,
+            )?;
+            // println!("Start Round: {}", round + 1);
             let pairs = self.gen_random_pairs();
             for pair in pairs {
-                dbg!(&pair);
+                // dbg!(&pair);
+                let mut fight_replay_builder = FightReplayBuilder::build(self.uuid(), round_index)?;
                 let warrior1 = repo.get_by_uuid(&pair.0)?;
                 let warrior2 = repo.get_by_uuid(&pair.1)?;
-                let result = Fight::new(warrior1, warrior2).auto()?;
+                fight_replay_builder.record_warriors_init_state(&warrior1, &warrior2)?;
+                let result = Fight::new(
+                    self.uuid,
+                    round_index,
+                    warrior1,
+                    warrior2
+                ).auto(&mut fight_replay_builder)?;
+                fight_replay_builder.write_assaults()?;
+                round_replay_builder.push_summary(fight_replay_builder.replay_uuid(), &result);
                 match result.kind() {
                     FightResultKind::Victory(fighters) => {
                         repo.update(fighters.winner().uuid(), fighters.winner())?;
@@ -123,8 +148,9 @@ impl Tournament {
                     }
                 }
             }
+            round_replay_builder.write_summaries()?;
             len = self.contestants_ids.len();
-            round += 1;
+            round_index += 1;
         }
         Ok(())
     }

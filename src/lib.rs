@@ -5,10 +5,11 @@ mod tournament {
     pub mod main;
     mod fight {
         pub mod main;
-        mod replay_data;
+        pub mod replay_data;
     }
     mod name;
     pub mod manager;
+    mod round_replay;
 }
 mod warrior;
 mod virtual_timer;

@@ -1,5 +1,6 @@
 use std::error::Error;
 use std::fmt::Display;
+use std::fs;
 use std::path::PathBuf;
 
 use crate::gen_random::GenRandom;
@@ -35,8 +36,7 @@ impl<T: Repository<Tournament>> TournamentManager<T> {
 
     fn build_random(&self) -> Result<Tournament, TournamentManagerError> {
         let tournament = Tournament::gen_random();
-        let repo = FileRepository::build(PathBuf::from("data/tournaments"))?;
-        repo.create(&tournament)?;
+        self.repo.create(&tournament)?;
         Ok(tournament)
     }
 
