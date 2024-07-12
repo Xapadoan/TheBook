@@ -5,11 +5,11 @@ use crate::modifiers::ApplyDamageModifier;
 use crate::warrior::body::body_part::{BodyPartKind, FingerName};
 use crate::warrior::body::body_side::BodySide;
 use crate::warrior::body::injury::{Injury, InjuryKind, MayBeInjured};
-use crate::warrior::body::HasBody;
+use crate::warrior::body::{HasBody, HasMutableBody};
 use crate::warrior::temporary_handicap::assaults_miss::{AssaultsMiss, CanMissAssaults};
 use crate::warrior::temporary_handicap::parries_miss::CanMissParries;
 use crate::warrior::weapon::{MayHaveMutableWeapon, MayHaveWeapon, TakeWeapon};
-use crate::warrior::HasName;
+use crate::warrior::{HasName, Warrior};
 
 use super::attack::critical_hit::CriticalHit;
 use super::damage_summary::DamageSummary;
@@ -87,11 +87,7 @@ impl ShowAction for ClumsinessResult {
 }
 
 impl ExecuteAction for ClumsinessResult {
-    fn execute<A, V>(&mut self, assailant: &mut A, _: &mut V) -> super::damage_summary::DamageSummary
-    where
-        A: ApplyDamageModifier + CriticalHit + RollDamage + CanMissParries + CanMissAssaults + MayHaveWeapon + MayHaveMutableWeapon + TakeWeapon + HasName + HasBody + crate::warrior::TakeDamage + crate::warrior::TakeReducedDamage + super::parry::parry_attempt::ParryThreshold + crate::warrior::IsUnconscious + crate::warrior::body::HasMutableBody + crate::warrior::IsDead + crate::warrior::duration_damage::MayHaveDurationDamage + super::Assault + super::attack::can_be_attacked::CanBeAttacked,
-        V: ApplyDamageModifier + CriticalHit + RollDamage + CanMissParries + CanMissAssaults + MayHaveWeapon + MayHaveMutableWeapon + TakeWeapon + HasName + HasBody + crate::warrior::TakeDamage + crate::warrior::TakeReducedDamage + super::parry::parry_attempt::ParryThreshold + crate::warrior::IsUnconscious + crate::warrior::body::HasMutableBody + crate::warrior::IsDead + crate::warrior::duration_damage::MayHaveDurationDamage + super::Assault + crate::warrior::IsUnconscious + crate::warrior::body::HasMutableBody
-    {
+    fn execute(&mut self, assailant: &mut Warrior, _: &mut Warrior) -> DamageSummary {
         let mut damage_summary = DamageSummary::new(0);
         match self {
             ClumsinessResult::BreakWeapon(rupture_test_result) => {

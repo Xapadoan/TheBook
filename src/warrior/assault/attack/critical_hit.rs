@@ -6,7 +6,6 @@ use crate::warrior::assault::damage_summary::DamageSummary;
 use crate::warrior::assault::execute_action::ExecuteAction;
 use crate::warrior::assault::parry::parry_attempt::ParryThreshold;
 use crate::warrior::assault::show_action::ShowAction;
-use crate::warrior::assault::Assault;
 use crate::warrior::body::body_part::{BodyPartKind, RandomFunctionalBodyPart, MayTargetBodyPart};
 use crate::warrior::body::body_side::BodySide;
 use crate::warrior::body::{HasBody, HasMutableBody};
@@ -14,7 +13,7 @@ use crate::warrior::duration_damage::MayHaveDurationDamage;
 use crate::warrior::protection::{Protectable, RandomProtectedBodyPart};
 use crate::warrior::body::injury::{Injury, InjuryKind, MayBeInjured, MayCauseInjury, TakeInjury};
 use crate::warrior::weapon::{MayHaveMutableWeapon, MayHaveWeapon, TakeWeapon};
-use crate::warrior::{IsUnconscious, HasName, RollDamage, TakeDamage, TakeReducedDamage};
+use crate::warrior::{HasName, IsUnconscious, RollDamage, TakeDamage, TakeReducedDamage, Warrior};
 use crate::warrior::temporary_handicap::parries_miss::CanMissParries;
 use crate::warrior::temporary_handicap::assaults_miss::CanMissAssaults;
 
@@ -616,11 +615,7 @@ impl TakeInjury for CriticalHitResult {
 }
 
 impl ExecuteAction for CriticalHitResult {
-    fn execute<A, V>(&mut self, assailant: &mut A, victim: &mut V) -> DamageSummary
-    where
-        A: RollDamage + CanMissParries + CanMissAssaults + MayHaveWeapon + MayHaveMutableWeapon + TakeWeapon + HasName + HasBody + TakeDamage + TakeReducedDamage + CanBeAttacked + ParryThreshold,
-        V: Assault + CriticalHit + HasName + MayHaveWeapon + IsUnconscious + HasMutableBody + TakeDamage + MayHaveDurationDamage,
-    {
+    fn execute(&mut self, assailant: &mut Warrior, victim: &mut Warrior) -> DamageSummary {
         match self.target_body_part() {
             Some(part) => {
                 let body_part = victim.body_mut().body_part_mut(part);

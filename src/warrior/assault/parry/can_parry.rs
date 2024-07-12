@@ -1,19 +1,10 @@
-use crate::dice::RollDamage;
-use crate::modifiers::ApplyDamageModifier;
-use crate::warrior::assault::attack::can_be_attacked::CanBeAttacked;
-use crate::warrior::assault::attack::critical_hit::CriticalHit;
 use crate::warrior::assault::damage_summary::DamageSummary;
 use crate::warrior::assault::execute_action::ExecuteAction;
-use crate::warrior::assault::Assault;
-use crate::warrior::duration_damage::MayHaveDurationDamage;
-use crate::warrior::temporary_handicap::assaults_miss::CanMissAssaults;
-use crate::warrior::{IsDead, IsUnconscious, HasName, TakeDamage, TakeReducedDamage};
+use crate::warrior::{HasName, IsDead, IsUnconscious, Warrior};
 use crate::warrior::assault::show_action::ShowAction;
-use crate::warrior::body::{HasBody, HasMutableBody};
+use crate::warrior::body::HasBody;
 use crate::warrior::temporary_handicap::parries_miss::CanMissParries;
-use crate::warrior::weapon::{MayHaveMutableWeapon, MayHaveWeapon, TakeWeapon};
-
-use super::parry_attempt::ParryThreshold;
+use crate::warrior::weapon::MayHaveWeapon;
 
 #[derive(Debug)]
 pub enum CantParryReason {
@@ -77,11 +68,7 @@ impl ShowAction for CantParryReason {
     }
 }
 impl ExecuteAction for CanParryResult {
-    fn execute<A, V>(&mut self, _: &mut A, victim: &mut V) -> DamageSummary
-    where
-        A: ApplyDamageModifier + CriticalHit + RollDamage + CanMissParries + CanMissAssaults + MayHaveWeapon + MayHaveMutableWeapon + TakeWeapon + HasName + HasBody + TakeDamage + TakeReducedDamage + CanBeAttacked + ParryThreshold + IsUnconscious + HasMutableBody + Assault + IsDead + MayHaveDurationDamage,
-        V: ApplyDamageModifier + CriticalHit + RollDamage + Assault + HasName + MayHaveWeapon + IsUnconscious + HasMutableBody + CanMissAssaults + CanMissParries + MayHaveMutableWeapon + TakeWeapon + HasBody + TakeReducedDamage + TakeDamage + ParryThreshold + IsUnconscious + HasMutableBody + IsDead + MayHaveDurationDamage
-    {
+    fn execute(&mut self, _: &mut Warrior, victim: &mut Warrior) -> DamageSummary {
         match &self.reason {
             Some(reason) => match reason {
                 CantParryReason::MustMissParry => victim.miss_parry(),

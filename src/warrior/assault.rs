@@ -1,23 +1,14 @@
 use attack::attack_attempt::AttackAttemptResult;
-use attack::critical_hit::CriticalHit;
-// use attack::{Attack, AttackResult};
-use attack::Attack;
+use attack::{Attack, AttackResult};
 use damage_summary::{ApplyDamageSummary, DamageSummary};
 use execute_action::ExecuteAction;
-use parry::parry_attempt::ParryThreshold;
-// use parry::{Parry, ParryResult};
-use parry::Parry;
+use parry::{Parry, ParryResult};
 use show_action::ShowAction;
+use uuid::Uuid;
 
-use crate::dice::RollDamage;
-use crate::modifiers::ApplyDamageModifier;
+use crate::repository::main::UniqueEntity;
 
-use super::weapon::{MayHaveMutableWeapon, MayHaveWeapon, TakeWeapon};
-use super::{IsDead, IsUnconscious, HasName, TakeDamage, TakeReducedDamage, Warrior};
-use super::body::{HasBody, HasMutableBody};
-use super::temporary_handicap::parries_miss::CanMissParries;
-use super::temporary_handicap::assaults_miss::CanMissAssaults;
-use super::duration_damage::MayHaveDurationDamage;
+use super::{TakeDamage, Warrior};
 
 pub mod attack;
 pub mod parry;
@@ -28,8 +19,10 @@ mod clumsiness;
 
 #[derive(Debug)]
 pub struct AssaultResult {
-    // attack: AttackResult,
-    // parry: Option<ParryResult>,
+    assailant_uuid: Uuid,
+    victim_uuid: Uuid,
+    attack: AttackResult,
+    parry: Option<ParryResult>,
     damage_summary: DamageSummary,
 }
 
@@ -40,16 +33,15 @@ impl ApplyDamageSummary for AssaultResult {
 }
 
 pub trait Assault {
-    fn assault<V: ApplyDamageModifier + Assault + CriticalHit + MayHaveDurationDamage + IsDead + ParryThreshold + TakeReducedDamage + TakeWeapon + MayHaveMutableWeapon + CanMissParries + CanMissAssaults + HasMutableBody + IsUnconscious + MayHaveWeapon + RollDamage + TakeDamage + HasName + HasBody>(&mut self, victim: &mut V) -> AssaultResult;
+    fn assault(&mut self, victim: &mut Warrior) -> AssaultResult;
 }
 
 impl Assault for Warrior {
-    fn assault<V: ApplyDamageModifier + Assault + CriticalHit + MayHaveDurationDamage + IsDead + ParryThreshold + TakeReducedDamage + TakeWeapon + MayHaveMutableWeapon + CanMissParries + CanMissAssaults + HasMutableBody + IsUnconscious + MayHaveWeapon + RollDamage + TakeDamage + HasName + HasBody>(&mut self, victim: &mut V) -> AssaultResult {
+    fn assault(&mut self, victim: &mut Warrior) -> AssaultResult {
         let mut attack = self.attack(victim);
         attack.show(self, victim);
         let mut damage_summary = attack.execute(self, victim);
-        // let parry = match attack.attack_attempt() {
-        match attack.attack_attempt() {
+        let parry = match attack.attack_attempt() {
             Some(attack_attempt) => match attack_attempt {
                 AttackAttemptResult::Success => {
                     let mut parry_result = victim.parry(self);
@@ -66,8 +58,10 @@ impl Assault for Warrior {
         };
 
         AssaultResult {
-            // attack,
-            // parry,
+            assailant_uuid: self.uuid().clone(),
+            victim_uuid: victim.uuid().clone(),
+            attack,
+            parry,
             damage_summary,
         }
     }

@@ -1,19 +1,13 @@
-use crate::dice::RollDamage;
-use crate::modifiers::ApplyDamageModifier;
 use crate::warrior::assault::damage_summary::DamageSummary;
 use crate::warrior::assault::execute_action::ExecuteAction;
-use crate::warrior::assault::parry::parry_attempt::ParryThreshold;
 use crate::warrior::assault::show_action::ShowAction;
-use crate::warrior::assault::Assault;
-use crate::warrior::body::{HasBody, HasMutableBody};
-use crate::warrior::duration_damage::MayHaveDurationDamage;
+use crate::warrior::body::HasBody;
 use crate::warrior::temporary_handicap::parries_miss::CanMissParries;
-use crate::warrior::weapon::{MayHaveMutableWeapon, MayHaveWeapon, TakeWeapon};
-use crate::warrior::{IsDead, IsUnconscious, HasName, TakeDamage, TakeReducedDamage};
+use crate::warrior::weapon::MayHaveWeapon;
+use crate::warrior::{HasName, IsDead, IsUnconscious, Warrior};
 use crate::warrior::temporary_handicap::assaults_miss::CanMissAssaults;
 
 use super::can_be_attacked::CantBeAttackedReason;
-use super::critical_hit::CriticalHit;
 use super::CanBeAttacked;
 
 #[derive(Debug)]
@@ -42,11 +36,7 @@ impl ShowAction for CantAttackReason {
 }
 
 impl ExecuteAction for CanAttackResult {
-    fn execute<A, V>(&mut self, assailant: &mut A, _: &mut V) -> DamageSummary
-    where
-        A: ApplyDamageModifier + CriticalHit + RollDamage + CanMissParries + CanMissAssaults + MayHaveWeapon + MayHaveMutableWeapon + TakeWeapon + HasName + HasBody + TakeDamage + TakeReducedDamage + CanBeAttacked + ParryThreshold + IsUnconscious + HasMutableBody + Assault + IsDead + MayHaveDurationDamage,
-        V: ApplyDamageModifier + CriticalHit + RollDamage + Assault + HasName + MayHaveWeapon + IsUnconscious + HasMutableBody + CanMissAssaults + CanMissParries + MayHaveMutableWeapon + TakeWeapon + HasBody + TakeReducedDamage + TakeDamage + ParryThreshold + IsUnconscious + HasMutableBody + IsDead + MayHaveDurationDamage
-    {
+    fn execute(&mut self, assailant: &mut Warrior, _: &mut Warrior) -> DamageSummary {
         match &self.reason {
             Some(reason) => match reason {
                 CantAttackReason::MustMissAssault => assailant.miss_assault(),

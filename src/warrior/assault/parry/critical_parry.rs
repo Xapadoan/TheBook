@@ -1,6 +1,5 @@
 use crate::dice::RollDamage;
 use crate::equipment::{HasRupture, RuptureTestResult};
-use crate::modifiers::ApplyDamageModifier;
 use crate::warrior::assault::attack::can_be_attacked::CanBeAttacked;
 use crate::warrior::assault::attack::critical_hit::CriticalHit;
 use crate::warrior::assault::damage_summary::DamageSummary;
@@ -9,7 +8,7 @@ use crate::warrior::assault::show_action::ShowAction;
 use crate::warrior::assault::Assault;
 use crate::warrior::body::{HasBody, HasMutableBody};
 use crate::warrior::duration_damage::MayHaveDurationDamage;
-use crate::warrior::{IsDead, IsUnconscious, HasName, TakeDamage, TakeReducedDamage};
+use crate::warrior::{HasName, IsDead, IsUnconscious, TakeDamage, TakeReducedDamage, Warrior};
 use crate::warrior::weapon::{MayHaveMutableWeapon, MayHaveWeapon, TakeWeapon};
 use crate::warrior::temporary_handicap::parries_miss::{CanMissParries, ParriesMiss};
 use crate::warrior::temporary_handicap::assaults_miss::{CanMissAssaults, AssaultsMiss};
@@ -56,11 +55,7 @@ impl<T: CriticalHit + RollDamage + Assault + CriticalHit + HasName + MayHaveWeap
 }
 
 impl ExecuteAction for CriticalParryResult {
-    fn execute<A, V>(&mut self, assailant: &mut A, victim: &mut V) -> DamageSummary
-    where
-        A: ApplyDamageModifier + CriticalHit + RollDamage + CanMissParries + CanMissAssaults + MayHaveWeapon + MayHaveMutableWeapon + TakeWeapon + HasName + HasBody + TakeDamage + TakeReducedDamage + CanBeAttacked + ParryThreshold + IsUnconscious + HasMutableBody + Assault + IsDead + MayHaveDurationDamage,
-        V: ApplyDamageModifier + CriticalHit + RollDamage + Assault + CriticalHit + HasName + MayHaveWeapon + CanMissAssaults + CanMissParries + MayHaveMutableWeapon + TakeWeapon + HasBody + TakeReducedDamage + TakeDamage + ParryThreshold + IsUnconscious + HasMutableBody + IsDead + MayHaveDurationDamage,
-    {
+    fn execute(&mut self, assailant: &mut Warrior, victim: &mut Warrior) -> DamageSummary {
         let mut damage_summary = DamageSummary::new(0);
         match self {
             CriticalParryResult::AssailantBreaksWeapon(rupture_test_result) => {

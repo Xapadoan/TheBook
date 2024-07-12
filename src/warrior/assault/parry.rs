@@ -9,7 +9,7 @@ use crate::warrior::duration_damage::MayHaveDurationDamage;
 use crate::warrior::weapon::{MayHaveMutableWeapon, MayHaveWeapon, TakeWeapon};
 use crate::warrior::temporary_handicap::parries_miss::CanMissParries;
 use crate::warrior::temporary_handicap::assaults_miss::CanMissAssaults;
-use crate::warrior::{IsDead, IsUnconscious, HasName, TakeDamage, TakeReducedDamage};
+use crate::warrior::{HasName, IsDead, IsUnconscious, TakeDamage, TakeReducedDamage, Warrior};
 
 use super::clumsiness::{Clumsiness, ClumsinessResult};
 use super::damage_summary::DamageSummary;
@@ -100,11 +100,7 @@ impl ShowAction for ParryResult {
 }
 
 impl ExecuteAction for ParryResult {
-    fn execute<A, V>(&mut self, assailant: &mut A, victim: &mut V) -> DamageSummary
-    where
-        A: ApplyDamageModifier + CriticalHit + RollDamage + CanMissParries + CanMissAssaults + MayHaveWeapon + MayHaveMutableWeapon + TakeWeapon + HasName + HasBody + TakeDamage + TakeReducedDamage + CanBeAttacked + ParryThreshold + IsUnconscious + HasMutableBody + Assault + IsDead + MayHaveDurationDamage,
-        V: CriticalHit + RollDamage + Assault + CriticalHit + HasName + MayHaveWeapon + IsUnconscious + HasMutableBody + CanMissAssaults + CanMissParries + MayHaveMutableWeapon + TakeWeapon + HasBody + TakeReducedDamage + ApplyDamageModifier + TakeDamage + ParryThreshold + IsUnconscious + HasMutableBody + IsDead + MayHaveDurationDamage
-    {
+    fn execute(&mut self, assailant: &mut Warrior, victim: &mut Warrior) -> DamageSummary {
         let parry_possibility = self.can_parry();
         if !parry_possibility.can_parry() {
             return self.can_parry.execute(assailant, victim)

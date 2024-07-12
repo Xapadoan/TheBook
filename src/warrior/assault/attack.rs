@@ -9,11 +9,10 @@ use can_be_attacked::CanBeAttacked;
 use critical_hit::{CriticalHit, CriticalHitResult};
 
 use crate::dice::RollDamage;
-use crate::modifiers::ApplyDamageModifier;
 use crate::warrior::body::{HasBody, HasMutableBody};
 use crate::warrior::duration_damage::MayHaveDurationDamage;
 use crate::warrior::weapon::{MayHaveMutableWeapon, MayHaveWeapon, TakeWeapon};
-use crate::warrior::{IsDead, IsUnconscious, HasName, TakeDamage, TakeReducedDamage};
+use crate::warrior::{HasName, IsDead, IsUnconscious, TakeDamage, TakeReducedDamage, Warrior};
 use crate::warrior::temporary_handicap::parries_miss::CanMissParries;
 use crate::warrior::temporary_handicap::assaults_miss::CanMissAssaults;
 
@@ -102,11 +101,7 @@ impl ShowAction for AttackResult {
 }
 
 impl ExecuteAction for AttackResult {
-    fn execute<A, V>(&mut self, assailant: &mut A, victim: &mut V) -> DamageSummary
-    where
-        A: ApplyDamageModifier + CriticalHit + RollDamage + CanMissParries + CanMissAssaults + MayHaveWeapon + MayHaveMutableWeapon + TakeWeapon + HasName + HasBody + TakeDamage + TakeReducedDamage + CanBeAttacked + ParryThreshold + IsUnconscious + HasMutableBody + Assault + IsDead + MayHaveDurationDamage,
-        V: ApplyDamageModifier + CriticalHit + RollDamage + CanMissParries + Assault + CriticalHit + HasName + MayHaveWeapon + IsUnconscious + HasMutableBody + CanMissAssaults + CanMissParries + MayHaveMutableWeapon + TakeWeapon + HasBody + TakeReducedDamage + TakeDamage + ParryThreshold + IsUnconscious + HasMutableBody + IsDead + MayHaveDurationDamage
-    {
+    fn execute(&mut self, assailant: &mut Warrior, victim: &mut Warrior) -> DamageSummary {
         let attack_possibility = self.can_attack();
         if !attack_possibility.can_attack() {
             return self.can_attack.execute(assailant, victim)
