@@ -37,6 +37,19 @@ impl<T> FileRepository<T> {
 }
 
 impl<T: Serialize + DeserializeOwned + UniqueEntity> Repository<T> for FileRepository<T> {
+    fn list(&self) -> Result<Vec<Uuid>, RepositoryError> {
+        let list = fs::read_dir(&self.path)?;
+        let mut uuids: Vec<Uuid> = vec![];
+        for file in list {
+            let name = file?.file_name().into_string().unwrap();
+            let splitted_name: Vec<&str> = name.split('.').collect();
+            let uuid = Uuid::parse_str(splitted_name[0])?;
+            uuids.push(uuid)
+            
+        }
+        Ok(uuids)
+    }
+
     fn create(&self, item: &T) -> Result<(), RepositoryError> {
         let path = self.full_path(format!("{}.save", item.uuid().to_string()));
         let str = serde_json::to_string(&item)?;
@@ -53,14 +66,14 @@ impl<T: Serialize + DeserializeOwned + UniqueEntity> Repository<T> for FileRepos
         Ok(item)
     }
 
-    fn update(&self, uuid: &Uuid, item: &T) -> Result<(), Box<dyn Error>> {
+    fn update(&self, uuid: &Uuid, item: &T) -> Result<(), RepositoryError> {
         let path = self.full_path(format!("{}.save", uuid.to_string()));
         let str = serde_json::to_string(&item)?;
         fs::write(path, str)?;
         Ok(())
     }
 
-    fn delete(&self, uuid: &Uuid) -> Result<(), Box<dyn Error>> {
+    fn delete(&self, uuid: &Uuid) -> Result<(), RepositoryError> {
         let path = self.full_path(format!("{}.save", uuid.to_string()));
         fs::remove_file(path)?;
         Ok(())
@@ -76,6 +89,12 @@ impl From<serde_json::Error> for RepositoryError {
 impl From<io::Error> for RepositoryError {
     fn from(value: io::Error) -> Self {
         Self::new(format!("FileRepository io::Error:\n{value}"))
+    }
+}
+
+impl From<uuid::Error> for RepositoryError {
+    fn from(value: uuid::Error) -> Self {
+        Self::new(format!("FileRepository std::Error:\n{value}"))
     }
 }
 

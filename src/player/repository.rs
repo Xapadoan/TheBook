@@ -84,6 +84,10 @@ impl PlayerRepository<FileRepository<PlayerDTOFile>, FileRepository<Warrior>> {
 }
 
 impl<T: Repository<PlayerDTOFile>, K: Repository<Warrior>> Repository<Player> for PlayerRepository<T, K> {
+    fn list(&self) -> Result<Vec<Uuid>, RepositoryError> {
+        self.dto_repo.list()
+    }
+
     fn create(&self, item: &Player) -> Result<(), RepositoryError> {
         let cto = PlayerDTOFile::from(item);
         self.dto_repo.create(&cto)?;
@@ -100,7 +104,7 @@ impl<T: Repository<PlayerDTOFile>, K: Repository<Warrior>> Repository<Player> fo
         Ok(player)
     }
 
-    fn update(&self, uuid: &Uuid, item: &Player) -> Result<(), Box<dyn Error>> {
+    fn update(&self, uuid: &Uuid, item: &Player) -> Result<(), RepositoryError> {
         let cto = PlayerDTOFile::from(item);
         self.dto_repo.update(uuid, &cto)?;
         for warrior in item.warriors() {
@@ -109,7 +113,7 @@ impl<T: Repository<PlayerDTOFile>, K: Repository<Warrior>> Repository<Player> fo
         Ok(())
     }
 
-    fn delete(&self, uuid: &Uuid) -> Result<(), Box<dyn Error>> {
+    fn delete(&self, uuid: &Uuid) -> Result<(), RepositoryError> {
         let dto = self.dto_repo.get_by_uuid(uuid)?;
         for warrior_id in dto.warrior_ids {
             self.warriors_repo.delete(&warrior_id)?;

@@ -8,10 +8,11 @@ pub trait UniqueEntity {
 }
 
 pub trait Repository<T> {
+    fn list(&self) -> Result<Vec<Uuid>, RepositoryError>;
     fn create(&self, item: &T) -> Result<(), RepositoryError>;
     fn get_by_uuid(&self, uuid: &Uuid) -> Result<T, RepositoryError>;
-    fn update(&self, uuid: &Uuid, item: &T) -> Result<(), Box<dyn Error>>;
-    fn delete(&self, uuid: &Uuid) -> Result<(), Box<dyn Error>>;
+    fn update(&self, uuid: &Uuid, item: &T) -> Result<(), RepositoryError>;
+    fn delete(&self, uuid: &Uuid) -> Result<(), RepositoryError>;
 }
 
 #[derive(Debug)]
