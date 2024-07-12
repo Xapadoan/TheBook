@@ -3,7 +3,9 @@ mod modifiers;
 mod equipment;
 mod tournament {
     pub mod main;
-    mod fight;
+    mod fight {
+        pub mod main;
+    }
     mod name;
     pub mod manager;
 }

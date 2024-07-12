@@ -10,10 +10,10 @@ use crate::name::{HasName, Name};
 use crate::random_dictionary::RandomDictionary;
 use crate::repository::file_repository::FileRepository;
 use crate::repository::main::{Repository, RepositoryError, UniqueEntity};
-use crate::tournament::fight::FightResultKind;
+use crate::tournament::fight::main::FightResultKind;
 use crate::warrior::Warrior;
 
-use super::fight::Fight;
+use super::fight::main::Fight;
 use super::name::TournamentNameDictionary;
 
 #[derive(Debug)]
