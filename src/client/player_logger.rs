@@ -9,21 +9,20 @@ use crate::repository::main::Repository;
 use crate::repository::main::RepositoryError;
 use crate::repository::main::UniqueEntity;
 use crate::warrior::Warrior;
+use crate::player::main::PlayerBuildError;
+use crate::player::main::{Player, WarriorsManager};
+use crate::player::main::PlayerBuildFinalStep;
+use crate::player::main::PlayerBuildStepDisplayName;
+use crate::player::main::{PlayerBuildStepUserName, PlayerBuilder};
+use crate::player::repository::PlayerDTOFile;
+use crate::player::repository::PlayerRepository;
 
-use super::main::PlayerBuildError;
-use super::main::{Player, WarriorsManager};
-use super::main::PlayerBuildFinalStep;
-use super::main::PlayerBuildStepDisplayName;
-use super::main::{PlayerBuildStepUserName, PlayerBuilder};
-use super::repository::PlayerDTOFile;
-use super::repository::PlayerRepository;
-
-pub struct CliPlayerLogger {
+pub struct PlayerLogger {
     repo: PlayerRepository<FileRepository<PlayerDTOFile>, FileRepository<Warrior>>,
     player: Option<Player>,
 }
 
-impl CliPlayerLogger {
+impl PlayerLogger {
     pub fn build() -> Result<Self, Box<dyn Error>> {
         let repo = PlayerRepository::build()?;
         Ok(Self {
@@ -33,7 +32,7 @@ impl CliPlayerLogger {
     }
 }
 
-impl PlayerBuilder for CliPlayerLogger {
+impl PlayerBuilder for PlayerLogger {
     fn get_username(&mut self) -> Result<PlayerBuildStepUserName, PlayerBuildError> {
         println!("Welcome back, enter your uuid:");
         let mut str = String::new();

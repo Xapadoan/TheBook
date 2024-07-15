@@ -6,16 +6,15 @@ use crate::repository::file_repository::FileRepository;
 use crate::repository::main::Repository;
 use crate::warrior::weapon::{GiveWeapon, Weapon};
 use crate::warrior::Warrior;
+use crate::player::main::{PlayerBuildError, PlayerBuildFinalStep, PlayerBuildStepDisplayName, PlayerBuildStepUserName, PlayerBuilder};
 
-use super::main::{PlayerBuildError, PlayerBuildFinalStep, PlayerBuildStepDisplayName, PlayerBuildStepUserName, PlayerBuilder};
+pub struct PlayerCreator {}
 
-pub struct CliPlayerCreator {}
-
-impl CliPlayerCreator {
+impl PlayerCreator {
     pub fn new() -> Self { Self {} }
 }
 
-impl PlayerBuilder for CliPlayerCreator {
+impl PlayerBuilder for PlayerCreator {
     fn get_username(&mut self) -> Result<PlayerBuildStepUserName, PlayerBuildError> {
         println!("Choose a username: ");
         let mut username = String::new();
@@ -30,7 +29,7 @@ impl PlayerBuilder for CliPlayerCreator {
         Ok(PlayerBuildStepDisplayName::new(display_name.trim().to_string(), previous_step))
     }
 
-    fn get_warriors(&mut self, previous_step: PlayerBuildStepDisplayName) -> Result<super::main::PlayerBuildFinalStep, PlayerBuildError> {
+    fn get_warriors(&mut self, previous_step: PlayerBuildStepDisplayName) -> Result<PlayerBuildFinalStep, PlayerBuildError> {
         let mut i = 0;
         let mut warriors = Vec::new();
         let repo = FileRepository::build(PathBuf::from("saves/warriors"))?;
