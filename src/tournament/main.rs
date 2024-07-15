@@ -10,13 +10,15 @@ use crate::name::{HasName, Name};
 use crate::random_dictionary::RandomDictionary;
 use crate::repository::file_repository::FileRepository;
 use crate::repository::main::{Repository, RepositoryError, UniqueEntity};
-use crate::tournament::fight::main::FightResultKind;
+use crate::tournament::fight::FightResultKind;
+use crate::tournament::replay::tournament_replay::TournamentReplayBuilder;
 use crate::warrior::Warrior;
 
-use super::fight::main::{Fight, FightError};
-use super::fight::replay_data::{FightReplayBuilder, FightReplayBuilderError};
+use super::fight::{Fight, FightError};
 use super::name::TournamentNameDictionary;
-use super::round_replay::{RoundReplayBuilder, RoundReplayBuilderError};
+use super::replay::fight_replay::{FightReplayBuilder, FightReplayBuilderError};
+use super::replay::round_replay::{RoundReplayBuilder, RoundReplayBuilderError};
+use super::replay::tournament_replay::TournamentReplayBuilderError;
 
 #[derive(Debug)]
 pub struct TournamentError {
@@ -61,6 +63,12 @@ impl From<FightReplayBuilderError> for TournamentError {
     }
 }
 
+impl From<TournamentReplayBuilderError> for TournamentError {
+    fn from(value: TournamentReplayBuilderError) -> Self {
+        Self::new(format!("Fight Replay Builder Error:\n{value}"))
+    }
+}
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Tournament {
     uuid: Uuid,
@@ -87,6 +95,16 @@ impl Tournament {
         Ok(())
     }
 
+    // Move to specific struct TournamentReplayData ?
+    pub fn number_of_contestants(&self) -> usize {
+        self.contestants_ids.len()
+    }
+
+    pub fn number_of_rounds(&self) -> usize {
+        self.number_of_contestants() / 2
+    }
+    // END
+
     pub fn is_full(&self) -> bool {
         self.contestants_ids.len() >= self.max_contestants
     }
@@ -111,6 +129,8 @@ impl Tournament {
     }
 
     pub fn auto(&mut self) -> Result<(), TournamentError> {
+        let tournament_replay_builder = TournamentReplayBuilder::build(&self.uuid)?;
+        tournament_replay_builder.write_tournament_init_state(&self)?;
         let repo: FileRepository<Warrior> = FileRepository::build(PathBuf::from("saves/warriors"))?;
         dbg!(&self.contestants_ids);
         let mut round_index = 0;
@@ -124,7 +144,7 @@ impl Tournament {
             let pairs = self.gen_random_pairs();
             for pair in pairs {
                 // dbg!(&pair);
-                let mut fight_replay_builder = FightReplayBuilder::build(self.uuid(), round_index)?;
+                let mut fight_replay_builder = FightReplayBuilder::build(self.uuid())?;
                 let warrior1 = repo.get_by_uuid(&pair.0)?;
                 let warrior2 = repo.get_by_uuid(&pair.1)?;
                 fight_replay_builder.record_warriors_init_state(&warrior1, &warrior2)?;
@@ -143,8 +163,8 @@ impl Tournament {
                         self.contestants_ids.push(fighters.winner().uuid().clone());
                     },
                     FightResultKind::Tie((warrior1, warrior2)) => {
-                        repo.update(warrior1.uuid(), warrior1)?;
-                        repo.update(warrior2.uuid(), warrior2)?;
+                        repo.update(warrior1.uuid(), &warrior1)?;
+                        repo.update(warrior2.uuid(), &warrior2)?;
                     }
                 }
             }
@@ -155,15 +175,15 @@ impl Tournament {
         Ok(())
     }
 
-    pub fn release_warriors(&self) -> Result<(), TournamentError> {
-        let warriors_repository : FileRepository<Warrior> = FileRepository::build(PathBuf::from("saves/warriors"))?;
-        for warrior_uuid in &self.contestants_ids {
-            let mut warrior = warriors_repository.get_by_uuid(&warrior_uuid)?;
-            warrior.set_current_tournament(None);
-            warriors_repository.update(&warrior_uuid, &warrior)?;
-        }
-        Ok(())
-    }
+    // pub fn release_warriors(&self) -> Result<(), TournamentError> {
+    //     let warriors_repository : FileRepository<Warrior> = FileRepository::build(PathBuf::from("saves/warriors"))?;
+    //     for warrior_uuid in &self.contestants_ids {
+    //         let mut warrior = warriors_repository.get_by_uuid(&warrior_uuid)?;
+    //         warrior.set_current_tournament(None);
+    //         warriors_repository.update(&warrior_uuid, &warrior)?;
+    //     }
+    //     Ok(())
+    // }
 }
 
 impl HasName for Tournament {

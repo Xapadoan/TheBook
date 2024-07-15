@@ -13,7 +13,7 @@ use crate::warrior::weapon::MayHaveWeapon;
 use crate::warrior::assault::Assault;
 use crate::name::HasName;
 
-use super::replay_data::{FightReplayBuilder, FightReplayBuilderError};
+use super::replay::fight_replay::{FightReplayBuilder, FightReplayBuilderError};
 
 #[derive(Debug)]
 pub struct Fight {

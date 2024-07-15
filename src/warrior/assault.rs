@@ -14,7 +14,7 @@ use super::{TakeDamage, Warrior};
 pub mod attack;
 pub mod parry;
 pub mod damage_summary;
-mod show_action;
+pub mod show_action;
 mod execute_action;
 mod clumsiness;
 
@@ -27,9 +27,28 @@ pub struct AssaultResult {
     damage_summary: DamageSummary,
 }
 
+impl AssaultResult {
+    pub fn assailant_uuid(&self) -> &Uuid {
+        &self.assailant_uuid
+    }
+}
+
 impl ApplyDamageSummary for AssaultResult {
     fn apply_damage_summary<T: TakeDamage>(&self, assailant: &mut T, victim: &mut T) {
         self.damage_summary.apply_damage_summary(assailant, victim)
+    }
+}
+
+impl ShowAction for AssaultResult {
+    fn show<A, V>(&self, assailant: &A, victim: &V)
+        where
+            A: crate::name::HasName + super::weapon::MayHaveWeapon + super::temporary_handicap::assaults_miss::CanMissAssaults,
+            V: crate::name::HasName + super::weapon::MayHaveWeapon + super::body::HasBody + super::temporary_handicap::parries_miss::CanMissParries {
+        self.attack.show(assailant, victim);
+        if self.parry.is_some() {
+            self.parry.as_ref().unwrap().show(assailant, victim)
+        }
+        self.damage_summary.show(assailant, victim)
     }
 }
 

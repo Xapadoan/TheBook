@@ -4,11 +4,12 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use crate::repository::main::UniqueEntity;
+use crate::tournament::fight::{FightResult, FightResultKind};
 
-use super::fight::main::{FightResult, FightResultKind};
+use super::manager::REPLAY_ROOT_DIR;
 
 #[derive(Debug, Serialize, Deserialize)]
-struct FightSummary {
+pub struct FightSummary {
     round_index: u8,
     replay_uuid: Uuid,
     winner: Option<Uuid>,
@@ -16,8 +17,26 @@ struct FightSummary {
     tie: Option<(Uuid, Uuid)>,
 }
 
+impl FightSummary {
+    pub fn winner(&self) -> &Option<Uuid> {
+        &self.winner
+    }
+
+    pub fn loser(&self) -> &Option<Uuid> {
+        &self.loser
+    }
+
+    pub fn tie(&self) -> &Option<(Uuid, Uuid)> {
+        &self.tie
+    }
+
+    pub fn replay_uuid(&self) -> &Uuid {
+        &self.replay_uuid
+    }
+}
+
 pub struct RoundReplayBuilder {
-    tournament_uuid: Uuid,
+    // tournament_uuid: Uuid,
     round_index: u8,
     path: PathBuf,
     fights_summaries: Vec<FightSummary>
@@ -25,12 +44,12 @@ pub struct RoundReplayBuilder {
 
 impl RoundReplayBuilder {
     pub fn build(tournament_uuid: &Uuid, round_index: u8) -> Result<Self, RoundReplayBuilderError> {
-        let mut path = PathBuf::from("data/tournament_replays");
+        let mut path = PathBuf::from(REPLAY_ROOT_DIR);
         path.push(tournament_uuid.to_string());
-        path.push(&format!("round{}", round_index));
+        path.push(&format!("round_{}", round_index));
         fs::create_dir_all(&path)?;
         Ok(Self {
-            tournament_uuid: tournament_uuid.clone(),
+            // tournament_uuid: tournament_uuid.clone(),
             round_index,
             path,
             fights_summaries: vec![],

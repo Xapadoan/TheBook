@@ -106,6 +106,10 @@ impl Warrior {
     pub fn set_current_tournament(&mut self, tournament_uuid: Option<Uuid>) {
         self.current_tournament = tournament_uuid
     }
+
+    pub fn current_tournament(&self) -> &Option<Uuid> {
+        &self.current_tournament
+    }
 }
 
 impl CanMissParries for Warrior {
@@ -141,10 +145,8 @@ impl CanMissAssaults for Warrior {
     }
 
     fn miss_assault(&mut self) {
-        dbg!(&self.assaults_miss);
         let misses = self.assaults_miss.as_mut().unwrap();
         misses.decrement_turns_count();
-        dbg!(&misses);
         if misses.turns_left() == 0 {
             self.assaults_miss = None;
         }

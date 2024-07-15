@@ -1,7 +1,8 @@
 use std::error::Error;
 use std::fmt::Display;
-use std::fs;
 use std::path::PathBuf;
+
+use uuid::Uuid;
 
 use crate::gen_random::GenRandom;
 use crate::repository::main::{Repository, RepositoryError, UniqueEntity};
@@ -28,20 +29,29 @@ impl<T: Repository<Tournament>> TournamentManager<T> {
         for tournament_uuid in all_tournaments_uuids {
             let tournament = self.repo.get_by_uuid(&tournament_uuid)?;
             if !tournament.is_full() {
+                println!("Found tournament: {tournament_uuid}");
                 return Ok(Some(tournament))
             }
         }
+        println!("Found no tournaments");
         Ok(None)
     }
 
     fn build_random(&self) -> Result<Tournament, TournamentManagerError> {
+        println!("Building random tournament");
         let tournament = Tournament::gen_random();
         self.repo.create(&tournament)?;
         Ok(tournament)
     }
 
     pub fn get_playable_tournament(&self) -> Result<Tournament, TournamentManagerError> {
-        Ok(self.get_available_tournament()?.unwrap_or(self.build_random()?))
+        let available_tournament = self.get_available_tournament()?;
+        if available_tournament.is_some() {
+            Ok(available_tournament.unwrap())
+        } else {
+            let new = self.build_random()?;
+            Ok(new)
+        }
     }
 
     pub fn register_contestant(&self, warrior: &mut Warrior, tournament: &mut Tournament) -> Result<(), TournamentManagerError> {
@@ -58,10 +68,14 @@ impl<T: Repository<Tournament>> TournamentManager<T> {
         for uuid in tournaments_uuids {
             let mut tournament = self.repo.get_by_uuid(&uuid)?;
             tournament.auto()?;
-            tournament.release_warriors()?;
+            // tournament.release_warriors()?;
             self.repo.delete(&uuid)?;
         }
         Ok(())
+    }
+
+    pub fn is_tournament_available(&self, tournament_uuid: &Uuid) -> bool {
+        self.repo.get_by_uuid(tournament_uuid).is_ok()
     }
 }
 
