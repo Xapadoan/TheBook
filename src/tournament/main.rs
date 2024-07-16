@@ -149,8 +149,6 @@ impl Tournament {
                 let warrior2 = repo.get_by_uuid(&pair.1)?;
                 fight_replay_builder.record_warriors_init_state(&warrior1, &warrior2)?;
                 let result = Fight::new(
-                    self.uuid,
-                    round_index,
                     warrior1,
                     warrior2
                 ).auto(&mut fight_replay_builder)?;
