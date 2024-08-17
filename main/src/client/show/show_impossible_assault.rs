@@ -1,9 +1,14 @@
-use shared::assault::not_possible::NotPossible;
+use shared::assault::{assault_consequence::AssaultConsequences, not_possible::NotPossible};
 
 use super::{ShowAction, TournamentReplayActor};
 
 impl ShowAction for NotPossible {
-    fn show_action(&self, assailant: &dyn TournamentReplayActor, victim: &dyn TournamentReplayActor) -> String {
+    fn show_action(
+        &self,
+        assailant: &dyn TournamentReplayActor,
+        victim: &dyn TournamentReplayActor,
+        _: &AssaultConsequences,
+    ) -> String {
         match self {
             NotPossible::AssailantHasNoWeapon => format!(
                 "{} has no weapon thus can not attack",

@@ -4,7 +4,7 @@ use crate::assault::common_traits::ResolveBreakWeapon;
 use crate::assault::common_traits::ResolveDropWeapon;
 use crate::assault::common_traits::ResolveMissAssaults;
 use crate::assault::critical_hit::DealCriticalHit;
-use crate::assault::critical_hit::ResolveCriticalHit;
+use crate::assault::critical_hit::{ResolveCriticalHit, ResolveCriticalHitSelf};
 use crate::assault::common_traits::DealDamages;
 use crate::assault::common_traits::ReduceDamages;
 
@@ -17,7 +17,8 @@ pub trait ResolveCriticalParry:
     ResolveMissAssaults +
     ResolveDropWeapon +
     ResolveBreakWeapon +
-    ResolveCriticalHit
+    ResolveCriticalHit +
+    ResolveCriticalHitSelf
 {
     fn resolve_critical_parry(
         &self, critical_parry: &CriticalParry,
@@ -32,7 +33,7 @@ pub trait ResolveCriticalParry:
             CriticalParry::AssailantBreaksWeapon => self.resolve_break_weapon(),
             CriticalParry::AssailantHit => self.resolve_counter_hit(parry_author),
             CriticalParry::AssailantCriticalHit => self.resolve_counter_critical_hit(parry_author),
-            CriticalParry::AssailantSelfCriticalHit => self.resolve_self_critical_hit(),
+            CriticalParry::AssailantSelfCriticalHit => self.resolve_critical_hit_self(),
         }
     }
     fn resolve_unstoppable_attack(&self, count: u8) -> IndividualConsequences {
@@ -44,11 +45,8 @@ pub trait ResolveCriticalParry:
     fn resolve_counter_critical_hit(&self, parry_author: &dyn Assailant) -> IndividualConsequences {
         let critical_hit = parry_author.deal_critical_hit();
         let damages = parry_author.deal_damages();
-        self.resolve_critical_hit(damages, &critical_hit)
-    }
-    fn resolve_self_critical_hit(&self) -> IndividualConsequences {
-        let critical_hit = self.deal_critical_hit();
-        let damages = self.deal_damages();
-        self.resolve_critical_hit(damages, &critical_hit)
+        let mut consequence = self.resolve_critical_hit(damages, &critical_hit);
+        consequence.add_counter_critical_hit(critical_hit);
+        consequence
     }
 }

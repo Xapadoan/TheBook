@@ -4,7 +4,7 @@ use rand::Rng;
 
 use crate::assault::assault_consequence::{ArmorDamages, IndividualConsequences};
 use crate::assault::duration_damages::DurationDamages;
-use crate::assault::common_traits::ResolveGougeRandomEye;
+use crate::assault::common_traits::{DealDamages, ResolveGougeRandomEye};
 use crate::equipment::protection::OptionalMutableProtection;
 use crate::equipment::rupture::{Rupture, RuptureTestResult};
 use crate::random::Random;
@@ -12,7 +12,7 @@ use crate::warrior::body::body_part::{BodyPartKind, BodySide, OptionalBodyPart, 
 use crate::warrior::body::injury::Injury;
 use crate::warrior::body::HasMutableBody;
 
-use super::CriticalHit;
+use super::{CriticalHit, DealCriticalHit};
 
 //sever only
 pub trait ResolveCriticalHit:
@@ -100,13 +100,13 @@ pub trait ResolveCriticalHit:
                 };
                 let total_damages = damages + 6;
                 match body_part.protection() {
-                    None => IndividualConsequences::injury(total_damages, injury),
+                    None => IndividualConsequences::injures(total_damages, injury),
                     Some(protection) => match protection.rupture_test() {
                         RuptureTestResult::Success => IndividualConsequences::damage_armor(
                             total_damages,
                             ArmorDamages::new(1, body_part.kind().clone()),
                         ),
-                        RuptureTestResult::Fail => IndividualConsequences::injury(total_damages, injury)
+                        RuptureTestResult::Fail => IndividualConsequences::injures(total_damages, injury)
                     }
                 }
             }
@@ -123,13 +123,13 @@ pub trait ResolveCriticalHit:
                 let injury = Injury::FootSevered(affected_side);
                 let total_damages = damages + 6;
                 match body_part.protection() {
-                    None => IndividualConsequences::injury(total_damages, injury),
+                    None => IndividualConsequences::injures(total_damages, injury),
                     Some(protection) => match protection.rupture_test() {
                         RuptureTestResult::Success => IndividualConsequences::damage_armor(
                             total_damages,
                             ArmorDamages::new(1, body_part.kind().clone())
                         ),
-                        RuptureTestResult::Fail => IndividualConsequences::injury(total_damages, injury)
+                        RuptureTestResult::Fail => IndividualConsequences::injures(total_damages, injury)
                     }
                 }
             }
@@ -146,13 +146,13 @@ pub trait ResolveCriticalHit:
                 };
                 let total_damages = damages + 7;
                 match body_part.protection() {
-                    None => IndividualConsequences::injury(total_damages, injury),
+                    None => IndividualConsequences::injures(total_damages, injury),
                     Some(protection) => match protection.rupture_test() {
                         RuptureTestResult::Success => IndividualConsequences::damage_armor(
                             total_damages,
                             ArmorDamages::new(1, body_part.kind().clone()),
                         ),
-                        RuptureTestResult::Fail => IndividualConsequences::injury(total_damages, injury)
+                        RuptureTestResult::Fail => IndividualConsequences::injures(total_damages, injury)
                     }
                 }
             }
@@ -170,13 +170,13 @@ pub trait ResolveCriticalHit:
                 };
                 let total_damages = damages + 8;
                 match body_part.protection() {
-                    None => IndividualConsequences::injury(total_damages, injury),
+                    None => IndividualConsequences::injures(total_damages, injury),
                     Some(protection) => match protection.rupture_test() {
                         RuptureTestResult::Success => IndividualConsequences::damage_armor(
                             total_damages,
                             ArmorDamages::new(1, body_part.kind().clone()),
                         ),
-                        RuptureTestResult::Fail => IndividualConsequences::injury(6, injury)
+                        RuptureTestResult::Fail => IndividualConsequences::injures(6, injury)
                     }
                 }
             }
@@ -190,7 +190,7 @@ pub trait ResolveCriticalHit:
                 match self.body().body_part(&BodyPartKind::Knee(affected_side.clone())) {
                     None => IndividualConsequences::no_consequences(),
                     Some(knee) => match knee.injury() {
-                        None => IndividualConsequences::injury(damages + 3, Injury::KneeDislocated(affected_side)),
+                        None => IndividualConsequences::injures(damages + 3, Injury::KneeDislocated(affected_side)),
                         Some(_) => IndividualConsequences::only_damages(damages + 3)
                     }
                 }
@@ -209,7 +209,7 @@ pub trait ResolveCriticalHit:
                         BodySide::Left => Injury::LeftHandBroken,
                     };
                     match hand.injury() {
-                        None => IndividualConsequences::injury(damages + 3, injury),
+                        None => IndividualConsequences::injures(damages + 3, injury),
                         Some(_) => IndividualConsequences::only_damages(damages + 3),
                     }
                 }
@@ -224,7 +224,7 @@ pub trait ResolveCriticalHit:
                 None => IndividualConsequences::no_consequences(),
                 Some(hand) => {
                     match hand.injury() {
-                        None => IndividualConsequences::injury(damages + 3, Injury::FootSmashed(affected_side)),
+                        None => IndividualConsequences::injures(damages + 3, Injury::FootSmashed(affected_side)),
                         Some(_) => IndividualConsequences::only_damages(damages + 3),
                     }
                 }
@@ -242,7 +242,7 @@ pub trait ResolveCriticalHit:
                 };
                 match arm.injury() {
                     Some(_) => IndividualConsequences::no_consequences(),
-                    None => IndividualConsequences::injury(damages + 4, injury)
+                    None => IndividualConsequences::injures(damages + 4, injury)
                 }
             }
         }
@@ -260,7 +260,7 @@ pub trait ResolveCriticalHit:
                             Some(_) => Injury::BothLegsBroken,
                         },
                     };
-                    IndividualConsequences::injury(damages + 5, injury)
+                    IndividualConsequences::injures(damages + 5, injury)
                 },
                 None => IndividualConsequences::only_damages(damages + 5)
             }
@@ -269,7 +269,7 @@ pub trait ResolveCriticalHit:
     fn resolve_wound_genitals(&self, damages: u8) -> IndividualConsequences {
         match self.body().body_part(&BodyPartKind::Genitals) {
             None => IndividualConsequences::no_consequences(),
-            Some(_) => IndividualConsequences::duration_damages(
+            Some(_) => IndividualConsequences::damage_on_duration(
                 damages + 5,
                 DurationDamages::new(),
             ),
@@ -281,7 +281,7 @@ pub trait ResolveCriticalHit:
             Some(genitals) => {
                 match genitals.injury() {
                     Some(_) => IndividualConsequences::only_damages(damages + 5),
-                    None => IndividualConsequences::injury(damages + 5, Injury::GenitalsCrushed),
+                    None => IndividualConsequences::injures(damages + 5, Injury::GenitalsCrushed),
                 }
             }
         }
@@ -290,12 +290,26 @@ pub trait ResolveCriticalHit:
         IndividualConsequences::only_damages(damages)
     }
     fn resolve_duration_damage(&self, damages: u8) -> IndividualConsequences {
-        IndividualConsequences::duration_damages(damages, DurationDamages::new())
+        IndividualConsequences::damage_on_duration(damages, DurationDamages::new())
     }
     fn resolve_death(&self) -> IndividualConsequences {
         IndividualConsequences::only_damages(u8::MAX)
     }
     fn resolve_knock_out(&self, damages: u8) -> IndividualConsequences {
         IndividualConsequences::knock_out(damages)
+    }
+}
+
+pub trait ResolveCriticalHitSelf:
+    DealCriticalHit +
+    DealDamages +
+    ResolveCriticalHit
+{
+    fn resolve_critical_hit_self(&self) -> IndividualConsequences {
+        let critical_hit = self.deal_critical_hit();
+        let damages = self.deal_damages();
+        let mut consequence = self.resolve_critical_hit(damages, &critical_hit);
+        consequence.add_self_critical_hit(critical_hit);
+        consequence
     }
 }

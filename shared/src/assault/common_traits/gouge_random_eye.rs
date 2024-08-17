@@ -12,6 +12,6 @@ pub trait ResolveGougeRandomEye: HasMutableBody {
         } else {
             Injury::OneEyeGouged(affected_side)
         };
-        IndividualConsequences::injury(damages + 5, injury)
+        IndividualConsequences::injures(damages + 5, injury)
     }
 }

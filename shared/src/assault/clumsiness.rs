@@ -3,8 +3,6 @@ use std::u8;
 use serde::{Deserialize, Serialize};
 
 use crate::dice::Dice;
-use crate::equipment::rupture::{Rupture, RuptureTestResult};
-use crate::equipment::weapon::{OptionalMutableWeapon, Weapon};
 use crate::random::Random;
 use crate::warrior::body::body_part::{BodyPartKind, BodySide, FingerName, OptionalBodyPart};
 use crate::warrior::body::injury::Injury;
@@ -13,8 +11,8 @@ use crate::warrior::body::HasBody;
 use super::assault_consequence::IndividualConsequences;
 use super::attack_success::ResolveAttackSuccess;
 use super::common_traits::{ResolveBreakWeapon, ResolveDropWeapon, ResolveGougeRandomEye, ResolveMissAssaults};
-use super::critical_hit::{DealCriticalHit, ResolveCriticalHit};
-use super::common_traits::{DealDamages, TakeReducedDamage};
+use super::critical_hit::{DealCriticalHit, ResolveCriticalHit, ResolveCriticalHitSelf};
+use super::common_traits::DealDamages;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub enum Clumsiness {
@@ -56,7 +54,8 @@ pub trait ResolveClumsiness:
     ResolveMissAssaults +
     ResolveDropWeapon +
     ResolveBreakWeapon +
-    HasBody
+    HasBody +
+    ResolveCriticalHitSelf
 {
     fn resolve_clumsiness(&self, clumsiness: Clumsiness, regular_fail_consequence: IndividualConsequences) -> IndividualConsequences {
         match clumsiness {
@@ -73,11 +72,6 @@ pub trait ResolveClumsiness:
     fn resolve_hit_self(&self) -> IndividualConsequences {
         self.resolve_hit(self.deal_damages())
     }
-    fn resolve_critical_hit_self(&self) -> IndividualConsequences {
-        let damages = self.deal_damages();
-        let critical_hit = self.deal_critical_hit();
-        self.resolve_critical_hit(damages, &critical_hit)
-    }
     fn resolve_sever_random_finger(&self) -> IndividualConsequences {
         let affected_side = BodySide::random();
         if let None = self.body().body_part(&BodyPartKind::Arm(affected_side.clone())) {
@@ -90,37 +84,6 @@ pub trait ResolveClumsiness:
         if let None = self.body().body_part(&BodyPartKind::Finger(affected_side.clone(), finger.clone())) {
             return IndividualConsequences::no_consequences()
         }
-        IndividualConsequences::injury(0, Injury::FingerSevered(affected_side, finger))
+        IndividualConsequences::injures(0, Injury::FingerSevered(affected_side, finger))
     }
-}
-
-pub trait Clumsy:
-    OptionalMutableWeapon +
-    DealDamages +
-    TakeReducedDamage +
-    // TakeCriticalHitConsequences +
-    DealCriticalHit
-{
-    fn fall_down(&mut self);
-    fn drop_weapon(&mut self) -> Option<Weapon> {
-        self.weapon_mut().take()
-    }
-    fn damage_weapon(&mut self) {
-        if let None = self.weapon() {
-            return;
-        }
-        let weapon = self.weapon_mut().as_mut().unwrap();
-        match weapon.rupture_test() {
-            RuptureTestResult::Success => weapon.damage_rupture(1),
-            RuptureTestResult::Fail => weapon.damage_rupture(u8::MAX),
-        }
-    }
-    fn resolve_hit_self(&mut self) {
-        self.take_reduced_damages(self.deal_damages())
-    }
-    fn resolve_critical_hit_self(&mut self) {
-        // self.take_damage(damages)
-    }
-    fn lose_eye(&mut self);
-    fn lose_finger(&mut self);
 }

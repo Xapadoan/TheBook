@@ -24,11 +24,16 @@ pub mod client {
     pub mod show {
         mod main;
         mod show_assault;
+        mod show_resolution;
         mod show_impossible_assault;
         mod show_clumsiness;
         mod show_critical_parry;
         mod show_critical_attack;
         mod show_warrior;
+        mod show_weapon;
+        mod show_protection;
+        mod show_body_part_kind;
+        mod show_self_critical_hit;
 
         pub use main::*;
     }

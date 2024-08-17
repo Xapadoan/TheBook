@@ -10,6 +10,7 @@ use crate::client::player_logger::PlayerLogger;
 use crate::client::prompt::prompt_bool;
 use crate::client::select_warrior::select_warrior;
 
+use crate::client::show::AssaultReplay;
 use crate::player::main::{Player, WarriorsManager};
 use crate::player::repository::PlayerRepository;
 use crate::repository::file_repository::FileRepository;
@@ -18,7 +19,6 @@ use crate::tournament::{manager::TournamentManager, replay::manager::ReplayManag
 
 
 use super::player_creator::PlayerCreator;
-use super::show::ShowAction;
 
 pub fn register_to_tournament(player: &mut Player) -> Result<(), Box<dyn Error>> {
     let tournament_manager = TournamentManager::build()?;
@@ -135,7 +135,7 @@ fn show_warrior_tournament(
                 } else {
                     (&warriors.1, &warriors.0)
                 };
-                println!("{}", assault.show_action(assailant, victim));
+                println!("{}", assault.assault_replay(assailant, victim));
             }
         }
         round_index += 1;

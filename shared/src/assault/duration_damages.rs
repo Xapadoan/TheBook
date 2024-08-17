@@ -4,7 +4,7 @@ use crate::dice::Dice;
 
 use super::common_traits::DealDamages;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct DurationDamages {
     interval: u8,
     count_remaining: u8,

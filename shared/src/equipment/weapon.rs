@@ -1,7 +1,7 @@
 use rand::Rng;
 use serde::{Deserialize, Serialize};
 
-use crate::{assault::common_traits::DealDamages, dice::Dice, random::Random, stats::{Stat, StatModifier}};
+use crate::{assault::common_traits::DealDamages, dice::Dice, name::Name, random::Random, stats::{Stat, StatModifier}};
 
 use super::rupture::Rupture;
 
@@ -31,6 +31,7 @@ impl Random for WeaponKind {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Weapon {
+    name: String,
     kind: WeaponKind,
     is_sharp: bool,
     rupture: Option<u8>,
@@ -43,6 +44,7 @@ impl Weapon {
     pub fn new(kind: WeaponKind) -> Self {
         match kind {
             WeaponKind::Sword => Self {
+                name: String::from("Shitty Sword"),
                 kind,
                 is_sharp: true,
                 add_dmg: 3,
@@ -51,6 +53,7 @@ impl Weapon {
                 rupture: Some(4),
             },
             WeaponKind::Axe => Self {
+                name: String::from("Rusty Axe"),
                 kind,
                 is_sharp: true,
                 add_dmg: 3,
@@ -59,6 +62,7 @@ impl Weapon {
                 rupture: Some(3),
             },
             WeaponKind::BattleAxe => Self {
+                name: String::from("Coarse Battle Axe"),
                 kind,
                 is_sharp: true,
                 add_dmg: 5,
@@ -67,6 +71,7 @@ impl Weapon {
                 rupture: Some(3),
             },
             WeaponKind::GreatSword => Self {
+                name: String::from("Basic Great Sword"),
                 kind,
                 is_sharp: true,
                 add_dmg: 5,
@@ -75,6 +80,7 @@ impl Weapon {
                 rupture: Some(4),
             },
             WeaponKind::Hammer => Self {
+                name: String::from("Shitty Hammer"),
                 kind,
                 is_sharp: false,
                 add_dmg: 3,
@@ -83,6 +89,7 @@ impl Weapon {
                 rupture: Some(4),
             },
             WeaponKind::WarHammer => Self {
+                name: String::from("Coarse War Hammer"),
                 kind,
                 is_sharp: false,
                 add_dmg: 5,
@@ -134,5 +141,11 @@ impl StatModifier for Weapon {
             Stat::Attack(_) => base.modify(self.attack_mod),
             Stat::Parry(_) => base.modify(self.parry_mod),
         }
+    }
+}
+
+impl Name for Weapon {
+    fn name(&self) -> &str {
+        &self.name
     }
 }

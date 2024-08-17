@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 
 use super::body_part::{BodySide, FingerName};
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub enum Injury {
     OneEyeGouged(BodySide),
     BothEyesGouged,
@@ -142,61 +142,3 @@ pub trait Injuries {
         }
     }
 }
-
-// #[derive(Debug, Serialize, Deserialize)]
-// pub struct Injury {
-//     kind: InjuryKind,
-//     body_part_kind: BodyPartKind,
-//     attack_modifier: u8,
-//     parry_modifier: u8,
-//     // reason: String,
-// }
-
-// impl Injury {
-//     pub fn gouged_eye(side: BodySide) -> Self {
-//         Self {
-//             kind: InjuryKind::Gouged,
-//             body_part_kind: BodyPartKind::Eye(side),
-//             attack_modifier: 1,
-//             parry_modifier: 2,
-//         }
-//     }
-
-//     pub fn body_part_kind(&self) -> &BodyPartKind {
-//         &self.body_part_kind
-//     }
-
-//     pub fn severed_hand(side: BodySide) -> Self {
-//         let (attack, parry) = match &side {
-//             BodySide::Left => (2, 3),
-//             BodySide::Right => (5, 6),
-//         };
-//         Self {
-//             kind: InjuryKind::Severed,
-//             body_part_kind: BodyPartKind::Hand(side),
-//             attack_modifier: attack,
-//             parry_modifier: parry,
-//         }
-//     }
-
-//     pub fn severed_foot(side: BodySide) -> Self {
-//         Self {
-//             kind: InjuryKind::Severed,
-//             body_part_kind: BodyPartKind::Foot(side),
-//             attack_modifier: 2,
-//             parry_modifier: 2,
-//         }
-//     }
-
-//     pub fn severed_arm(side: BodySide) -> Self {
-//         let (attack, parry) = match &side {
-//             BodySide::Left => ()
-            
-//         };
-//         Self {
-//             kind: InjuryKind::Severed,
-//             body_part_kind: BodyPartKind::Arm(side),
-//             attack_modifier
-//         }
-//     }
-// }

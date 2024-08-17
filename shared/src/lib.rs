@@ -15,6 +15,7 @@ pub mod assault {
 
         pub use critical_hit::CriticalHit;
         pub use resolve_critical_hit::ResolveCriticalHit;
+        pub use resolve_critical_hit::ResolveCriticalHitSelf;
         pub use deal_critical_hit::DealCriticalHit;
     }
     pub mod common_traits {

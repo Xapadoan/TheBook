@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::assault::common_traits::ReduceDamages;
+use crate::{assault::common_traits::ReduceDamages, name::Name};
 
 use super::rupture::Rupture;
 
@@ -8,6 +8,7 @@ use super::rupture::Rupture;
 pub struct Protection {
     amount: u8,
     rupture: Option<u8>,
+    name: String,
 }
 
 pub trait OptionalMutableProtection {
@@ -32,5 +33,11 @@ impl Rupture for Protection {
 
     fn set_rupture(&mut self, rup: Option<u8>) {
         self.rupture = rup;
+    }
+}
+
+impl Name for Protection {
+    fn name(&self) -> &str {
+        &self.name
     }
 }

@@ -7,7 +7,7 @@ use crate::assault::attack_clumsiness::ResolveAttackClumsiness;
 use crate::assault::attack_success::ResolveAttackSuccess;
 use crate::assault::clumsiness::ResolveClumsiness;
 use crate::assault::common_traits::{DealDamages, ReduceDamages, ResolveBreakWeapon, ResolveDropWeapon, ResolveGougeRandomEye, ResolveMissAssaults, TakeDamage};
-use crate::assault::critical_hit::{DealCriticalHit, ResolveCriticalHit};
+use crate::assault::critical_hit::{DealCriticalHit, ResolveCriticalHit, ResolveCriticalHitSelf};
 use crate::assault::critical_parry::{DealCriticalParry, ResolveCriticalParry};
 use crate::assault::duration_damages::{DurationDamages, TakeDurationDamages};
 use crate::assault::not_possible::{CanAttack, CanBeAttacked};
@@ -215,6 +215,7 @@ impl ResolveAttackSuccess for Warrior {}
 impl ResolveClumsiness for Warrior {}
 impl DealCriticalHit for Warrior {}
 impl ResolveCriticalHit for Warrior {}
+impl ResolveCriticalHitSelf for Warrior {}
 impl ResolveAttackClumsiness for Warrior {}
 impl DealCriticalParry for Warrior {}
 impl ResolveCriticalParry for Warrior {}

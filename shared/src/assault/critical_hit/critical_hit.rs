@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 use super::super::assailant::Assailant;
 use super::super::assault_consequence::{AssaultConsequences, AssaultConsequencesBuilder, IndividualConsequences};
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub enum CriticalHit {
     DeepIncision,
     ReallyDeepIncision,
