@@ -2,8 +2,7 @@ use std::error::Error;
 use std::fmt::Display;
 
 use shared::assault::assault_summary::AssaultSummary;
-use shared::assault::common_traits::TakeDamage;
-use shared::assault::duration_damages::TakeDurationDamages;
+use shared::end_turn_consequences::EndTurnConsequencesBuilder;
 use shared::equipment::weapon::OptionalMutableWeapon;
 use shared::health::{IsDead, IsUnconscious};
 use shared::warrior::Warrior;
@@ -56,7 +55,6 @@ impl Fight {
         Self {
             blue_corner,
             red_corner,
-            // timer: VirtualTimer::new(),
         }
     }
 
@@ -78,12 +76,8 @@ impl Fight {
             );
             replay_builder.push_assault(red_assault);
             turn += 1;
-            if let Some(damages) = self.blue_corner.take_duration_damages() {
-                self.blue_corner.take_damage(damages);
-            }
-            if let Some(damages) = self.red_corner.take_duration_damages() {
-                self.red_corner.take_damage(damages);
-            }
+            self.blue_corner.end_turn();
+            self.red_corner.end_turn();
             if self.blue_corner.is_dead()
                 || self.blue_corner.is_unconscious()
                 || self.blue_corner.weapon().is_none()

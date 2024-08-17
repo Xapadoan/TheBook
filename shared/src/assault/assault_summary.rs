@@ -14,10 +14,9 @@ use super::critical_parry::CriticalParry;
 use super::not_possible::NotPossible;
 use super::parry_attempt::ParryAttemptResult;
 use super::parry_clumsiness::ParryClumsiness;
+use super::parry_not_possible::ParryNotPossible;
 use super::parry_success::ParrySuccess;
-// use super::assault_result::AssaultResult;
 
-// pub struct AssaultSummary<T: for<'a> AssaultResult<'a>> {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct AssaultSummary {
     assailant_uuid: Uuid,
@@ -26,6 +25,7 @@ pub struct AssaultSummary {
     attack_clumsiness: Option<AttackClumsiness>,
     attack_missed: Option<AttackMissed>,
     attack_success: Option<AttackSuccess>,
+    parry_not_possible: Option<ParryNotPossible>,
     parry_clumsiness: Option<ParryClumsiness>,
     parry_success: Option<ParrySuccess>,
     parry_critical: Option<CriticalParry>,
@@ -40,6 +40,10 @@ impl AssaultSummary {
 
     pub fn victim_uuid(&self) -> &Uuid {
         &self.victim_uuid
+    }
+
+    pub fn parry_not_possible(&self) -> &Option<ParryNotPossible> {
+        &self.parry_not_possible
     }
 
     pub fn not_possible(&self) -> &Option<NotPossible> {
@@ -83,6 +87,7 @@ impl AssaultSummary {
         let mut attack_clumsiness = None;
         let mut attack_missed = None;
         let mut attack_success = None;
+        let mut parry_not_possible = None;
         let mut parry_clumsiness = None;
         let mut parry_success = None;
         let mut parry_critical = None;
@@ -101,20 +106,25 @@ impl AssaultSummary {
                 },
                 AttackAttemptResult::Success => {
                     attack_success = Some(AttackSuccess::new());
-                    match victim.parry_attempt() {
-                        ParryAttemptResult::CriticalFailure => {
-                            parry_clumsiness = Some(ParryClumsiness::random());
-                            parry_clumsiness.as_ref().unwrap().to_consequences(assailant, victim)
-                        },
-                        ParryAttemptResult::Failure => attack_success.as_ref().unwrap().to_consequences(assailant, victim),
-                        ParryAttemptResult::Success => {
-                            parry_success = Some(ParrySuccess::new());
-                            parry_success.as_ref().unwrap().to_consequences(assailant, victim)
-                        },
-                        ParryAttemptResult::CriticalSuccess => {
-                            parry_critical = Some(victim.deal_critical_parry());
-                            parry_critical.as_ref().unwrap().to_consequences(assailant, victim)
-                        },
+                    parry_not_possible = victim.can_parry();
+                    if let Some(_) = &parry_not_possible {
+                        attack_success.as_ref().unwrap().to_consequences(assailant, victim)
+                    } else {
+                        match victim.parry_attempt() {
+                            ParryAttemptResult::CriticalFailure => {
+                                parry_clumsiness = Some(ParryClumsiness::random());
+                                parry_clumsiness.as_ref().unwrap().to_consequences(assailant, victim)
+                            },
+                            ParryAttemptResult::Failure => attack_success.as_ref().unwrap().to_consequences(assailant, victim),
+                            ParryAttemptResult::Success => {
+                                parry_success = Some(ParrySuccess::new());
+                                parry_success.as_ref().unwrap().to_consequences(assailant, victim)
+                            },
+                            ParryAttemptResult::CriticalSuccess => {
+                                parry_critical = Some(victim.deal_critical_parry());
+                                parry_critical.as_ref().unwrap().to_consequences(assailant, victim)
+                            },
+                        }
                     }
                 },
                 AttackAttemptResult::CriticalSuccess => {
@@ -130,6 +140,7 @@ impl AssaultSummary {
             attack_clumsiness,
             attack_missed,
             attack_success,
+            parry_not_possible,
             parry_clumsiness,
             parry_success,
             parry_critical,

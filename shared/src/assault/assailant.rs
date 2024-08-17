@@ -1,3 +1,4 @@
+use crate::end_turn_consequences::EndTurnConsequencesBuilder;
 use crate::health::IsDead;
 use crate::health::IsUnconscious;
 use crate::knock_out::KnockOut;
@@ -21,6 +22,7 @@ use super::not_possible::CanAttack;
 use super::not_possible::CanBeAttacked;
 use super::parry_attempt::ParryAttempt;
 use super::parry_clumsiness::ResolveParryClumsiness;
+use super::parry_not_possible::CanParry;
 use super::parry_success::ResolveParrySuccess;
 
 pub trait Assailant:
@@ -44,7 +46,9 @@ pub trait Assailant:
     HasMutableBody +
     CanAttack +
     CanBeAttacked +
+    CanParry +
     AttackAttempt +
     ParryAttempt +
-    KnockOut
+    KnockOut +
+    EndTurnConsequencesBuilder
 {}

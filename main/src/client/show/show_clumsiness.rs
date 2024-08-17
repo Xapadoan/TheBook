@@ -44,7 +44,7 @@ impl ShowAction for AttackClumsiness {
             Clumsiness::CriticalHitSelf => {
                 let self_critical = consequences.for_assailant().self_critical_hit().as_ref().unwrap();
                 format!(
-                    "{} trips and fall right on his {}. As a result, he {}",
+                    "{} trips and fall right on his {}. As a result, {}",
                     assailant.show_self(),
                     assailant.weapon().as_ref().unwrap().show_self(),
                     show_self_critical_hit(self_critical, assailant, consequences.for_assailant()),

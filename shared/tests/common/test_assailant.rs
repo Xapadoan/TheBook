@@ -1,4 +1,6 @@
 use serde::{Deserialize, Serialize};
+use shared::assault::parry_not_possible::CanParry;
+use shared::end_turn_consequences::EndTurnConsequencesBuilder;
 use uuid::Uuid;
 
 use shared::assault::assailant::Assailant;
@@ -206,6 +208,8 @@ impl KnockOut for TestAssailant {
     }
 }
 
+impl EndTurnConsequencesBuilder for TestAssailant {}
+
 impl ResolveGougeRandomEye for TestAssailant {}
 impl ResolveBreakWeapon for TestAssailant {}
 impl ResolveDropWeapon for TestAssailant {}
@@ -225,5 +229,6 @@ impl CanAttack for TestAssailant {}
 impl CanBeAttacked for TestAssailant {}
 impl AttackAttempt for TestAssailant {}
 impl ParryAttempt for TestAssailant {}
+impl CanParry for TestAssailant {}
 
 impl Assailant for TestAssailant {}

@@ -113,7 +113,7 @@ fn show_break_limb(
             CriticalHit::BrokenArm => "missing arm",
             CriticalHit::BrokenHand => "missing hand",
             CriticalHit::BrokenLeg => "missing leg",
-            CriticalHit::SeveredFoot => "missing foot",
+            CriticalHit::SmashedFoot => "missing foot",
             CriticalHit::KneeDislocation => "missing knee",
             _ => panic!("Impossible match"),
         };
@@ -128,7 +128,7 @@ fn show_break_limb(
         CriticalHit::BrokenArm => "arm",
         CriticalHit::BrokenHand => "hand",
         CriticalHit::BrokenLeg => "leg",
-        CriticalHit::SeveredFoot => "foot",
+        CriticalHit::SmashedFoot => "foot",
         CriticalHit::KneeDislocation => "knee",
         _ => panic!("Impossible match"),
     };

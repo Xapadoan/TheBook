@@ -4,6 +4,7 @@ use shared::assault::assault_summary::AssaultSummary;
 use shared::equipment::rupture::RUPTURE_MAX;
 use shared::equipment::weapon::{OptionalMutableWeapon, Weapon};
 use shared::random::Random;
+use shared::temporary_handicap::{OptionalAssaultMisses, TemporaryHandicap, TemporaryHandicapReason};
 
 #[test]
 fn cant_assault_without_weapon() {
@@ -33,6 +34,30 @@ fn cant_assault_after_losing_weapon() {
 
     let after = AssaultSummary::new(&warrior2, &warrior1);
     assert_eq!(after.not_possible().is_some(), true, "Assault is still possible");
+}
+
+#[test]
+fn cant_assault_when_misses_assaults() {
+    let misses = TemporaryHandicap::new(
+        2,
+        TemporaryHandicapReason::FellDown,
+    );
+    let mut assailant = TestAssailant::new();
+    let mut victim = TestAssailant::new();
+    let weapon1 = Weapon::random();
+    assailant.weapon_mut().replace(weapon1);
+    let weapon2 = Weapon::random();
+    victim.replace_weapon(weapon2);
+    let consequences = AssaultConsequences::new(
+        IndividualConsequences::unstoppable_assaults(misses.clone()),
+        IndividualConsequences::no_consequences(),
+    );
+
+    consequences.apply(&mut assailant, &mut victim);
+    assert!(assailant.assault_misses().is_some(), "can still attack");
+
+    let assault = AssaultSummary::new(&mut assailant, &mut victim);
+    assert!(assault.not_possible().is_some(), "Assault is still possible");
 }
 
 #[test]

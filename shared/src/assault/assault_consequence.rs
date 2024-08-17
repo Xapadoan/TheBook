@@ -28,7 +28,7 @@ pub struct IndividualConsequences {
     duration_damages: Option<DurationDamages>,
     knock_out: bool,
     assault_misses: Option<TemporaryHandicap>,
-    unstoppable_assaults: Option<TemporaryHandicap>,
+    parry_misses: Option<TemporaryHandicap>,
     drop_weapon: bool,
     weapon_damages: Option<u8>,
     counter_critical_hit: Option<CriticalHit>,
@@ -43,7 +43,7 @@ impl IndividualConsequences {
         duration_damages: Option<DurationDamages>,
         knock_out: bool,
         assault_misses: Option<TemporaryHandicap>,
-        unstoppable_assaults: Option<TemporaryHandicap>,
+        parry_misses: Option<TemporaryHandicap>,
         drop_weapon: bool,
         weapon_damages: Option<u8>,
         counter_critical_hit: Option<CriticalHit>,
@@ -56,7 +56,7 @@ impl IndividualConsequences {
             duration_damages,
             knock_out,
             assault_misses,
-            unstoppable_assaults,
+            parry_misses,
             drop_weapon,
             weapon_damages,
             counter_critical_hit,
@@ -72,7 +72,7 @@ impl IndividualConsequences {
             duration_damages: None,
             knock_out: false,
             assault_misses: None,
-            unstoppable_assaults: None,
+            parry_misses: None,
             drop_weapon: false,
             weapon_damages: None,
             counter_critical_hit: None,
@@ -88,7 +88,7 @@ impl IndividualConsequences {
             duration_damages: None,
             knock_out: false,
             assault_misses: None,
-            unstoppable_assaults: None,
+            parry_misses: None,
             drop_weapon: false,
             weapon_damages: None,
             counter_critical_hit: None,
@@ -104,7 +104,7 @@ impl IndividualConsequences {
             duration_damages: None,
             knock_out: false,
             assault_misses: None,
-            unstoppable_assaults: None,
+            parry_misses: None,
             drop_weapon: false,
             weapon_damages: None,
             counter_critical_hit: None,
@@ -120,7 +120,7 @@ impl IndividualConsequences {
             duration_damages: None,
             knock_out: false,
             assault_misses: None,
-            unstoppable_assaults: None,
+            parry_misses: None,
             drop_weapon: false,
             weapon_damages: None,
             counter_critical_hit: None,
@@ -136,7 +136,7 @@ impl IndividualConsequences {
             duration_damages: Some(duration_damages),
             knock_out: false,
             assault_misses: None,
-            unstoppable_assaults: None,
+            parry_misses: None,
             drop_weapon: false,
             weapon_damages: None,
             counter_critical_hit: None,
@@ -152,7 +152,7 @@ impl IndividualConsequences {
             duration_damages: None,
             knock_out: true,
             assault_misses: None,
-            unstoppable_assaults: None,
+            parry_misses: None,
             drop_weapon: false,
             weapon_damages: None,
             counter_critical_hit: None,
@@ -168,7 +168,7 @@ impl IndividualConsequences {
             duration_damages: None,
             knock_out: false,
             assault_misses: Some(misses),
-            unstoppable_assaults: None,
+            parry_misses: None,
             drop_weapon: false,
             weapon_damages: None,
             counter_critical_hit: None,
@@ -183,8 +183,8 @@ impl IndividualConsequences {
             injury: None,
             duration_damages: None,
             knock_out: false,
-            assault_misses: None,
-            unstoppable_assaults: Some(misses),
+            assault_misses: Some(misses.clone()),
+            parry_misses: Some(misses),
             drop_weapon: false,
             weapon_damages: None,
             counter_critical_hit: None,
@@ -200,7 +200,7 @@ impl IndividualConsequences {
             duration_damages: None,
             knock_out: false,
             assault_misses: None,
-            unstoppable_assaults: None,
+            parry_misses: None,
             drop_weapon: true,
             weapon_damages: None,
             counter_critical_hit: None,
@@ -216,7 +216,7 @@ impl IndividualConsequences {
             duration_damages: None,
             knock_out: false,
             assault_misses: None,
-            unstoppable_assaults: None,
+            parry_misses: None,
             drop_weapon: false,
             weapon_damages: Some(rupture_damages),
             counter_critical_hit: None,
@@ -238,7 +238,7 @@ impl IndividualConsequences {
         if let Some(misses) = &self.assault_misses {
             victim.assault_misses_mut().replace(misses.clone());
         }
-        if let Some(misses) = &self.unstoppable_assaults {
+        if let Some(misses) = &self.parry_misses {
             victim.parry_misses_mut().replace(misses.clone());
             victim.assault_misses_mut().replace(misses.clone());
         }
@@ -304,6 +304,12 @@ impl AssaultConsequences {
     pub fn apply(&self, assailant: &mut dyn Assailant, victim: &mut dyn Assailant) {
         self.for_assailant.apply(assailant);
         self.for_victim.apply(victim);
+        if assailant.assault_misses().is_some() && self.for_assailant.assault_misses.is_none() {
+            assailant.miss_assault();
+        }
+        if victim.parry_misses().is_some() && self.for_victim.parry_misses.is_none() {
+            victim.miss_parry();
+        }
     }
 
     pub fn for_assailant(&self) -> &IndividualConsequences {
@@ -359,7 +365,7 @@ mod tests {
         assert_eq!(actual.knock_out, false);
         assert_eq!(actual.assault_misses.is_some(), true);
         assert_eq!(actual.assault_misses.unwrap().count(), 2);
-        assert_eq!(actual.unstoppable_assaults.is_none(), true);
+        assert_eq!(actual.parry_misses.is_none(), true);
         assert_eq!(actual.drop_weapon, false);
         assert_eq!(actual.weapon_damages.is_none(), true);
         assert_eq!(actual.counter_critical_hit.is_none(), true);
@@ -376,9 +382,8 @@ mod tests {
         assert_eq!(actual.injury, None);
         assert_eq!(actual.duration_damages.is_none(), true);
         assert_eq!(actual.knock_out, false);
-        assert_eq!(actual.assault_misses.is_none(), true);
-        assert_eq!(actual.unstoppable_assaults.is_some(), true);
-        assert_eq!(actual.unstoppable_assaults.is_some(), true);
+        assert_eq!(actual.assault_misses.is_some(), true);
+        assert_eq!(actual.parry_misses.is_some(), true);
         assert_eq!(actual.drop_weapon, false);
         assert_eq!(actual.weapon_damages.is_none(), true);
         assert_eq!(actual.counter_critical_hit.is_none(), true);
@@ -394,7 +399,7 @@ mod tests {
         assert_eq!(actual.duration_damages.is_none(), true);
         assert_eq!(actual.knock_out, false);
         assert_eq!(actual.assault_misses.is_none(), true);
-        assert_eq!(actual.unstoppable_assaults.is_none(), true);
+        assert_eq!(actual.parry_misses.is_none(), true);
         assert_eq!(actual.drop_weapon, true);
         assert_eq!(actual.weapon_damages.is_none(), true);
         assert_eq!(actual.counter_critical_hit.is_none(), true);
@@ -410,7 +415,7 @@ mod tests {
         assert_eq!(actual.duration_damages.is_none(), true);
         assert_eq!(actual.knock_out, false);
         assert_eq!(actual.assault_misses.is_none(), true);
-        assert_eq!(actual.unstoppable_assaults.is_none(), true);
+        assert_eq!(actual.parry_misses.is_none(), true);
         assert_eq!(actual.drop_weapon, false);
         assert_eq!(actual.weapon_damages.is_some(), true);
         assert_eq!(actual.weapon_damages.unwrap(), 2);

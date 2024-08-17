@@ -22,6 +22,13 @@ impl AssaultReplay for AssaultSummary {
         }
         if let Some(attack) = self.attack_success() {
             let mut str = attack.show_action(assailant, victim, self.consequences());
+            if let Some(impossible_parry) = self.parry_not_possible() {
+                return format!(
+                    "{}, {}",
+                    attack.show_action(assailant, victim, self.consequences()),
+                    impossible_parry.show_action(assailant, victim, self.consequences()),
+                )
+            }
             if let Some(clumsiness) = self.parry_clumsiness() {
                 let clumsiness_display = clumsiness.show_action(assailant, victim, self.consequences());
                 str = format!(

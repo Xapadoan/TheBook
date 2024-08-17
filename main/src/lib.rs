@@ -26,6 +26,7 @@ pub mod client {
         mod show_assault;
         mod show_resolution;
         mod show_impossible_assault;
+        mod show_impossible_parry;
         mod show_clumsiness;
         mod show_critical_parry;
         mod show_critical_attack;
@@ -34,6 +35,7 @@ pub mod client {
         mod show_protection;
         mod show_body_part_kind;
         mod show_self_critical_hit;
+        mod show_temporary_handicap;
 
         pub use main::*;
     }

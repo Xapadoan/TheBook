@@ -1,6 +1,6 @@
 use shared::assault::{assault_consequence::AssaultConsequences, not_possible::NotPossible};
 
-use super::{ShowAction, TournamentReplayActor};
+use super::{ShowAction, ShowSelf, TournamentReplayActor};
 
 impl ShowAction for NotPossible {
     fn show_action(
@@ -22,20 +22,21 @@ impl ShowAction for NotPossible {
                 "{} is unconscious and can not attack",
                 assailant.show_self(),
             ),
-            NotPossible::AssailantMustMissAssault(_) => format!(
-                "{} misses this assault",
+            NotPossible::AssailantMustMissAssault(misses) => format!(
+                "{} can't attack because he is {}",
                 assailant.show_self(),
+                misses.reason().show_self(),
             ),
             NotPossible::VictimHasNoWeapon => format!(
-                "{} has no weapon thus can not attack",
+                "{} has no weapon and must surrender",
                 victim.show_self(),
             ),
             NotPossible::VictimIsDead => format!(
-                "{} is dead and can not attack",
+                "{} is dead",
                 victim.show_self(),
             ),
             NotPossible::VictimIsUnconscious => format!(
-                "{} is unconscious and can not attack",
+                "{} is unconscious",
                 victim.show_self(),
             ),
         }

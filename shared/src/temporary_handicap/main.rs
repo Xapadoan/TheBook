@@ -6,6 +6,15 @@ pub enum TemporaryHandicapReason {
     FellDown,
 }
 
+impl PartialEq for TemporaryHandicapReason {
+    fn eq(&self, other: &Self) -> bool {
+        match self {
+            Self::FellDown => match other { Self::FellDown => true, _ => false },
+            Self::LostBalance => match other { Self::LostBalance => true, _ => false },
+        }
+    }
+}
+
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct TemporaryHandicap {
     count: u8,
@@ -54,7 +63,7 @@ pub trait OptionalParryMisses {
 }
 
 pub trait OptionalMutableParryMisses:
-    OptionalAssaultMisses
+    OptionalParryMisses
 {
     fn parry_misses_mut(&mut self) -> &mut Option<TemporaryHandicap>;
     fn miss_parry(&mut self) {

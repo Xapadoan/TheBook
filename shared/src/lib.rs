@@ -3,6 +3,7 @@ pub mod assault {
     pub mod assault_summary;
     pub mod assault_consequence;
     pub mod not_possible;
+    pub mod parry_not_possible;
     pub mod parry_success;
     pub mod attack_missed;
     pub mod attack_attempt;
@@ -83,3 +84,4 @@ pub mod temporary_handicap {
 
 pub mod dice;
 pub mod knock_out;
+pub mod end_turn_consequences;
