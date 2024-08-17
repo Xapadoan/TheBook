@@ -1,16 +1,38 @@
-use common::TestAssailant;
+use crate::common::TestAssailant;
+use shared::assault::assault_consequence::{AssaultConsequences, IndividualConsequences};
 use shared::assault::assault_summary::AssaultSummary;
-use shared::equipment::weapon::OptionalMutableWeapon;
-
-mod common;
+use shared::equipment::rupture::RUPTURE_MAX;
+use shared::equipment::weapon::{OptionalMutableWeapon, Weapon};
+use shared::random::Random;
 
 #[test]
 fn cant_assault_without_weapon() {
     let assailant = TestAssailant::new();
     let victim = TestAssailant::new();
     assert_eq!(assailant.weapon().is_none(), true, "Assailant has a weapon");
+
     let assault = AssaultSummary::new(&assailant, &victim);
-    assert_eq!(assault.not_possible().is_some(), true, "Not Possible is not Some");
+    assert_eq!(assault.not_possible().is_some(), true, "Assault is still possible");
+}
+
+#[test]
+fn cant_assault_after_losing_weapon() {
+    let mut warrior1 = TestAssailant::new();
+    let mut warrior2 = TestAssailant::new();
+    let weapon1 = Weapon::random();
+    let weapon2 = Weapon::random();
+    warrior1.weapon_mut().replace(weapon1);
+    warrior2.weapon_mut().replace(weapon2);
+
+    let victim_loses_weapon = AssaultConsequences::new(
+        IndividualConsequences::no_consequences(),
+        IndividualConsequences::damage_weapon(RUPTURE_MAX),
+    );
+    victim_loses_weapon.apply(&mut warrior1, &mut warrior2);
+    assert_eq!(warrior2.weapon().is_none(), true, "Weapon is still Some");
+
+    let after = AssaultSummary::new(&warrior2, &warrior1);
+    assert_eq!(after.not_possible().is_some(), true, "Assault is still possible");
 }
 
 #[test]

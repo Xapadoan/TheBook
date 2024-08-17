@@ -44,9 +44,6 @@ pub mod assault {
         pub use deal_critical_parry::DealCriticalParry;
     }
     pub mod duration_damages;
-    mod main;
-
-    pub use main::*;
 }
 
 pub mod warrior {

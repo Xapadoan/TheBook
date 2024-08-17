@@ -53,7 +53,7 @@ pub trait CanAttack:
 {
     fn can_attack(&self, victim: &dyn Assailant) -> Option<NotPossible> {
         let victim_cant_be_attacked = victim.can_be_attacked();
-        if !victim_cant_be_attacked.is_some() {
+        if victim_cant_be_attacked.is_some() {
             victim_cant_be_attacked
         } else if self.weapon().is_none() {
             Some(NotPossible::AssailantHasNoWeapon)
