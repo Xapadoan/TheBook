@@ -62,9 +62,7 @@ pub trait CanAttack:
         } else if self.is_unconscious() {
             Some(NotPossible::AssailantIsUnconscious)
         } else if let Some(misses) = self.assault_misses() {
-            Some(NotPossible::AssailantMustMissAssault(
-                TemporaryHandicap::new(misses.count()))
-            )
+            Some(NotPossible::AssailantMustMissAssault(misses.clone()))
         } else {
             None
         }

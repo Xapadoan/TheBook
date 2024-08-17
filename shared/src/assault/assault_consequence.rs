@@ -28,7 +28,7 @@ pub struct IndividualConsequences {
     duration_damages: Option<DurationDamages>,
     knock_out: bool,
     assault_misses: Option<TemporaryHandicap>,
-    unstoppable_assaults: Option<u8>,
+    unstoppable_assaults: Option<TemporaryHandicap>,
     drop_weapon: bool,
     weapon_damages: Option<u8>,
     counter_critical_hit: Option<CriticalHit>,
@@ -43,7 +43,7 @@ impl IndividualConsequences {
         duration_damages: Option<DurationDamages>,
         knock_out: bool,
         assault_misses: Option<TemporaryHandicap>,
-        unstoppable_assaults: Option<u8>,
+        unstoppable_assaults: Option<TemporaryHandicap>,
         drop_weapon: bool,
         weapon_damages: Option<u8>,
         counter_critical_hit: Option<CriticalHit>,
@@ -176,7 +176,7 @@ impl IndividualConsequences {
         }
     }
 
-    pub fn unstoppable_assaults(count: u8) -> Self {
+    pub fn unstoppable_assaults(misses: TemporaryHandicap) -> Self {
         Self {
             damages: 0,
             armor_damages: None,
@@ -184,7 +184,7 @@ impl IndividualConsequences {
             duration_damages: None,
             knock_out: false,
             assault_misses: None,
-            unstoppable_assaults: Some(count),
+            unstoppable_assaults: Some(misses),
             drop_weapon: false,
             weapon_damages: None,
             counter_critical_hit: None,
@@ -236,10 +236,11 @@ impl IndividualConsequences {
             victim.knock_out();
         }
         if let Some(misses) = &self.assault_misses {
-            victim.assault_misses_mut().replace(TemporaryHandicap::new(misses.count()));
+            victim.assault_misses_mut().replace(misses.clone());
         }
-        if let Some(count) = &self.unstoppable_assaults {
-            victim.parry_misses_mut().replace(TemporaryHandicap::new(*count));
+        if let Some(misses) = &self.unstoppable_assaults {
+            victim.parry_misses_mut().replace(misses.clone());
+            victim.assault_misses_mut().replace(misses.clone());
         }
         if self.drop_weapon {
             victim.weapon_mut().take();
@@ -342,11 +343,15 @@ impl ArmorDamages {
 
 #[cfg(test)]
 mod tests {
+    use crate::temporary_handicap::TemporaryHandicapReason;
+
     use super::*;
 
     #[test]
     fn test_individual_consequence_miss_assaults() {
-        let actual = IndividualConsequences::miss_assaults(TemporaryHandicap::new(2));
+        let actual = IndividualConsequences::miss_assaults(
+            TemporaryHandicap::new(2, TemporaryHandicapReason::FellDown)
+        );
         assert_eq!(actual.damages, 0);
         assert_eq!(actual.armor_damages.is_none(), true);
         assert_eq!(actual.injury, None);
@@ -363,7 +368,9 @@ mod tests {
 
     #[test]
     fn test_individual_consequence_unstoppable_assaults() {
-        let actual = IndividualConsequences::unstoppable_assaults(2);
+        let actual = IndividualConsequences::unstoppable_assaults(
+            TemporaryHandicap::new(2, TemporaryHandicapReason::FellDown),
+        );
         assert_eq!(actual.damages, 0);
         assert_eq!(actual.armor_damages.is_none(), true);
         assert_eq!(actual.injury, None);
@@ -371,7 +378,7 @@ mod tests {
         assert_eq!(actual.knock_out, false);
         assert_eq!(actual.assault_misses.is_none(), true);
         assert_eq!(actual.unstoppable_assaults.is_some(), true);
-        assert_eq!(actual.unstoppable_assaults.unwrap(), 2);
+        assert_eq!(actual.unstoppable_assaults.is_some(), true);
         assert_eq!(actual.drop_weapon, false);
         assert_eq!(actual.weapon_damages.is_none(), true);
         assert_eq!(actual.counter_critical_hit.is_none(), true);

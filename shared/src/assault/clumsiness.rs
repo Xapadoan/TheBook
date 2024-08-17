@@ -4,6 +4,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::dice::Dice;
 use crate::random::Random;
+use crate::temporary_handicap::{TemporaryHandicap, TemporaryHandicapReason};
 use crate::warrior::body::body_part::{BodyPartKind, BodySide, FingerName, OptionalBodyPart};
 use crate::warrior::body::injury::Injury;
 use crate::warrior::body::HasBody;
@@ -60,7 +61,9 @@ pub trait ResolveClumsiness:
     fn resolve_clumsiness(&self, clumsiness: Clumsiness, regular_fail_consequence: IndividualConsequences) -> IndividualConsequences {
         match clumsiness {
             Clumsiness::RegularFail => regular_fail_consequence,
-            Clumsiness::Fall => self.resolve_miss_assaults(2),
+            Clumsiness::Fall => self.resolve_miss_assaults(
+                TemporaryHandicap::new(2, TemporaryHandicapReason::FellDown)
+            ),
             Clumsiness::DropWeapon => self.resolve_drop_weapon(),
             Clumsiness::BreakWeapon => self.resolve_break_weapon(),
             Clumsiness::HitSelf => self.resolve_hit_self(),

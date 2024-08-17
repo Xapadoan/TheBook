@@ -1,17 +1,28 @@
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
+pub enum TemporaryHandicapReason {
+    LostBalance,
+    FellDown,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct TemporaryHandicap {
     count: u8,
+    reason: TemporaryHandicapReason,
 }
 
 impl TemporaryHandicap {
-    pub fn new(count: u8) -> Self {
-        Self { count }
+    pub fn new(count: u8, reason: TemporaryHandicapReason) -> Self {
+        Self { count, reason }
     }
 
     pub fn count(&self) -> u8 {
         self.count
+    }
+
+    pub fn reason(&self) -> &TemporaryHandicapReason {
+        &self.reason
     }
 
     fn decrease_count(&mut self) {
