@@ -45,6 +45,7 @@ pub mod assault {
         pub use deal_critical_parry::DealCriticalParry;
     }
     pub mod duration_damages;
+    pub mod end_turn_consequences;
 }
 
 pub mod warrior {
@@ -85,4 +86,7 @@ pub mod temporary_handicap {
 
 pub mod dice;
 pub mod knock_out;
-pub mod end_turn_consequences;
+
+pub mod replay {
+    pub mod turn_summary;
+}

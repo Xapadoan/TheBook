@@ -141,10 +141,8 @@ impl Tournament {
                 self.uuid(),
                 round_index,
             )?;
-            // println!("Start Round: {}", round + 1);
             let pairs = self.gen_random_pairs();
             for pair in pairs {
-                // dbg!(&pair);
                 let mut fight_replay_builder = FightReplayBuilder::build(self.uuid())?;
                 let warrior1 = repo.get_by_uuid(&pair.0)?;
                 let warrior2 = repo.get_by_uuid(&pair.1)?;
@@ -153,7 +151,7 @@ impl Tournament {
                     warrior1,
                     warrior2
                 ).auto(&mut fight_replay_builder)?;
-                fight_replay_builder.write_assaults()?;
+                fight_replay_builder.write_turn_summaries()?;
                 round_replay_builder.push_summary(fight_replay_builder.replay_uuid(), &result);
                 match result.kind() {
                     FightResultKind::Victory(fighters) => {

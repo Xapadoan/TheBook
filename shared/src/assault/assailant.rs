@@ -1,4 +1,3 @@
-use crate::end_turn_consequences::EndTurnConsequencesBuilder;
 use crate::health::IsDead;
 use crate::health::IsUnconscious;
 use crate::knock_out::KnockOut;
@@ -16,6 +15,7 @@ use super::critical_hit::ResolveCriticalHit;
 use super::critical_parry::DealCriticalParry;
 use super::critical_parry::ResolveCriticalParry;
 use super::duration_damages::TakeDurationDamages;
+use super::end_turn_consequences::EndTurnConsequencesBuilder;
 use super::common_traits::ReduceDamages;
 use super::common_traits::DealDamages;
 use super::not_possible::CanAttack;

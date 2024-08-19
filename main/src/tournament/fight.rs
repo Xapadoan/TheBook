@@ -1,11 +1,12 @@
 use std::error::Error;
 use std::fmt::Display;
 
-use shared::assault::assault_summary::AssaultSummary;
-use shared::end_turn_consequences::EndTurnConsequencesBuilder;
 use shared::equipment::weapon::OptionalMutableWeapon;
 use shared::health::{IsDead, IsUnconscious};
+use shared::replay::turn_summary::TurnSummary;
+use shared::unique_entity::UniqueEntity;
 use shared::warrior::Warrior;
+use uuid::Uuid;
 
 use crate::repository::main::Repository;
 
@@ -42,11 +43,19 @@ pub enum FightResultKind {
 #[derive(Debug)]
 pub struct FightResult {
     kind: FightResultKind,
+    blue_corner_uuid: Uuid,
+    red_corner_uuid: Uuid,
 }
 
 impl FightResult {
     pub fn kind(&self) -> &FightResultKind {
         &self.kind
+    }
+    pub fn blue_corner_uuid(&self) -> &Uuid {
+        &self.blue_corner_uuid
+    }
+    pub fn red_corner_uuid(&self) -> &Uuid {
+        &self.red_corner_uuid
     }
 }
 
@@ -63,28 +72,18 @@ impl Fight {
         let mut turn: u8 = 0;
 
         while turn < u8::MAX {
-            let blue_assault = AssaultSummary::new(&self.blue_corner, &self.red_corner);
-            blue_assault.consequences().apply(
-                &mut self.blue_corner,
-                &mut self.red_corner,
-            );
-            replay_builder.push_assault(blue_assault);
-            let red_assault = AssaultSummary::new(&self.red_corner, &self.blue_corner);
-            red_assault.consequences().apply(
-                &mut self.red_corner,
-                &mut self.blue_corner,
-            );
-            replay_builder.push_assault(red_assault);
+            let turn_summary = TurnSummary::new(&mut self.blue_corner, &mut self.red_corner);
+            replay_builder.push_turn_summary(turn_summary);
             turn += 1;
-            self.blue_corner.end_turn();
-            self.red_corner.end_turn();
             if self.blue_corner.is_dead()
                 || self.blue_corner.is_unconscious()
                 || self.blue_corner.weapon().is_none()
             {
                 let result = FightResult {
+                    blue_corner_uuid: self.blue_corner.uuid().clone(),
+                    red_corner_uuid: self.red_corner.uuid().clone(),
                     kind: FightResultKind::Victory(
-                        Fighters { winner: self.red_corner, loser: self.blue_corner }
+                        Fighters { winner: self.red_corner, loser: self.blue_corner },
                     ),
                 };
                 return Ok(result);
@@ -94,6 +93,8 @@ impl Fight {
                 || self.red_corner.weapon().is_none()
             {
                 let result = FightResult {
+                    blue_corner_uuid: self.blue_corner.uuid().clone(),
+                    red_corner_uuid: self.red_corner.uuid().clone(),
                     kind: FightResultKind::Victory(
                         Fighters { winner: self.blue_corner, loser: self.red_corner }
                     ),
@@ -103,6 +104,8 @@ impl Fight {
         }
 
         let result = FightResult {
+            blue_corner_uuid: self.blue_corner.uuid().clone(),
+            red_corner_uuid: self.red_corner.uuid().clone(),
             kind: FightResultKind::Tie((self.blue_corner, self.red_corner)),
         };
         return Ok(result);

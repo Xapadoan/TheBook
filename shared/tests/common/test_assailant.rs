@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 use shared::assault::parry_not_possible::CanParry;
-use shared::end_turn_consequences::EndTurnConsequencesBuilder;
+use shared::assault::end_turn_consequences::EndTurnConsequencesBuilder;
 use uuid::Uuid;
 
 use shared::assault::assailant::Assailant;

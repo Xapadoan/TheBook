@@ -10,7 +10,7 @@ use crate::client::player_logger::PlayerLogger;
 use crate::client::prompt::prompt_bool;
 use crate::client::select_warrior::select_warrior;
 
-use crate::client::show::AssaultReplay;
+use crate::client::show::ShowFightReplay;
 use crate::player::main::{Player, WarriorsManager};
 use crate::player::repository::PlayerRepository;
 use crate::repository::file_repository::FileRepository;
@@ -128,15 +128,9 @@ fn show_warrior_tournament(
         if show_fight_replay {
             dbg!("Showing fight replay...");
             dbg!(fight_summary.replay_uuid());
-            let (assaults, warriors) = replay_manager.get_fight_replay(&fight_summary)?;
-            for assault in assaults {
-                let (assailant, victim) = if warriors.0.uuid() == assault.assailant_uuid() {
-                    (&warriors.0, &warriors.1)
-                } else {
-                    (&warriors.1, &warriors.0)
-                };
-                println!("{}", assault.assault_replay(assailant, victim));
-            }
+            let fight_replay = replay_manager.get_fight_replay(&fight_summary)?;
+            let (mut warrior1, mut warrior2) = replay_manager.get_fight_warriors(&fight_summary)?;
+            println!("{}", fight_replay.show_fight_replay((&mut warrior1, &mut warrior2)));
         }
         round_index += 1;
     }

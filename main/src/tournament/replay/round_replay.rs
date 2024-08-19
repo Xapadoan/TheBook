@@ -15,6 +15,8 @@ pub struct FightSummary {
     winner: Option<Uuid>,
     loser: Option<Uuid>,
     tie: Option<(Uuid, Uuid)>,
+    blue_corner_uuid: Uuid,
+    red_corner_uuid: Uuid,
 }
 
 impl FightSummary {
@@ -32,6 +34,14 @@ impl FightSummary {
 
     pub fn replay_uuid(&self) -> &Uuid {
         &self.replay_uuid
+    }
+
+    pub fn blue_corner_uuid(&self) -> &Uuid {
+        &self.blue_corner_uuid
+    }
+
+    pub fn red_corner_uuid(&self) -> &Uuid {
+        &self.red_corner_uuid
     }
 }
 
@@ -74,7 +84,9 @@ impl RoundReplayBuilder {
             replay_uuid: replay_uuid.clone(),
             winner,
             loser,
-            tie
+            tie,
+            blue_corner_uuid: fight_result.blue_corner_uuid().clone(),
+            red_corner_uuid: fight_result.red_corner_uuid().clone(),
         };
         self.fights_summaries.push(summary);
     }

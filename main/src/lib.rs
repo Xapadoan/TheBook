@@ -36,6 +36,9 @@ pub mod client {
         mod show_body_part_kind;
         mod show_self_critical_hit;
         mod show_temporary_handicap;
+        mod show_fight_replay;
+        pub use show_fight_replay::ShowFightReplay;
+        mod show_turn_summary;
 
         pub use main::*;
     }

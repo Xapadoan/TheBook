@@ -1,12 +1,19 @@
+use serde::{Deserialize, Serialize};
+
 use crate::assault::assailant::Assailant;
 use crate::assault::duration_damages::TakeDurationDamages;
 
+#[derive(Debug, Serialize, Deserialize)]
 pub struct EndTurnConsequences {
     duration_damages: u8,
 }
 
 // client only
 impl EndTurnConsequences {
+    pub fn duration_damages(&self) -> u8 {
+        self.duration_damages
+    }
+
     pub fn apply(&self, victim: &mut dyn Assailant) {
         victim.take_damage(self.duration_damages);
     }

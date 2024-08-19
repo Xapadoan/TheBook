@@ -1,6 +1,6 @@
 use std::{collections::HashMap, error::Error, fmt::Display, fs, io, path::PathBuf};
 
-use shared::assault::assault_summary::AssaultSummary;
+use shared::replay::turn_summary::TurnSummary;
 use shared::tournament::contestant::TournamentContestant;
 use shared::unique_entity::UniqueEntity;
 use shared::warrior::Warrior;
@@ -12,6 +12,7 @@ use crate::repository::main::{Repository, RepositoryError};
 use crate::tournament::main::Tournament;
 use crate::tournament::manager::{TournamentManager, TournamentManagerError};
 
+use super::fight_replay::FightReplay;
 use super::round_replay::FightSummary;
 
 pub const REPLAY_ROOT_DIR: &'static str = "data/replays";
@@ -48,28 +49,29 @@ impl ReplayManager {
         Ok(summaries)
     }
 
-    pub fn get_fight_replay(&self, fight_summary: &FightSummary) -> Result<(Vec<AssaultSummary>, (Warrior, Warrior)), ReplayManagerError> {
+    pub fn get_fight_replay(&self, fight_summary: &FightSummary) -> Result<FightReplay, ReplayManagerError> {
         let mut path = PathBuf::from(REPLAY_ROOT_DIR);
         path.push(self.tournament_uuid.to_string());
         path.push(fight_summary.replay_uuid().to_string());
-        path.push("assaults.replay");
-        let serialized_assaults = fs::read_to_string(path)?;
-        let assaults: Vec<AssaultSummary> = serde_json::from_str(&serialized_assaults)?;
+        path.push("turns.replay");
+        let serialized_turns = fs::read_to_string(path)?;
+        let turns: Vec<TurnSummary> = serde_json::from_str(&serialized_turns)?;
+        Ok(FightReplay::new(
+            fight_summary.replay_uuid().clone(),
+            fight_summary.blue_corner_uuid().clone(),
+            fight_summary.red_corner_uuid().clone(),
+            turns
+        ))
+    }
+
+    pub fn get_fight_warriors(&self, fight_summary: &FightSummary) -> Result<(Warrior, Warrior), ReplayManagerError> {
         let mut path = PathBuf::from(REPLAY_ROOT_DIR);
         path.push(self.tournament_uuid.to_string());
         path.push(fight_summary.replay_uuid().to_string());
         let warriors_repo: FileRepository<Warrior> = FileRepository::build(path)?;
-        let warriors = if fight_summary.tie().is_some() {
-            let (uuid1, uuid2) = fight_summary.tie().unwrap();
-            let warrior1 = warriors_repo.get_by_uuid(&uuid1)?;
-            let warrior2 = warriors_repo.get_by_uuid(&uuid2)?;
-            (warrior1, warrior2)
-        } else {
-            let warrior1 = warriors_repo.get_by_uuid(fight_summary.winner().as_ref().unwrap())?;
-            let warrior2 = warriors_repo.get_by_uuid(fight_summary.loser().as_ref().unwrap())?;
-            (warrior1, warrior2)
-        };
-        Ok((assaults, warriors))
+        let blue_corner = warriors_repo.get_by_uuid(fight_summary.blue_corner_uuid())?;
+        let red_corner = warriors_repo.get_by_uuid(fight_summary.red_corner_uuid())?;
+        Ok((blue_corner, red_corner))
     }
 
 pub fn get_fight_summary_for_warrior(&self, warrior: &Warrior, round_index: u8) -> Result<FightSummary, ReplayManagerError> {

@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use crate::equipment::protection::OptionalMutableProtection;
 use crate::equipment::rupture::{Rupture, RUPTURE_MAX};
 use crate::warrior::body::body_part::{BodyPartKind, OptionalMutableBodyPart};
-use crate::warrior::body::injury::Injury;
+use crate::warrior::body::injury::{Injuries, Injury};
 use crate::temporary_handicap::TemporaryHandicap;
 
 use super::assailant::Assailant;
@@ -229,8 +229,8 @@ impl IndividualConsequences {
         if let Some(armor_damages) = &self.armor_damages {
             armor_damages.apply(victim);
         }
-        if let Some(_) = &self.injury {
-            println!("WARN injuries are not applied");
+        if let Some(injury) = &self.injury {
+            victim.body_mut().add_injury(injury.clone())
         }
         if self.knock_out {
             victim.knock_out();

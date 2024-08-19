@@ -15,7 +15,7 @@ use crate::assault::parry_attempt::{ParryAttempt, ParryThreshold};
 use crate::assault::parry_clumsiness::ResolveParryClumsiness;
 use crate::assault::parry_not_possible::CanParry;
 use crate::assault::parry_success::ResolveParrySuccess;
-use crate::end_turn_consequences::EndTurnConsequencesBuilder;
+use crate::assault::end_turn_consequences::EndTurnConsequencesBuilder;
 use crate::equipment::weapon::{OptionalMutableWeapon, Weapon};
 use crate::health::{Health, IsDead, IsUnconscious, MutableHealth};
 use crate::knock_out::KnockOut;

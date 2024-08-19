@@ -4,43 +4,55 @@ use std::{fs, io};
 use std::path::PathBuf;
 
 use serde::{Deserialize, Serialize};
-use shared::assault::assault_summary::AssaultSummary;
+use shared::replay::turn_summary::TurnSummary;
 use shared::warrior::Warrior;
 use uuid::Uuid;
 
 use crate::repository::file_repository::FileRepository;
-use crate::repository::main::{Repository, RepositoryError, UniqueEntity};
+use crate::repository::main::{Repository, RepositoryError};
 
 use super::manager::REPLAY_ROOT_DIR;
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct FightReplayData {
+pub struct FightReplay {
     uuid: Uuid,
-    blue: Warrior,
-    red: Warrior,
-    assaults: Vec<AssaultSummary>
+    blue_corner_uuid: Uuid,
+    red_corner_uuid: Uuid,
+    turn_summaries: Vec<TurnSummary>
 }
 
-impl UniqueEntity for FightReplayData {
-    fn uuid<'a>(&'a self) -> &'a Uuid {
-        &self.uuid
+impl FightReplay {
+    // Should be used only by ReplayManager
+    pub fn new(
+        uuid: Uuid,
+        blue_corner_uuid: Uuid,
+        red_corner_uuid: Uuid,
+        turn_summaries: Vec<TurnSummary>,
+    ) -> Self {
+        Self {
+            uuid,
+            blue_corner_uuid,
+            red_corner_uuid,
+            turn_summaries,
+        }
+    }
+
+    pub fn blue_corner_uuid(&self) -> &Uuid {
+        &self.blue_corner_uuid
+    }
+
+    pub fn red_corner_uuid(&self) -> &Uuid {
+        &self.red_corner_uuid
+    }
+
+    pub fn turn_summaries(&self) -> &Vec<TurnSummary> {
+        &self.turn_summaries
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
-struct FightSummary {
-    round_index: u8,
-    replay_uuid: Uuid,
-    winner: Option<Uuid>,
-    loser: Option<Uuid>,
-    tie: Option<(Uuid, Uuid)>,
-}
-
-
 pub struct FightReplayBuilder<T: Repository<Warrior>> {
     replay_uuid: Uuid,
-    // round_index: u8,
-    assaults: Vec<AssaultSummary>,
+    turn_summaries: Vec<TurnSummary>,
     warriors_repo: T,
 }
 
@@ -51,8 +63,8 @@ impl<T: Repository<Warrior>> FightReplayBuilder<T> {
         Ok(())
     }
 
-    pub fn push_assault(&mut self, assault: AssaultSummary) {
-        self.assaults.push(assault)
+    pub fn push_turn_summary(&mut self, turn_summary: TurnSummary) {
+        self.turn_summaries.push(turn_summary)
     }
 }
 
@@ -63,13 +75,13 @@ impl FightReplayBuilder<FileRepository<Warrior>> {
         let replay_uuid = Uuid::new_v4();
         path.push(replay_uuid.to_string());
         let repo = FileRepository::build(path)?;
-        Ok(Self { replay_uuid, warriors_repo: repo, assaults: vec![] })
+        Ok(Self { replay_uuid, warriors_repo: repo, turn_summaries: vec![] })
     }
 
-    pub fn write_assaults(&self) -> Result<(), FightReplayBuilderError> {
-        let serialized_assaults = serde_json::to_string(&self.assaults)?;
-        let path = self.warriors_repo.full_path("assaults.replay");
-        fs::write(&path, serialized_assaults)?;
+    pub fn write_turn_summaries(&self) -> Result<(), FightReplayBuilderError> {
+        let serialized_turn_summaries = serde_json::to_string(&self.turn_summaries)?;
+        let path = self.warriors_repo.full_path("turns.replay");
+        fs::write(&path, serialized_turn_summaries)?;
         Ok(())
     }
 
