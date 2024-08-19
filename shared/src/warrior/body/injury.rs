@@ -1,6 +1,8 @@
 use serde::{Deserialize, Serialize};
 
-use super::body_part::{BodySide, FingerName};
+use crate::stats::{Stat, StatModifier};
+
+use super::body_part::{BodySide, FingerName, OptionalMutableBodyPart};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub enum Injury {
@@ -128,17 +130,88 @@ impl PartialEq for Injury {
     }
 }
 
-pub trait Injuries {
-    fn injuries(&self) -> &Vec<Injury>;
-    fn injuries_mut(&mut self) -> &mut Vec<Injury>;
-    fn add_injury(&mut self, injury: Injury) {
-        let mut i = 0;
-        let len = self.injuries().len();
-        while i < len {
-            if self.injuries()[i] == injury {
-                return;
-            }
-            i += 1;
+pub trait Injuries: OptionalMutableBodyPart {
+    fn injuries(&self) -> Vec<Injury>;
+    fn add_injury(&mut self, injury: Injury);
+}
+
+impl StatModifier for Injury {
+    fn modify_stat(&self, base: Stat) -> Stat {
+        match self {
+            Injury::BothEyesGouged => match base {
+                Stat::Attack(_) => base.modify(-5),
+                Stat::Parry(_) => base.modify(-8),
+            },
+            Injury::BothLegsBroken => match base {
+                Stat::Attack(_) => base.modify(-8),
+                Stat::Parry(_) => base.modify(-8),
+            },
+            Injury::BothLegsSevered => match base {
+                Stat::Attack(_) => base.modify(-8),
+                Stat::Parry(_) => base.modify(-8),
+            },
+            Injury::FingerSevered(_, _) => base,
+            Injury::FootSevered(_) |
+            Injury::FootSmashed(_) => match base {
+                Stat::Attack(_) => base.modify(-2),
+                Stat::Parry(_) => base.modify(-2),
+            },
+            Injury::GenitalsCrushed => base,
+            Injury::KneeDislocated(_) => match base {
+                Stat::Attack(_) => base.modify(-1),
+                Stat::Parry(_) => base.modify(-2),
+            },
+            Injury::LeftArmBroken => match base {
+                Stat::Attack(_) => base.modify(-2),
+                Stat::Parry(_) => base.modify(-3),
+            },
+            Injury::LeftArmSevered => match base {
+                Stat::Attack(_) => base.modify(-3),
+                Stat::Parry(_) => base.modify(-4),
+            },
+            Injury::LeftElbowDislocated |
+            Injury::LeftShoulderDislocated => match base {
+                Stat::Attack(_) => base.modify(-1),
+                Stat::Parry(_) => base.modify(-2),
+            },
+            Injury::LeftHandBroken |
+            Injury::LeftHandSevered => match base {
+                Stat::Attack(_) => base.modify(-2),
+                Stat::Parry(_) => base.modify(-3),
+            },
+            Injury::OneEyeGouged(_) => match base {
+                Stat::Attack(_) => base.modify(-1),
+                Stat::Parry(_) => base.modify(-2),
+            },
+            Injury::OneLegBroken(_) => match base {
+                Stat::Attack(_) => base.modify(-4),
+                Stat::Parry(_) => base.modify(-6),
+            },
+            Injury::OneLegSevered(_) => match base {
+                Stat::Attack(_) => base.modify(-4),
+                Stat::Parry(_) => base.modify(-6),
+            },
+            Injury::RightArmBroken => match base {
+                Stat::Attack(_) => base.modify(-5),
+                Stat::Parry(_) => base.modify(-6),
+            },
+            Injury::RightArmSevered => match base {
+                Stat::Attack(_) => base.modify(-5),
+                Stat::Parry(_) => base.modify(-6),
+            },
+            Injury::RightElbowDislocated |
+            Injury::RightShoulderDislocated => match base {
+                Stat::Attack(_) => base.modify(-1),
+                Stat::Parry(_) => base.modify(-2),
+            },
+            Injury::RightHandBroken => match base {
+                Stat::Attack(_) => base.modify(-5),
+                Stat::Parry(_) => base.modify(-6),
+            },
+            Injury::RightHandSevered => match base {
+                Stat::Attack(_) => base.modify(-5),
+                Stat::Parry(_) => base.modify(-6),
+            },
         }
     }
 }

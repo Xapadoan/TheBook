@@ -4,21 +4,40 @@ use serde::{Deserialize, Serialize};
 use crate::equipment::protection::{OptionalMutableProtection, Protection};
 use crate::random::Random;
 
-use super::injury::Injury;
-
 pub trait OptionalBodyPart {
     fn body_part(&self, body_part_kind: &BodyPartKind) -> &Option<BodyPart>;
 }
 
 pub trait OptionalMutableBodyPart: OptionalBodyPart {
     fn body_part_mut(&mut self, body_part_kind: &BodyPartKind) -> &mut Option<BodyPart>;
+    fn remove_part(&mut self, body_part_kind: &BodyPartKind) {
+        self.body_part_mut(body_part_kind).take();
+        match body_part_kind {
+            BodyPartKind::Leg(side) => self.remove_part(&BodyPartKind::Knee(side.clone())),
+            BodyPartKind::Knee(side) => self.remove_part(&BodyPartKind::Foot(side.clone())),
+            BodyPartKind::Arm(side) => self.remove_part(&BodyPartKind::Hand(side.clone())),
+            BodyPartKind::Hand(side) => {
+                self.remove_part(&BodyPartKind::Finger(side.clone(), FingerName::Thumb));
+                self.remove_part(&BodyPartKind::Finger(side.clone(), FingerName::PointerFinger));
+                self.remove_part(&BodyPartKind::Finger(side.clone(), FingerName::MiddleFinger));
+                self.remove_part(&BodyPartKind::Finger(side.clone(), FingerName::RingFinger));
+                self.remove_part(&BodyPartKind::Finger(side.clone(), FingerName::PinkyFinger));
+            },
+            _ => {},
+        }
+    }
+    fn break_part(&mut self, body_part_kind: &BodyPartKind) {
+        if let Some(part) = self.body_part_mut(body_part_kind) {
+            part.set_is_broken(true)
+        }
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct BodyPart {
     kind: BodyPartKind,
     protection: Option<Protection>,
-    injury: Option<Injury>,
+    is_broken: bool,
 }
 
 impl BodyPart {
@@ -26,16 +45,20 @@ impl BodyPart {
         &self.kind
     }
 
-    pub fn injury(&self) -> &Option<Injury> {
-        &self.injury
+    pub fn is_broken(&self) -> bool {
+        self.is_broken
     }
 
     pub fn new(kind: BodyPartKind) -> Self {
         Self {
             kind,
             protection: None,
-            injury: None,
+            is_broken: false,
         }
+    }
+
+    pub fn set_is_broken(&mut self, is_broken: bool) {
+        self.is_broken = is_broken;
     }
 }
 
@@ -159,7 +182,7 @@ pub const PROTECTABLE_BODY_PARTS: [BodyPartKind; 10] = [
     BodyPartKind::Foot(BodySide::Right),
 ];
 
-const ALL_FINGERS: [FingerName; 5] = [
+pub const ALL_FINGERS: [FingerName; 5] = [
     FingerName::Thumb,
     FingerName::PointerFinger,
     FingerName::MiddleFinger,

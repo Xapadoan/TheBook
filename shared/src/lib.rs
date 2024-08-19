@@ -51,6 +51,7 @@ pub mod warrior {
     pub mod body {
         pub mod injury;
         pub mod body_part;
+        mod body_injuries;
         mod main;
 
         pub use main::*;

@@ -13,6 +13,7 @@ use super::body_part::{
     OptionalMutableBodyPart,
     PROTECTABLE_BODY_PARTS,
 };
+use super::injury::Injuries;
 
 pub trait HasBody {
     fn body(&self) -> &Body;
@@ -199,7 +200,10 @@ impl ReduceDamages for Body {
 
 impl StatModifier for Body {
     fn modify_stat(&self, base: Stat) -> Stat {
-        println!("WARN StatModifier not implemented on Body");
-        base
+        let mut stat = base;
+        for injury in self.injuries() {
+            stat = injury.modify_stat(stat);
+        }
+        stat
     }
 }

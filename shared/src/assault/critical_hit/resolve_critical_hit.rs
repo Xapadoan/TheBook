@@ -163,11 +163,7 @@ pub trait ResolveCriticalHit:
         match self.body().body_part(&BodyPartKind::Leg(affected_side.clone())) {
             None => IndividualConsequences::no_consequences(),
             Some(body_part) => {
-                let injury = if self.body().body_part(&BodyPartKind::Leg(affected_side.other())).is_none() {
-                    Injury::BothLegsSevered
-                } else {
-                    Injury::OneLegSevered(affected_side)
-                };
+                let injury = Injury::OneLegSevered(affected_side);
                 let total_damages = damages + 8;
                 match body_part.protection() {
                     None => IndividualConsequences::injures(total_damages, injury),
@@ -176,7 +172,7 @@ pub trait ResolveCriticalHit:
                             total_damages,
                             ArmorDamages::new(1, body_part.kind().clone()),
                         ),
-                        RuptureTestResult::Fail => IndividualConsequences::injures(6, injury)
+                        RuptureTestResult::Fail => IndividualConsequences::injures(total_damages, injury)
                     }
                 }
             }
@@ -189,9 +185,10 @@ pub trait ResolveCriticalHit:
             Some(_) => {
                 match self.body().body_part(&BodyPartKind::Knee(affected_side.clone())) {
                     None => IndividualConsequences::no_consequences(),
-                    Some(knee) => match knee.injury() {
-                        None => IndividualConsequences::injures(damages + 3, Injury::KneeDislocated(affected_side)),
-                        Some(_) => IndividualConsequences::only_damages(damages + 3)
+                    Some(knee) => if knee.is_broken() {
+                        IndividualConsequences::injures(damages + 3, Injury::KneeDislocated(affected_side))
+                    } else {
+                        IndividualConsequences::only_damages(damages + 3)
                     }
                 }
             }
@@ -208,9 +205,10 @@ pub trait ResolveCriticalHit:
                         BodySide::Right => Injury::RightHandBroken,
                         BodySide::Left => Injury::LeftHandBroken,
                     };
-                    match hand.injury() {
-                        None => IndividualConsequences::injures(damages + 3, injury),
-                        Some(_) => IndividualConsequences::only_damages(damages + 3),
+                    if hand.is_broken() {
+                        IndividualConsequences::injures(damages + 3, injury)
+                    } else {
+                        IndividualConsequences::only_damages(damages + 3)
                     }
                 }
             }
@@ -223,9 +221,10 @@ pub trait ResolveCriticalHit:
             Some(_) => match self.body().body_part(&BodyPartKind::Foot(affected_side.clone())) {
                 None => IndividualConsequences::no_consequences(),
                 Some(hand) => {
-                    match hand.injury() {
-                        None => IndividualConsequences::injures(damages + 3, Injury::FootSmashed(affected_side)),
-                        Some(_) => IndividualConsequences::only_damages(damages + 3),
+                    if hand.is_broken() {
+                        IndividualConsequences::injures(damages + 3, Injury::FootSmashed(affected_side))
+                    } else {
+                        IndividualConsequences::only_damages(damages + 3)
                     }
                 }
             }
@@ -240,9 +239,10 @@ pub trait ResolveCriticalHit:
                     BodySide::Right => Injury::RightArmBroken,
                     BodySide::Left => Injury::LeftArmBroken,
                 };
-                match arm.injury() {
-                    Some(_) => IndividualConsequences::no_consequences(),
-                    None => IndividualConsequences::injures(damages + 4, injury)
+                if arm.is_broken() {
+                    IndividualConsequences::no_consequences()
+                } else {
+                    IndividualConsequences::injures(damages + 4, injury)
                 }
             }
         }
@@ -251,18 +251,13 @@ pub trait ResolveCriticalHit:
         let affected_side = BodySide::random();
         match self.body().body_part(&BodyPartKind::Leg(affected_side.clone())) {
             None => IndividualConsequences::no_consequences(),
-            Some(leg) => match leg.injury() {
-                Some(_) => {
-                    let injury = match self.body().body_part(&BodyPartKind::Leg(affected_side.other())) {
-                        None => Injury::OneLegBroken(affected_side),
-                        Some(other_leg) => match other_leg.injury() {
-                            None => Injury::OneLegBroken(affected_side),
-                            Some(_) => Injury::BothLegsBroken,
-                        },
-                    };
-                    IndividualConsequences::injures(damages + 5, injury)
-                },
-                None => IndividualConsequences::only_damages(damages + 5)
+            Some(leg) => if leg.is_broken() {
+                IndividualConsequences::injures(
+                    damages + 5,
+                    Injury::OneLegBroken(affected_side),
+                )
+            } else {
+                IndividualConsequences::only_damages(damages + 5)
             }
         }
     }
@@ -279,9 +274,10 @@ pub trait ResolveCriticalHit:
         match self.body().body_part(&BodyPartKind::Genitals) {
             None => IndividualConsequences::no_consequences(),
             Some(genitals) => {
-                match genitals.injury() {
-                    Some(_) => IndividualConsequences::only_damages(damages + 5),
-                    None => IndividualConsequences::injures(damages + 5, Injury::GenitalsCrushed),
+                if genitals.is_broken() {
+                    IndividualConsequences::only_damages(damages + 5)
+                } else {
+                    IndividualConsequences::injures(damages + 5, Injury::GenitalsCrushed)
                 }
             }
         }
