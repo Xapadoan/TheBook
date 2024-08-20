@@ -130,7 +130,7 @@ fn show_warrior_tournament(
             dbg!(fight_summary.replay_uuid());
             let fight_replay = replay_manager.get_fight_replay(&fight_summary)?;
             let (mut warrior1, mut warrior2) = replay_manager.get_fight_warriors(&fight_summary)?;
-            println!("{}", fight_replay.show_fight_replay((&mut warrior1, &mut warrior2)));
+            fight_replay.show_fight_replay((&mut warrior1, &mut warrior2));
         }
         round_index += 1;
     }

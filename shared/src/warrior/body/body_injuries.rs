@@ -218,4 +218,16 @@ mod tests {
 
         assert!(body.injuries().contains(&Injury::BothLegsBroken));
     }
+
+    #[test]
+    fn one_foot_severed() {
+        let mut body = Body::new();
+        body.body_part_mut(&BodyPartKind::Foot(BodySide::Left)).take();
+        assert!(body.body_part(&BodyPartKind::Foot(BodySide::Left)).is_none());
+
+        let injuries = body.injuries();
+
+        assert_eq!(injuries.len(), 1);
+        assert!(injuries.contains(&Injury::FootSevered(BodySide::Left)))
+    }
 }

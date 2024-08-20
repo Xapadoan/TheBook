@@ -6,21 +6,17 @@ use crate::tournament::replay::fight_replay::FightReplay;
 use super::show_turn_summary::ShowTurnSummary;
 
 pub trait ShowFightReplay {
-    fn show_fight_replay(&self, warriors: (&mut Warrior, &mut Warrior)) -> String;
+    fn show_fight_replay(&self, warriors: (&mut Warrior, &mut Warrior));
 }
 
 impl ShowFightReplay for FightReplay {
-    fn show_fight_replay(&self, warriors: (&mut Warrior, &mut Warrior)) -> String {
-        let mut str = String::new();
+    fn show_fight_replay(&self, warriors: (&mut Warrior, &mut Warrior)) {
         let (blue_corner, red_corner) = get_corners(self, warriors);
         for turn in self.turn_summaries() {
-            str = format!(
-                "{}\n{}",
-                str,
-                turn.show_turn_summary(blue_corner, red_corner),
-            );
+            println!("=== BEGIN TURN ===");
+            println!("{}", turn.show_turn_summary(blue_corner, red_corner));
+            println!("==== END TURN ====\n");
         }
-        str
     }
 }
 

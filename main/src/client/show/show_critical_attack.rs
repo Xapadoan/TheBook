@@ -4,9 +4,8 @@ use shared::equipment::protection::OptionalMutableProtection;
 use shared::warrior::body::body_part::{BodyPartKind, OptionalBodyPart, BodySide};
 use shared::warrior::body::injury::Injury;
 
-use crate::client::show::{show_resolution::show_rupture, ShowSelf};
-
-use super::{show_resolution::show_lose_eye, ShowAction, TournamentReplayActor};
+use super::show_resolution::{show_lose_eye, show_rupture};
+use super::{ShowSelf, ShowAction, TournamentReplayActor};
 
 impl ShowAction for CriticalHit {
     fn show_action(

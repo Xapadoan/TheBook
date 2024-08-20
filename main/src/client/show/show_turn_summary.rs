@@ -5,7 +5,9 @@ use shared::replay::turn_summary::TurnSummary;
 use shared::unique_entity::UniqueEntity;
 use shared::warrior::Warrior;
 
-use super::{AssaultReplay, TournamentReplayActor};
+use crate::client::character_sheet::CharacterSheet;
+
+use super::{AssaultReplay, ShowSelf, TournamentReplayActor};
 
 pub trait ShowTurnSummary {
     fn show_turn_summary(
@@ -34,7 +36,7 @@ impl ShowTurnSummary for TurnSummary {
             (blue_corner, red_corner),
         );
         str = format!("{}\n{}", str, assaults[1].assault_replay(assailant, victim));
-        assaults[0].consequences().apply(assailant, victim);
+        assaults[1].consequences().apply(assailant, victim);
 
         let blue_turn_end_str = show_end_turn(self.blue_turn_end(), blue_corner);
         if !blue_turn_end_str.is_empty() {
@@ -47,6 +49,10 @@ impl ShowTurnSummary for TurnSummary {
             str = format!("{}\n{}", str, red_turn_end_str);
         }
         red_corner.take_damage(self.red_turn_end().duration_damages());
+
+        str = format!("{}\n\n{}", str, CharacterSheet::new(blue_corner).show_self());
+        str = format!("{}\n\n{}", str, CharacterSheet::new(red_corner).show_self());
+
         str
     }
 }

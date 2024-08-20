@@ -215,3 +215,18 @@ impl StatModifier for Injury {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn foot_severed_stats_modifier() {
+        let attack = Stat::Attack(10);
+        let parry = Stat::Parry(10);
+        let injury = Injury::FootSevered(BodySide::Left);
+
+        assert_eq!(injury.modify_stat(attack).value(), 8);
+        assert_eq!(injury.modify_stat(parry).value(), 8);
+    }
+}

@@ -45,6 +45,7 @@ pub mod client {
     mod select_warrior;
     mod player_creator;
     mod player_logger;
+    mod character_sheet;
 }
 
 use std::error::Error;
