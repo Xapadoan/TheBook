@@ -1,5 +1,6 @@
 use rand::Rng;
-use shared::random::RandomDictionary;
+
+use crate::random::RandomDictionary;
 
 pub struct TournamentNameDictionary {}
 

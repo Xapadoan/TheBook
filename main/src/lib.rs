@@ -1,7 +1,6 @@
 mod tournament {
-    pub mod main;
+    pub mod auto_tournament;
     mod fight;
-    mod name;
     pub mod manager;
     pub mod replay {
         pub mod tournament_replay;

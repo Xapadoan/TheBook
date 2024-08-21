@@ -2,7 +2,8 @@ use std::error::Error;
 use std::fmt::Display;
 use std::path::PathBuf;
 
-use shared::random::Random;
+use shared::tournament::TournamentError;
+use shared::{random::Random, tournament::Tournament};
 use shared::tournament::contestant::TournamentContestant;
 use shared::unique_entity::UniqueEntity;
 use shared::warrior::Warrior;
@@ -10,7 +11,7 @@ use uuid::Uuid;
 
 use crate::repository::{FileRepository, Repository, RepositoryError};
 
-use super::main::{Tournament, TournamentError};
+use super::auto_tournament::AutoTournament;
 
 #[derive(Debug)]
 pub struct TournamentManager<T: Repository<Tournament>> {

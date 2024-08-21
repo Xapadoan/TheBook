@@ -79,6 +79,10 @@ pub mod stats;
 
 pub mod tournament {
     pub mod contestant;
+    mod main;
+    pub use main::{Tournament, TournamentError};
+    mod names;
+    pub use names::TournamentNameDictionary;
 }
 
 pub mod temporary_handicap {

@@ -8,12 +8,12 @@ use shared::player::Player;
 use shared::replay::turn_summary::TurnSummary;
 use shared::replay::{FightReplay, FightReplaySummary};
 use shared::tournament::contestant::TournamentContestant;
+use shared::tournament::Tournament;
 use shared::unique_entity::UniqueEntity;
 use shared::warrior::{MutableWarriorCollection, Warrior};
 use uuid::Uuid;
 
 use crate::repository::{FileRepository, Repository, RepositoryError};
-use crate::tournament::main::Tournament;
 use crate::tournament::manager::{TournamentManager, TournamentManagerError};
 
 pub const REPLAY_ROOT_DIR: &'static str = "data/replays";

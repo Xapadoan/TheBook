@@ -4,9 +4,8 @@ use std::io;
 use std::fs;
 use std::path::PathBuf;
 
+use shared::tournament::Tournament;
 use uuid::Uuid;
-
-use crate::tournament::main::Tournament;
 
 use super::manager::REPLAY_ROOT_DIR;
 
