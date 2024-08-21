@@ -12,7 +12,7 @@ use shared::assault::common_traits::{DealDamages, ReduceDamages, ResolveBreakWea
 use shared::assault::critical_hit::{DealCriticalHit, ResolveCriticalHit, ResolveCriticalHitSelf};
 use shared::assault::critical_parry::{DealCriticalParry, ResolveCriticalParry};
 use shared::assault::duration_damages::{DurationDamages, TakeDurationDamages};
-use shared::assault::not_possible::{CanAttack, CanBeAttacked};
+use shared::assault::attack_not_possible::{CanAttack, CanBeAttacked};
 use shared::assault::parry_attempt::{ParryAttempt, ParryThreshold};
 use shared::assault::parry_clumsiness::ResolveParryClumsiness;
 use shared::assault::parry_success::ResolveParrySuccess;

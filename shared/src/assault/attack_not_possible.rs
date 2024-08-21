@@ -8,7 +8,7 @@ use super::assailant::Assailant;
 use super::assault_consequence::{AssaultConsequences, AssaultConsequencesBuilder, IndividualConsequences};
 
 #[derive(Debug, Serialize, Deserialize)]
-pub enum NotPossible {
+pub enum AttackNotPossible {
     AssailantHasNoWeapon,
     AssailantIsDead,
     AssailantIsUnconscious,
@@ -18,7 +18,7 @@ pub enum NotPossible {
     AssailantMustMissAssault(TemporaryHandicap),
 }
 
-impl AssaultConsequencesBuilder for NotPossible {
+impl AssaultConsequencesBuilder for AttackNotPossible {
     fn to_consequences(&self, _: & dyn Assailant, _: & dyn Assailant) -> AssaultConsequences {
         AssaultConsequences::new(
             IndividualConsequences::no_consequences(),
@@ -32,13 +32,13 @@ pub trait CanBeAttacked:
     IsDead +
     IsUnconscious
 {
-    fn can_be_attacked(&self) -> Option<NotPossible> {
+    fn can_be_attacked(&self) -> Option<AttackNotPossible> {
         if self.weapon().is_none() {
-            Some(NotPossible::VictimHasNoWeapon)
+            Some(AttackNotPossible::VictimHasNoWeapon)
         } else if self.is_dead() {
-            Some(NotPossible::VictimIsDead)
+            Some(AttackNotPossible::VictimIsDead)
         } else if self.is_unconscious() {
-            Some(NotPossible::VictimIsUnconscious)
+            Some(AttackNotPossible::VictimIsUnconscious)
         } else {
             None
         }
@@ -51,18 +51,18 @@ pub trait CanAttack:
     IsUnconscious +
     OptionalAssaultMisses
 {
-    fn can_attack(&self, victim: &dyn Assailant) -> Option<NotPossible> {
+    fn can_attack(&self, victim: &dyn Assailant) -> Option<AttackNotPossible> {
         let victim_cant_be_attacked = victim.can_be_attacked();
         if victim_cant_be_attacked.is_some() {
             victim_cant_be_attacked
         } else if self.weapon().is_none() {
-            Some(NotPossible::AssailantHasNoWeapon)
+            Some(AttackNotPossible::AssailantHasNoWeapon)
         } else if self.is_dead() {
-            Some(NotPossible::AssailantIsDead)
+            Some(AttackNotPossible::AssailantIsDead)
         } else if self.is_unconscious() {
-            Some(NotPossible::AssailantIsUnconscious)
+            Some(AttackNotPossible::AssailantIsUnconscious)
         } else if let Some(misses) = self.assault_misses() {
-            Some(NotPossible::AssailantMustMissAssault(misses.clone()))
+            Some(AttackNotPossible::AssailantMustMissAssault(misses.clone()))
         } else {
             None
         }

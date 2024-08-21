@@ -2,7 +2,7 @@ pub mod assault {
     pub mod assailant;
     pub mod assault_summary;
     pub mod assault_consequence;
-    pub mod not_possible;
+    pub mod attack_not_possible;
     pub mod parry_not_possible;
     pub mod parry_success;
     pub mod attack_missed;

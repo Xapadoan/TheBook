@@ -11,7 +11,7 @@ use super::attack_missed::AttackMissed;
 use super::attack_success::AttackSuccess;
 use super::critical_hit::CriticalHit;
 use super::critical_parry::CriticalParry;
-use super::not_possible::NotPossible;
+use super::attack_not_possible::AttackNotPossible;
 use super::parry_attempt::ParryAttemptResult;
 use super::parry_clumsiness::ParryClumsiness;
 use super::parry_not_possible::ParryNotPossible;
@@ -21,7 +21,7 @@ use super::parry_success::ParrySuccess;
 pub struct AssaultSummary {
     assailant_uuid: Uuid,
     victim_uuid: Uuid,
-    not_possible: Option<NotPossible>,
+    not_possible: Option<AttackNotPossible>,
     attack_clumsiness: Option<AttackClumsiness>,
     attack_missed: Option<AttackMissed>,
     attack_success: Option<AttackSuccess>,
@@ -46,7 +46,7 @@ impl AssaultSummary {
         &self.parry_not_possible
     }
 
-    pub fn not_possible(&self) -> &Option<NotPossible> {
+    pub fn not_possible(&self) -> &Option<AttackNotPossible> {
         &self.not_possible
     }
 

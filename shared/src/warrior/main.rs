@@ -10,7 +10,7 @@ use crate::assault::common_traits::{DealDamages, ReduceDamages, ResolveBreakWeap
 use crate::assault::critical_hit::{DealCriticalHit, ResolveCriticalHit, ResolveCriticalHitSelf};
 use crate::assault::critical_parry::{DealCriticalParry, ResolveCriticalParry};
 use crate::assault::duration_damages::{DurationDamages, TakeDurationDamages};
-use crate::assault::not_possible::{CanAttack, CanBeAttacked};
+use crate::assault::attack_not_possible::{CanAttack, CanBeAttacked};
 use crate::assault::parry_attempt::{ParryAttempt, ParryThreshold};
 use crate::assault::parry_clumsiness::ResolveParryClumsiness;
 use crate::assault::parry_not_possible::CanParry;
