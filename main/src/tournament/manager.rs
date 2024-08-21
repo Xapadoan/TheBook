@@ -8,8 +8,7 @@ use shared::unique_entity::UniqueEntity;
 use shared::warrior::Warrior;
 use uuid::Uuid;
 
-use crate::repository::main::{Repository, RepositoryError};
-use crate::repository::file_repository::FileRepository;
+use crate::repository::{FileRepository, Repository, RepositoryError};
 
 use super::main::{Tournament, TournamentError};
 

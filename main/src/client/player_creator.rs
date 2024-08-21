@@ -1,44 +1,66 @@
-use std::io;
 use std::path::PathBuf;
 
-use crate::repository::file_repository::FileRepository;
-use crate::repository::main::Repository;
-use shared::{equipment::weapon::{OptionalMutableWeapon, Weapon}, random::Random, warrior::Warrior};
-use crate::player::main::{PlayerBuildError, PlayerBuildFinalStep, PlayerBuildStepDisplayName, PlayerBuildStepUserName, PlayerBuilder};
+use crate::client::prompt::prompt;
+use crate::repository::{FileRepository, Repository};
+use shared::equipment::weapon::{OptionalMutableWeapon, Weapon};
+use shared::player::{Player, PlayerBuildError, PlayerBuilder};
+use shared::random::Random;
+use shared::warrior::Warrior;
+use uuid::Uuid;
 
-pub struct PlayerCreator {}
+use super::prompt::PromptError;
+
+pub struct PlayerCreator {
+    username: Option<String>,
+    display_name: Option<String>,
+    warriors: Vec<Warrior>,
+}
 
 impl PlayerCreator {
-    pub fn new() -> Self { Self {} }
+    pub fn new() -> Self {
+        Self { username: None, display_name: None, warriors: vec![] }
+    }
 }
 
 impl PlayerBuilder for PlayerCreator {
-    fn get_username(&mut self) -> Result<PlayerBuildStepUserName, PlayerBuildError> {
-        println!("Choose a username: ");
-        let mut username = String::new();
-        io::stdin().read_line(&mut username)?;
-        Ok(PlayerBuildStepUserName::new(username.trim().to_string()))
+    fn get_username(&mut self) -> Result<(), PlayerBuildError> {
+        let username = prompt("Choose a username:")?;
+        self.username = Some(username);
+        Ok(())
     }
 
-    fn get_display_name(&mut self, previous_step: PlayerBuildStepUserName) -> Result<PlayerBuildStepDisplayName, PlayerBuildError> {
-        println!("Choose a display name:");
-        let mut display_name = String::new();
-        io::stdin().read_line(&mut display_name)?;
-        Ok(PlayerBuildStepDisplayName::new(display_name.trim().to_string(), previous_step))
+    fn get_display_name(&mut self) -> Result<(), PlayerBuildError> {
+        let display_name = prompt("Choose a display name:")?;
+        self.display_name = Some(display_name);
+        Ok(())
     }
 
-    fn get_warriors(&mut self, previous_step: PlayerBuildStepDisplayName) -> Result<PlayerBuildFinalStep, PlayerBuildError> {
+    fn get_warriors(&mut self) -> Result<(), PlayerBuildError> {
         let mut i = 0;
-        let mut warriors = Vec::new();
         let repo = FileRepository::build(PathBuf::from("saves/warriors"))?;
         while i < 8 {
             let mut warrior = Warrior::random();
             let weapon = Weapon::random();
             warrior.replace_weapon(weapon);
             repo.create(&warrior)?;
-            warriors.push(warrior);
+            self.warriors.push(warrior);
             i += 1;
         }
-        Ok(PlayerBuildFinalStep::new(warriors, previous_step))
+        Ok(())
+    }
+
+    fn build(self) -> Player {
+        Player::new(
+            Uuid::new_v4(),
+            self.username.unwrap(),
+            self.display_name.unwrap(),
+            self.warriors
+        )
+    }
+}
+
+impl From<PromptError> for PlayerBuildError {
+    fn from(value: PromptError) -> Self {
+        Self::new(format!("Prompt Error:\n{value}"))
     }
 }

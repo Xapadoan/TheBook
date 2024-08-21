@@ -8,8 +8,7 @@ use shared::replay::turn_summary::TurnSummary;
 use shared::warrior::Warrior;
 use uuid::Uuid;
 
-use crate::repository::file_repository::FileRepository;
-use crate::repository::main::{Repository, RepositoryError};
+use crate::repository::{FileRepository, Repository, RepositoryError};
 
 use super::manager::REPLAY_ROOT_DIR;
 

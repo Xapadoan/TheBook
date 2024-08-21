@@ -10,8 +10,7 @@ use std::error::Error;
 use std::fmt::{Debug, Display};
 use std::path::PathBuf;
 
-use crate::repository::file_repository::FileRepository;
-use crate::repository::main::{Repository, RepositoryError};
+use crate::repository::{FileRepository, Repository, RepositoryError};
 use crate::tournament::fight::FightResultKind;
 use crate::tournament::replay::tournament_replay::TournamentReplayBuilder;
 

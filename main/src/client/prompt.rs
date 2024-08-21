@@ -1,14 +1,17 @@
-use std::{error::Error, fmt::Display, io};
+use std::error::Error;
+use std::fmt::Display;
+use std::io;
 
 pub fn prompt_bool(message: &str) -> Result<bool, PromptError> {
-    println!("{message} (Y / N)");
+    let user_response = prompt(format!("{message} (Y / N)").as_str())?;
+    Ok(user_response.to_lowercase() == "y")
+}
+
+pub fn prompt(message: &str) -> Result<String, PromptError> {
+    println!("{message}");
     let mut user_response = String::new();
     io::stdin().read_line(&mut user_response)?;
-    if user_response.trim().to_lowercase() == "y" {
-        Ok(true)
-    } else {
-        Ok(false)
-    }
+    Ok(String::from(user_response.trim()))
 }
 
 #[derive(Debug)]

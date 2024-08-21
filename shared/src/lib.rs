@@ -58,8 +58,11 @@ pub mod warrior {
         pub use main::*;
     }
     mod main;
-    mod names;
     pub use main::*;
+
+    mod names;
+    mod warrior_collection;
+    pub use warrior_collection::{WarriorCollection, MutableWarriorCollection};
 }
 
 pub mod equipment {
@@ -89,4 +92,13 @@ pub mod knock_out;
 
 pub mod replay {
     pub mod turn_summary;
+}
+
+pub mod player {
+    mod main;
+    pub use main::Player;
+    mod builder;
+    pub use builder::PlayerBuilder;
+    mod builder_error;
+    pub use builder_error::PlayerBuildError;
 }

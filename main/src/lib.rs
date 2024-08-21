@@ -10,18 +10,31 @@ mod tournament {
         pub mod manager;
     }
 }
-pub mod player {
-    pub mod main;
-    pub mod repository;
-}
+
 pub mod repository {
-    pub mod main;
-    pub mod file_repository;
+    mod main;
+    pub use main::{Repository, RepositoryError};
+    mod file_repository;
+    pub use file_repository::FileRepository;
+    mod player_repository;
+    pub use player_repository::{PlayerRepository, PlayerDTOFile};
 }
 pub mod client {
     mod prompt;
-    pub mod main;
-    pub mod show {
+    mod main;
+    pub use main::run;
+    mod view {
+        mod view_error;
+        pub use view_error::ViewError;
+        mod warrior_management;
+        pub use warrior_management::returning_warriors;
+        mod player_auth;
+        pub use player_auth::welcome_player;
+        mod register_to_tournament;
+        pub use register_to_tournament::register_to_tournament;
+    }
+    mod show {
+        mod main;
         mod show_self {
             mod main;
             mod show_body_part_kind;
@@ -48,7 +61,6 @@ pub mod client {
             pub use main::ShowReplay;
         }
         pub  use show_replay::ShowReplay;
-        mod main;
         mod show_assault;
         mod show_resolution;
         mod show_self_critical_hit;
@@ -67,16 +79,13 @@ pub mod client {
 
 use std::error::Error;
 
-use client::main::{handle_previous_tournaments, register_to_tournament, welcome_player};
 use tournament::manager::TournamentManager;
 
 pub fn run(config: &Config) -> Result<(), Box<dyn Error>> {
     if config.run_tournaments {
         run_tournaments()?;
     } else {
-        let mut player = welcome_player()?;
-        handle_previous_tournaments(&mut player)?;
-        register_to_tournament(&mut player)?;
+        client::run()?;
     }
     Ok(())
 }

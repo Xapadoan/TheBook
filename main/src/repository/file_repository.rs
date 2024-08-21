@@ -8,7 +8,7 @@ use serde::Serialize;
 use shared::unique_entity::UniqueEntity;
 use uuid::Uuid;
 
-use super::main::{Repository, RepositoryError};
+use super::{Repository, RepositoryError};
 
 pub struct FileRepository<T> {
     path: PathBuf,

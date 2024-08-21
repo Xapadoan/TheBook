@@ -8,7 +8,7 @@ use shared::unique_entity::UniqueEntity;
 use shared::warrior::Warrior;
 use uuid::Uuid;
 
-use crate::repository::main::Repository;
+use crate::repository::Repository;
 
 use super::replay::fight_replay::{FightReplayBuilder, FightReplayBuilderError};
 

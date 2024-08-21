@@ -1,15 +1,13 @@
-use std::error::Error;
 use std::path::PathBuf;
 
 use serde::{Deserialize, Serialize};
+use shared::player::{Player, PlayerBuildError, PlayerBuilder};
 use shared::unique_entity::UniqueEntity;
-use shared::warrior::Warrior;
+use shared::warrior::{Warrior, WarriorCollection};
 use uuid::Uuid;
 
 use crate::repository::main::{Repository, RepositoryError};
 use crate::repository::file_repository::FileRepository;
-
-use super::main::{Player, PlayerBuildError, PlayerBuildFinalStep, PlayerBuildStepDisplayName, PlayerBuildStepUserName, PlayerBuilder, WarriorsManager};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct PlayerDTOFile {
@@ -42,31 +40,39 @@ impl UniqueEntity for PlayerDTOFile {
 
 struct PlayerBuilderFromRepo<'a, T: Repository<Warrior>> {
     dto: PlayerDTOFile,
-    warriors_repo: &'a T
+    warriors_repo: &'a T,
+    warriors: Vec<Warrior>,
 }
 
 impl<'a, T: Repository<Warrior>> PlayerBuilderFromRepo<'a, T> {
     fn new(dto: PlayerDTOFile, warriors_repo: &'a T) -> Self {
-        Self { dto, warriors_repo }
+        Self { dto, warriors_repo, warriors: vec![] }
     }
 }
 
 impl<'a, T: Repository<Warrior>> PlayerBuilder for PlayerBuilderFromRepo<'a, T> {
-    fn get_username(&mut self) -> Result<PlayerBuildStepUserName, PlayerBuildError> {
-        Ok(PlayerBuildStepUserName::new(self.dto.username.clone()))
+    fn get_username(&mut self) -> Result<(), PlayerBuildError> {
+        Ok(())
     }
 
-    fn get_display_name(&mut self, previous_step: super::main::PlayerBuildStepUserName) -> Result<PlayerBuildStepDisplayName, PlayerBuildError> {
-        Ok(PlayerBuildStepDisplayName::new(self.dto.display_name.clone(), previous_step))
+    fn get_display_name(&mut self) -> Result<(), PlayerBuildError> {
+        Ok(())
     }
 
-    fn get_warriors(&mut self, previous_step: PlayerBuildStepDisplayName) -> Result<PlayerBuildFinalStep, PlayerBuildError> {
-        let mut warriors: Vec<Warrior> = vec![];
+    fn get_warriors(&mut self) -> Result<(), PlayerBuildError> {
         for warrior_uuid in &self.dto.warrior_ids {
             let warrior: Warrior = self.warriors_repo.get_by_uuid(&warrior_uuid)?;
-            warriors.push(warrior);
+            self.warriors.push(warrior);
         }
-        Ok(PlayerBuildFinalStep::new(warriors, previous_step))
+        Ok(())
+    }
+    fn build(self) -> Player {
+        Player::new(
+            self.dto.uuid,
+            self.dto.username,
+            self.dto.display_name,
+            self.warriors,
+        )
     }
 }
 
@@ -76,7 +82,7 @@ pub struct PlayerRepository<T: Repository<PlayerDTOFile>, K: Repository<Warrior>
 }
 
 impl PlayerRepository<FileRepository<PlayerDTOFile>, FileRepository<Warrior>> {
-    pub fn build() -> Result<Self, Box<dyn Error>> {
+    pub fn build() -> Result<Self, RepositoryError> {
         let dto_repo = FileRepository::build(PathBuf::from("saves/players"))?;
         let warriors_repo = FileRepository::build(PathBuf::from("saves/warriors"))?;
         Ok(Self { dto_repo, warriors_repo })
@@ -100,8 +106,10 @@ impl<T: Repository<PlayerDTOFile>, K: Repository<Warrior>> Repository<Player> fo
     fn get_by_uuid(&self, uuid: &Uuid) -> Result<Player, RepositoryError> {
         let dto = self.dto_repo.get_by_uuid(uuid)?;
         let mut builder = PlayerBuilderFromRepo::new(dto, &self.warriors_repo);
-        let player = Player::build(&mut builder)?;
-        Ok(player)
+        builder.get_username()?;
+        builder.get_display_name()?;
+        builder.get_warriors()?;
+        Ok(builder.build())
     }
 
     fn update(&self, uuid: &Uuid, item: &Player) -> Result<(), RepositoryError> {
@@ -126,5 +134,11 @@ impl<T: Repository<PlayerDTOFile>, K: Repository<Warrior>> Repository<Player> fo
 impl From<PlayerBuildError> for RepositoryError {
     fn from(value: PlayerBuildError) -> Self {
         Self::new(format!("Repository PlayerBuildError:\n{}", value))
+    }
+}
+
+impl From<RepositoryError> for PlayerBuildError {
+    fn from(value: RepositoryError) -> Self {
+        Self::new(format!("PlayerBuilder RepositoryError:\n{}", value))
     }
 }

@@ -1,14 +1,17 @@
-use std::{collections::HashMap, error::Error, fmt::Display, fs, io, path::PathBuf};
+use std::collections::HashMap;
+use std::error::Error;
+use std::fmt::Display;
+use std::{fs, io};
+use std::path::PathBuf;
 
+use shared::player::Player;
 use shared::replay::turn_summary::TurnSummary;
 use shared::tournament::contestant::TournamentContestant;
 use shared::unique_entity::UniqueEntity;
-use shared::warrior::Warrior;
+use shared::warrior::{MutableWarriorCollection, Warrior};
 use uuid::Uuid;
 
-use crate::player::main::{Player, WarriorsManager};
-use crate::repository::file_repository::FileRepository;
-use crate::repository::main::{Repository, RepositoryError};
+use crate::repository::{FileRepository, Repository, RepositoryError};
 use crate::tournament::main::Tournament;
 use crate::tournament::manager::{TournamentManager, TournamentManagerError};
 

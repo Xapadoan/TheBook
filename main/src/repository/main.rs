@@ -3,10 +3,6 @@ use std::fmt::Display;
 
 use uuid::Uuid;
 
-pub trait UniqueEntity {
-    fn uuid<'a>(&'a self) -> &'a Uuid;
-}
-
 pub trait Repository<T> {
     fn list(&self) -> Result<Vec<Uuid>, RepositoryError>;
     fn create(&self, item: &T) -> Result<(), RepositoryError>;
