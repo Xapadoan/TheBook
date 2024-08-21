@@ -196,9 +196,9 @@ pub trait ResolveCriticalHit:
     }
     fn resolve_break_random_hand(&self, damages: u8) -> IndividualConsequences {
         let affected_side = BodySide::random();
-        match self.body().body_part(&BodyPartKind::Arm(affected_side.clone().clone())) {
+        match self.body().body_part(&BodyPartKind::Arm(affected_side.clone())) {
             None => IndividualConsequences::no_consequences(),
-            Some(_) => match self.body().body_part(&BodyPartKind::Hand(affected_side.clone().clone())) {
+            Some(_) => match self.body().body_part(&BodyPartKind::Hand(affected_side.clone())) {
                 None => IndividualConsequences::no_consequences(),
                 Some(hand) => {
                     let injury = match affected_side {
@@ -206,9 +206,9 @@ pub trait ResolveCriticalHit:
                         BodySide::Left => Injury::LeftHandBroken,
                     };
                     if hand.is_broken() {
-                        IndividualConsequences::injures(damages + 3, injury)
-                    } else {
                         IndividualConsequences::only_damages(damages + 3)
+                    } else {
+                        IndividualConsequences::injures(damages + 3, injury)
                     }
                 }
             }
