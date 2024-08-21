@@ -93,7 +93,7 @@ pub mod knock_out;
 pub mod replay {
     pub mod turn_summary;
     mod fight_replay;
-    pub use fight_replay::FightReplay;
+    pub use fight_replay::{FightReplay, FightReplaySummary};
 }
 
 pub mod player {

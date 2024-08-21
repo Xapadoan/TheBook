@@ -6,7 +6,7 @@ use std::path::PathBuf;
 
 use shared::player::Player;
 use shared::replay::turn_summary::TurnSummary;
-use shared::replay::FightReplay;
+use shared::replay::{FightReplay, FightReplaySummary};
 use shared::tournament::contestant::TournamentContestant;
 use shared::unique_entity::UniqueEntity;
 use shared::warrior::{MutableWarriorCollection, Warrior};
@@ -15,8 +15,6 @@ use uuid::Uuid;
 use crate::repository::{FileRepository, Repository, RepositoryError};
 use crate::tournament::main::Tournament;
 use crate::tournament::manager::{TournamentManager, TournamentManagerError};
-
-use super::round_replay::FightSummary;
 
 pub const REPLAY_ROOT_DIR: &'static str = "data/replays";
 
@@ -42,17 +40,17 @@ impl ReplayManager {
         Ok(tournament)
     }
 
-    pub fn get_round_summary(&self, round_index: u8) -> Result<Vec<FightSummary>, ReplayManagerError> {
+    pub fn get_round_summary(&self, round_index: u8) -> Result<Vec<FightReplaySummary>, ReplayManagerError> {
         let mut path = PathBuf::from(REPLAY_ROOT_DIR);
         path.push(self.tournament_uuid.to_string());
         path.push(&format!("round_{round_index}"));
         path.push("summary.replay");
         let serialized_summaries = fs::read_to_string(path)?;
-        let summaries: Vec<FightSummary> = serde_json::from_str(&serialized_summaries)?;
+        let summaries: Vec<FightReplaySummary> = serde_json::from_str(&serialized_summaries)?;
         Ok(summaries)
     }
 
-    pub fn get_fight_replay(&self, fight_summary: &FightSummary) -> Result<FightReplay, ReplayManagerError> {
+    pub fn get_fight_replay(&self, fight_summary: &FightReplaySummary) -> Result<FightReplay, ReplayManagerError> {
         let mut path = PathBuf::from(REPLAY_ROOT_DIR);
         path.push(self.tournament_uuid.to_string());
         path.push(fight_summary.replay_uuid().to_string());
@@ -67,7 +65,7 @@ impl ReplayManager {
         ))
     }
 
-    pub fn get_fight_warriors(&self, fight_summary: &FightSummary) -> Result<(Warrior, Warrior), ReplayManagerError> {
+    pub fn get_fight_warriors(&self, fight_summary: &FightReplaySummary) -> Result<(Warrior, Warrior), ReplayManagerError> {
         let mut path = PathBuf::from(REPLAY_ROOT_DIR);
         path.push(self.tournament_uuid.to_string());
         path.push(fight_summary.replay_uuid().to_string());
@@ -77,7 +75,7 @@ impl ReplayManager {
         Ok((blue_corner, red_corner))
     }
 
-pub fn get_fight_summary_for_warrior(&self, warrior: &Warrior, round_index: u8) -> Result<FightSummary, ReplayManagerError> {
+pub fn get_fight_summary_for_warrior(&self, warrior: &Warrior, round_index: u8) -> Result<FightReplaySummary, ReplayManagerError> {
         let round_summary = self.get_round_summary(round_index)?;
         for fight in round_summary {
             if fight.winner().is_some_and(|uuid| &uuid == warrior.uuid()) {

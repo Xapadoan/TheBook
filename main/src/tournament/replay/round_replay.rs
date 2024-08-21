@@ -1,6 +1,9 @@
-use std::{error::Error, fmt::Display, fs, io, path::PathBuf};
+use std::error::Error;
+use std::fmt::Display;
+use std::{fs, io};
+use std::path::PathBuf;
 
-use serde::{Deserialize, Serialize};
+use shared::replay::FightReplaySummary;
 use shared::unique_entity::UniqueEntity;
 use uuid::Uuid;
 
@@ -8,48 +11,9 @@ use crate::tournament::fight::{FightResult, FightResultKind};
 
 use super::manager::REPLAY_ROOT_DIR;
 
-#[derive(Debug, Serialize, Deserialize)]
-pub struct FightSummary {
-    round_index: u8,
-    replay_uuid: Uuid,
-    winner: Option<Uuid>,
-    loser: Option<Uuid>,
-    tie: Option<(Uuid, Uuid)>,
-    blue_corner_uuid: Uuid,
-    red_corner_uuid: Uuid,
-}
-
-impl FightSummary {
-    pub fn winner(&self) -> &Option<Uuid> {
-        &self.winner
-    }
-
-    pub fn loser(&self) -> &Option<Uuid> {
-        &self.loser
-    }
-
-    pub fn tie(&self) -> &Option<(Uuid, Uuid)> {
-        &self.tie
-    }
-
-    pub fn replay_uuid(&self) -> &Uuid {
-        &self.replay_uuid
-    }
-
-    pub fn blue_corner_uuid(&self) -> &Uuid {
-        &self.blue_corner_uuid
-    }
-
-    pub fn red_corner_uuid(&self) -> &Uuid {
-        &self.red_corner_uuid
-    }
-}
-
 pub struct RoundReplayBuilder {
-    // tournament_uuid: Uuid,
-    round_index: u8,
     path: PathBuf,
-    fights_summaries: Vec<FightSummary>
+    fights_summaries: Vec<FightReplaySummary>
 }
 
 impl RoundReplayBuilder {
@@ -59,8 +23,6 @@ impl RoundReplayBuilder {
         path.push(&format!("round_{}", round_index));
         fs::create_dir_all(&path)?;
         Ok(Self {
-            // tournament_uuid: tournament_uuid.clone(),
-            round_index,
             path,
             fights_summaries: vec![],
         })
@@ -79,15 +41,14 @@ impl RoundReplayBuilder {
                 None,
             )
         };
-        let summary = FightSummary {
-            round_index: self.round_index,
-            replay_uuid: replay_uuid.clone(),
+        let summary = FightReplaySummary::new(
+            replay_uuid.clone(),
             winner,
             loser,
             tie,
-            blue_corner_uuid: fight_result.blue_corner_uuid().clone(),
-            red_corner_uuid: fight_result.red_corner_uuid().clone(),
-        };
+            fight_result.blue_corner_uuid().clone(),
+            fight_result.red_corner_uuid().clone(),
+        );
         self.fights_summaries.push(summary);
     }
 
