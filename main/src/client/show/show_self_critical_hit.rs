@@ -7,11 +7,11 @@ use shared::warrior::body::injury::Injury;
 use crate::client::show::show_resolution::show_rupture;
 
 use super::show_resolution::show_lose_eye;
-use super::{ShowSelf, TournamentReplayActor};
+use super::{ShowSelf, ReplayActor};
 
 pub fn show_self_critical_hit(
     critical_hit: &CriticalHit,
-    idiot: &dyn TournamentReplayActor,
+    idiot: &dyn ReplayActor,
     consequences: &IndividualConsequences,
 ) -> String {
     match critical_hit {
@@ -91,7 +91,7 @@ pub fn show_self_critical_hit(
 
 fn show_break_limb(
     critical_hit: &CriticalHit,
-    idiot: &dyn TournamentReplayActor,
+    idiot: &dyn ReplayActor,
     consequences: &IndividualConsequences,
 ) -> String {
     if consequences.damages() == 0 {
@@ -134,7 +134,7 @@ fn show_break_limb(
 }
 
 fn show_wound_genitals(
-    idiot: &dyn TournamentReplayActor,
+    idiot: &dyn ReplayActor,
     consequences: &IndividualConsequences,
 ) -> String {
     if let Some(_) = consequences.duration_damages() {
@@ -153,7 +153,7 @@ fn show_wound_genitals(
 }
 
 fn show_sever_limb(
-    idiot: &dyn TournamentReplayActor,
+    idiot: &dyn ReplayActor,
     consequences: &IndividualConsequences,
 ) -> String {
     if let Some(injury) = consequences.injury() {
@@ -187,7 +187,7 @@ fn show_sever_limb(
 }
 
 fn show_armor_damage_resolution(
-    idiot: &dyn TournamentReplayActor,
+    idiot: &dyn ReplayActor,
     consequences: &IndividualConsequences,
 ) -> String {
     if let Some(armor_damages) = consequences.armor_damages() {

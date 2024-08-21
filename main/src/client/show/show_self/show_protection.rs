@@ -1,4 +1,5 @@
-use shared::{equipment::protection::Protection, name::Name};
+use shared::equipment::protection::Protection;
+use shared::name::Name;
 
 use super::ShowSelf;
 

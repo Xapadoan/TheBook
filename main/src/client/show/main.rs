@@ -1,26 +1,15 @@
 use shared::assault::assailant::Assailant;
-use shared::assault::assault_consequence::AssaultConsequences;
 use shared::warrior::Warrior;
 
-pub trait TournamentReplayActor: Assailant + ShowSelf {}
-impl TournamentReplayActor for Warrior {}
-pub trait ShowAction {
-    fn show_action(
-        &self,
-        assailant: &dyn TournamentReplayActor,
-        victim: &dyn TournamentReplayActor,
-        consequences: &AssaultConsequences
-    ) -> String;
-}
+use super::ShowSelf;
+
+pub trait ReplayActor: Assailant + ShowSelf {}
+impl ReplayActor for Warrior {}
 
 pub trait AssaultReplay {
     fn assault_replay(
         &self,
-        assailant: &dyn TournamentReplayActor,
-        victim: &dyn TournamentReplayActor,
+        assailant: &dyn ReplayActor,
+        victim: &dyn ReplayActor,
     ) -> String;
-}
-
-pub trait ShowSelf {
-    fn show_self(&self) -> String;
 }

@@ -1,16 +1,17 @@
 use shared::assault::assault_consequence::AssaultConsequences;
 use shared::assault::critical_parry::CriticalParry;
 
+use crate::client::show::show_resolution::show_rupture;
 use crate::client::show::show_self_critical_hit::show_self_critical_hit;
+use crate::client::show::{ReplayActor, ShowSelf};
 
-use super::show_resolution::show_rupture;
-use super::{ShowAction, ShowSelf, TournamentReplayActor};
+use super::ShowReplay;
 
-impl ShowAction for CriticalParry {
-    fn show_action(
+impl ShowReplay for CriticalParry {
+    fn show_replay(
         &self,
-        assailant: &dyn TournamentReplayActor,
-        victim: &dyn TournamentReplayActor,
+        assailant: &dyn ReplayActor,
+        victim: &dyn ReplayActor,
         consequences: &AssaultConsequences,
     ) -> String {
         match self {
@@ -30,7 +31,7 @@ impl ShowAction for CriticalParry {
                 let reversed = AssaultConsequences::reversed(consequences);
                 format!(
                     "at the last moment, {}",
-                    critical_hit.show_action(victim, assailant, &reversed),
+                    critical_hit.show_replay(victim, assailant, &reversed),
                 )
             },
             CriticalParry::AssailantDropsWeapon => format!(

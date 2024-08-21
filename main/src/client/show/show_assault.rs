@@ -1,36 +1,33 @@
-use shared::assault::assault_consequence::AssaultConsequences;
 use shared::assault::assault_summary::AssaultSummary;
-use shared::assault::attack_missed::AttackMissed;
-use shared::assault::attack_success::AttackSuccess;
 
-use super::{AssaultReplay, ShowAction, TournamentReplayActor};
+use super::{AssaultReplay, ShowReplay, ReplayActor};
 
 impl AssaultReplay for AssaultSummary {
     fn assault_replay(
         &self,
-        assailant: &dyn TournamentReplayActor,
-        victim: &dyn TournamentReplayActor,
+        assailant: &dyn ReplayActor,
+        victim: &dyn ReplayActor,
     ) -> String {
         if let Some(impossible) = self.not_possible() {
-            return impossible.show_action(assailant, victim, self.consequences());
+            return impossible.show_replay(assailant, victim, self.consequences());
         }
         if let Some(clumsiness) = self.attack_clumsiness() {
-            return clumsiness.show_action(assailant, victim, self.consequences());
+            return clumsiness.show_replay(assailant, victim, self.consequences());
         }
         if let Some(miss) = self.attack_missed() {
-            return miss.show_action(assailant, victim, self.consequences());
+            return miss.show_replay(assailant, victim, self.consequences());
         }
         if let Some(attack) = self.attack_success() {
-            let mut str = attack.show_action(assailant, victim, self.consequences());
+            let mut str = attack.show_replay(assailant, victim, self.consequences());
             if let Some(impossible_parry) = self.parry_not_possible() {
                 return format!(
                     "{}, {}",
-                    attack.show_action(assailant, victim, self.consequences()),
-                    impossible_parry.show_action(assailant, victim, self.consequences()),
+                    attack.show_replay(assailant, victim, self.consequences()),
+                    impossible_parry.show_replay(assailant, victim, self.consequences()),
                 )
             }
             if let Some(clumsiness) = self.parry_clumsiness() {
-                let clumsiness_display = clumsiness.show_action(assailant, victim, self.consequences());
+                let clumsiness_display = clumsiness.show_replay(assailant, victim, self.consequences());
                 str = format!(
                     "{}. When trying to parry, {}",
                     str,
@@ -44,37 +41,15 @@ impl AssaultReplay for AssaultSummary {
                 str = format!(
                     "{}, but {}",
                     str,
-                    critical.show_action(assailant, victim, self.consequences()),
+                    critical.show_replay(assailant, victim, self.consequences()),
                 );
             }
             return str;
         }
         if let Some(critical) = self.attack_critical() {
-            return critical.show_action(assailant, victim, self.consequences())
+            return critical.show_replay(assailant, victim, self.consequences())
         }
         dbg!(&self);
         return String::from("???");
-    }
-}
-
-impl ShowAction for AttackMissed {
-    fn show_action(
-        &self,
-        assailant: &dyn TournamentReplayActor,
-        _: &dyn TournamentReplayActor,
-        _: &AssaultConsequences,
-    ) -> String {
-        format!("{} missed his attack", assailant.show_self())
-    }
-}
-
-impl ShowAction for AttackSuccess {
-    fn show_action(
-        &self,
-        assailant: &dyn TournamentReplayActor,
-        victim: &dyn TournamentReplayActor,
-        _: &AssaultConsequences,
-    ) -> String {
-        format!("{} hits {}", assailant.show_self(), victim.show_self())
     }
 }

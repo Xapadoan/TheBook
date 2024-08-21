@@ -1,12 +1,15 @@
-use shared::assault::{assault_consequence::AssaultConsequences, not_possible::NotPossible};
+use shared::assault::assault_consequence::AssaultConsequences;
+use shared::assault::not_possible::NotPossible;
 
-use super::{ShowAction, ShowSelf, TournamentReplayActor};
+use crate::client::show::{ReplayActor, ShowSelf};
 
-impl ShowAction for NotPossible {
-    fn show_action(
+use super::ShowReplay;
+
+impl ShowReplay for NotPossible {
+    fn show_replay(
         &self,
-        assailant: &dyn TournamentReplayActor,
-        victim: &dyn TournamentReplayActor,
+        assailant: &dyn ReplayActor,
+        victim: &dyn ReplayActor,
         _: &AssaultConsequences,
     ) -> String {
         match self {

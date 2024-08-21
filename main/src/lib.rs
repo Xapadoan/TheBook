@@ -22,25 +22,42 @@ pub mod client {
     mod prompt;
     pub mod main;
     pub mod show {
+        mod show_self {
+            mod main;
+            mod show_body_part_kind;
+            mod show_protection;
+            mod show_temporary_handicap;
+            mod show_warrior;
+            mod show_weapon;
+    
+            pub use main::ShowSelf;
+        }
+        pub use show_self::ShowSelf;
+
+        mod show_replay {
+            mod main;
+            mod show_attack_clumsiness;
+            mod show_attack_critical;
+            mod show_attack_impossible;
+            mod show_attack_missed;
+            mod show_attack_success;
+            mod show_parry_clumsiness;
+            mod show_parry_critical;
+            mod show_parry_impossible;
+
+            pub use main::ShowReplay;
+        }
+        pub  use show_replay::ShowReplay;
         mod main;
         mod show_assault;
         mod show_resolution;
-        mod show_impossible_assault;
-        mod show_impossible_parry;
-        mod show_clumsiness;
-        mod show_critical_parry;
-        mod show_critical_attack;
-        mod show_warrior;
-        mod show_weapon;
-        mod show_protection;
-        mod show_body_part_kind;
         mod show_self_critical_hit;
-        mod show_temporary_handicap;
         mod show_fight_replay;
         pub use show_fight_replay::ShowFightReplay;
         mod show_turn_summary;
 
         pub use main::*;
+
     }
     mod select_warrior;
     mod player_creator;

@@ -9,13 +9,14 @@ use shared::warrior::Warrior;
 use crate::client::player_logger::PlayerLogger;
 use crate::client::prompt::prompt_bool;
 use crate::client::select_warrior::select_warrior;
-
 use crate::client::show::ShowFightReplay;
+
 use crate::player::main::{Player, WarriorsManager};
 use crate::player::repository::PlayerRepository;
 use crate::repository::file_repository::FileRepository;
 use crate::repository::main::Repository;
-use crate::tournament::{manager::TournamentManager, replay::manager::ReplayManager};
+use crate::tournament::manager::TournamentManager;
+use crate::tournament::replay::manager::ReplayManager;
 
 
 use super::player_creator::PlayerCreator;

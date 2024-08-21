@@ -1,4 +1,5 @@
-use shared::{name::Name, warrior::Warrior};
+use shared::name::Name;
+use shared::warrior::Warrior;
 
 use super::ShowSelf;
 

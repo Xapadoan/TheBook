@@ -4,14 +4,16 @@ use shared::equipment::protection::OptionalMutableProtection;
 use shared::warrior::body::body_part::{BodyPartKind, OptionalBodyPart, BodySide};
 use shared::warrior::body::injury::Injury;
 
-use super::show_resolution::{show_lose_eye, show_rupture};
-use super::{ShowSelf, ShowAction, TournamentReplayActor};
+use crate::client::show::show_resolution::{show_lose_eye, show_rupture};
+use crate::client::show::{ReplayActor, ShowSelf};
 
-impl ShowAction for CriticalHit {
-    fn show_action(
+use super::ShowReplay;
+
+impl ShowReplay for CriticalHit {
+    fn show_replay(
         &self,
-        assailant: &dyn TournamentReplayActor,
-        victim: &dyn TournamentReplayActor,
+        assailant: &dyn ReplayActor,
+        victim: &dyn ReplayActor,
         consequences: &AssaultConsequences,
     ) -> String {
         match self {
@@ -103,8 +105,8 @@ impl ShowAction for CriticalHit {
 
 fn show_break_limb(
     critical_hit: &CriticalHit,
-    assailant: &dyn TournamentReplayActor,
-    victim: &dyn TournamentReplayActor,
+    assailant: &dyn ReplayActor,
+    victim: &dyn ReplayActor,
     consequences: &AssaultConsequences,
 ) -> String {
     if consequences.for_victim().damages() == 0 {
@@ -150,8 +152,8 @@ fn show_break_limb(
 }
 
 fn show_wound_genitals(
-    assailant: &dyn TournamentReplayActor,
-    victim: &dyn TournamentReplayActor,
+    assailant: &dyn ReplayActor,
+    victim: &dyn ReplayActor,
     consequences: &AssaultConsequences,
 ) -> String {
     if let Some(_) = consequences.for_victim().duration_damages() {
@@ -172,8 +174,8 @@ fn show_wound_genitals(
 }
 
 fn show_sever_limb(
-    assailant: &dyn TournamentReplayActor,
-    victim: &dyn TournamentReplayActor,
+    assailant: &dyn ReplayActor,
+    victim: &dyn ReplayActor,
     consequences: &AssaultConsequences,
 ) -> String {
     if let Some(injury) = consequences.for_victim().injury() {
@@ -209,8 +211,8 @@ fn show_sever_limb(
 }
 
 fn show_armor_damage_resolution(
-    assailant: &dyn TournamentReplayActor,
-    victim: &dyn TournamentReplayActor,
+    assailant: &dyn ReplayActor,
+    victim: &dyn ReplayActor,
     consequences: &AssaultConsequences,
 ) -> String {
     if let Some(armor_damages) = consequences.for_victim().armor_damages() {

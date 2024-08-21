@@ -7,7 +7,7 @@ use shared::warrior::Warrior;
 
 use crate::client::character_sheet::CharacterSheet;
 
-use super::{AssaultReplay, ShowSelf, TournamentReplayActor};
+use super::{AssaultReplay, ShowSelf, ReplayActor};
 
 pub trait ShowTurnSummary {
     fn show_turn_summary(
@@ -68,7 +68,7 @@ fn get_roles<'a>(
     }
 }
 
-fn show_end_turn(end: &EndTurnConsequences, victim: &dyn TournamentReplayActor) -> String {
+fn show_end_turn(end: &EndTurnConsequences, victim: &dyn ReplayActor) -> String {
     let damages = end.duration_damages();
     if damages > 0 {
         format!("{} lost {} hp from duration damages", damages, victim.show_self())

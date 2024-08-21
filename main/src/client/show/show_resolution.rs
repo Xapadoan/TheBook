@@ -19,3 +19,10 @@ pub fn show_lose_eye(possible_injury: &Option<Injury>) -> String {
         None => String::from("Luckily, he already lost it before"),
     }
 }
+
+pub fn show_lose_finger(possible_injury: &Option<Injury>) -> String {
+    match possible_injury {
+        Some(_) => String::from(""),
+        None => String::from("Luckily, he already lost the finger involved before"),
+    }
+}
