@@ -3,7 +3,6 @@ use std::fmt::Display;
 use std::{fs, io};
 use std::path::PathBuf;
 
-use serde::{Deserialize, Serialize};
 use shared::replay::turn_summary::TurnSummary;
 use shared::warrior::Warrior;
 use uuid::Uuid;
@@ -11,43 +10,6 @@ use uuid::Uuid;
 use crate::repository::{FileRepository, Repository, RepositoryError};
 
 use super::manager::REPLAY_ROOT_DIR;
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct FightReplay {
-    uuid: Uuid,
-    blue_corner_uuid: Uuid,
-    red_corner_uuid: Uuid,
-    turn_summaries: Vec<TurnSummary>
-}
-
-impl FightReplay {
-    // Should be used only by ReplayManager
-    pub fn new(
-        uuid: Uuid,
-        blue_corner_uuid: Uuid,
-        red_corner_uuid: Uuid,
-        turn_summaries: Vec<TurnSummary>,
-    ) -> Self {
-        Self {
-            uuid,
-            blue_corner_uuid,
-            red_corner_uuid,
-            turn_summaries,
-        }
-    }
-
-    pub fn blue_corner_uuid(&self) -> &Uuid {
-        &self.blue_corner_uuid
-    }
-
-    pub fn red_corner_uuid(&self) -> &Uuid {
-        &self.red_corner_uuid
-    }
-
-    pub fn turn_summaries(&self) -> &Vec<TurnSummary> {
-        &self.turn_summaries
-    }
-}
 
 pub struct FightReplayBuilder<T: Repository<Warrior>> {
     replay_uuid: Uuid,

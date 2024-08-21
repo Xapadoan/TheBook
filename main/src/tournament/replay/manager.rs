@@ -6,6 +6,7 @@ use std::path::PathBuf;
 
 use shared::player::Player;
 use shared::replay::turn_summary::TurnSummary;
+use shared::replay::FightReplay;
 use shared::tournament::contestant::TournamentContestant;
 use shared::unique_entity::UniqueEntity;
 use shared::warrior::{MutableWarriorCollection, Warrior};
@@ -15,7 +16,6 @@ use crate::repository::{FileRepository, Repository, RepositoryError};
 use crate::tournament::main::Tournament;
 use crate::tournament::manager::{TournamentManager, TournamentManagerError};
 
-use super::fight_replay::FightReplay;
 use super::round_replay::FightSummary;
 
 pub const REPLAY_ROOT_DIR: &'static str = "data/replays";

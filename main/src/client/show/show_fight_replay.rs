@@ -1,7 +1,6 @@
+use shared::replay::FightReplay;
 use shared::unique_entity::UniqueEntity;
 use shared::warrior::Warrior;
-
-use crate::tournament::replay::fight_replay::FightReplay;
 
 use super::show_turn_summary::ShowTurnSummary;
 
