@@ -117,18 +117,23 @@ mod tests {
         }
     }
 
+    fn rm_rf<P>(path: P) -> Result<(), io::Error> where P: AsRef<Path> {
+        if fs::metadata(&path).is_ok() {
+            fs::remove_dir_all(&path)?;
+        }
+        Ok(())
+    }
+
     #[test]
     fn build_create_dir_if_no_exists() -> Result<(), Box<dyn Error>> {
         let path = PathBuf::from("./tests");
-        if path.as_path().try_exists()? {
-            fs::remove_dir(&path)?;
-        }
+        rm_rf(&path)?;
 
         let repo: FileRepository<TestFileRepositoryItem> = FileRepository::build(path)?;
         if !repo.path.as_path().try_exists()? {
             Err("File not found".into())
         } else {
-            fs::remove_dir(&repo.path)?;
+            fs::remove_dir_all(&repo.path)?;
             Ok(())
         }
     }
@@ -136,11 +141,12 @@ mod tests {
     #[test]
     fn create_err_if_file_already_exists() -> Result<(), Box<dyn Error>> {
         let dir_path = PathBuf::from("./tests");
-        let repo = FileRepository::build(dir_path)?;
+        let repo = FileRepository::build(dir_path.clone())?;
         fs::File::create("./tests/file")?;
 
         let item = TestFileRepositoryItem { uuid: Uuid::new_v4() };
         repo.create(&item)?;
+        rm_rf(dir_path)?;
         Ok(())
     }
 }
