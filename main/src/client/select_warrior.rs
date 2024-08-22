@@ -6,7 +6,7 @@ use std::num::ParseIntError;
 use shared::name::Name;
 use shared::warrior::Warrior;
 
-pub fn select_warrior<'a>(warriors: &mut Vec<&'a mut Warrior>) -> Result<Option<&'a mut Warrior>, SelectWarriorError> {
+pub fn select_warrior<'a>(warriors: &mut Vec<&'a Warrior>) -> Result<Option<&'a Warrior>, SelectWarriorError> {
     if warriors.len() < 1 {
         return Ok(None)
     }

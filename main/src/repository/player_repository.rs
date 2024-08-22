@@ -51,15 +51,13 @@ impl<'a, T: Repository<Warrior>> PlayerBuilderFromRepo<'a, T> {
 }
 
 impl<'a, T: Repository<Warrior>> PlayerBuilder for PlayerBuilderFromRepo<'a, T> {
-    fn get_username(&mut self) -> Result<(), PlayerBuildError> {
+    fn build_username(&mut self) -> Result<(), PlayerBuildError> {
         Ok(())
     }
-
-    fn get_display_name(&mut self) -> Result<(), PlayerBuildError> {
+    fn build_display_name(&mut self) -> Result<(), PlayerBuildError> {
         Ok(())
     }
-
-    fn get_warriors(&mut self) -> Result<(), PlayerBuildError> {
+    fn build_warriors(&mut self) -> Result<(), PlayerBuildError> {
         for warrior_uuid in &self.dto.warrior_ids {
             let warrior: Warrior = self.warriors_repo.get_by_uuid(&warrior_uuid)?;
             self.warriors.push(warrior);
@@ -106,9 +104,9 @@ impl<T: Repository<PlayerDTOFile>, K: Repository<Warrior>> Repository<Player> fo
     fn get_by_uuid(&self, uuid: &Uuid) -> Result<Player, RepositoryError> {
         let dto = self.dto_repo.get_by_uuid(uuid)?;
         let mut builder = PlayerBuilderFromRepo::new(dto, &self.warriors_repo);
-        builder.get_username()?;
-        builder.get_display_name()?;
-        builder.get_warriors()?;
+        builder.build_username()?;
+        builder.build_display_name()?;
+        builder.build_warriors()?;
         Ok(builder.build())
     }
 

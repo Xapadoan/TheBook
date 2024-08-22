@@ -5,14 +5,18 @@ use shared::warrior::Warrior;
 use uuid::Uuid;
 use std::path::PathBuf;
 
+use crate::replay::{
+    FightReplayBuilder,
+    FightReplayBuilderError,
+    RoundReplayBuilder,
+    RoundReplayBuilderError,
+    TournamentReplayBuilder,
+    TournamentReplayBuilderError,
+};
 use crate::repository::{FileRepository, Repository, RepositoryError};
 use crate::tournament::fight::FightResultKind;
-use crate::tournament::replay::tournament_replay::TournamentReplayBuilder;
 
 use super::fight::{Fight, FightError};
-use super::replay::fight_replay::{FightReplayBuilder, FightReplayBuilderError};
-use super::replay::round_replay::{RoundReplayBuilder, RoundReplayBuilderError};
-use super::replay::tournament_replay::TournamentReplayBuilderError;
 
 
 impl From<RepositoryError> for TournamentError {

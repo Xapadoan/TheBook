@@ -10,7 +10,7 @@ use shared::replay::{FightReplay, FightReplaySummary};
 use shared::tournament::contestant::TournamentContestant;
 use shared::tournament::Tournament;
 use shared::unique_entity::UniqueEntity;
-use shared::warrior::{MutableWarriorCollection, Warrior};
+use shared::warrior::{Warrior, WarriorCollection};
 use uuid::Uuid;
 
 use crate::repository::{FileRepository, Repository, RepositoryError};
@@ -75,30 +75,30 @@ impl ReplayManager {
         Ok((blue_corner, red_corner))
     }
 
-pub fn get_fight_summary_for_warrior(&self, warrior: &Warrior, round_index: u8) -> Result<FightReplaySummary, ReplayManagerError> {
+    pub fn get_fight_summary_for_warrior(&self, warrior_uuid: &Uuid, round_index: u8) -> Result<FightReplaySummary, ReplayManagerError> {
         let round_summary = self.get_round_summary(round_index)?;
         for fight in round_summary {
-            if fight.winner().is_some_and(|uuid| &uuid == warrior.uuid()) {
+            if fight.winner().is_some_and(|uuid| &uuid == warrior_uuid) {
                 return Ok(fight);
-            } else if fight.loser().is_some_and(|uuid| { &uuid == warrior.uuid() }) {
+            } else if fight.loser().is_some_and(|uuid| { &uuid == warrior_uuid }) {
                 return Ok(fight);
-            } else if fight.tie().is_some_and(|(uuid1, uuid2) | { &uuid1 == warrior.uuid() || &uuid2 == warrior.uuid() }) {
+            } else if fight.tie().is_some_and(|(uuid1, uuid2) | { &uuid1 == warrior_uuid || &uuid2 == warrior_uuid }) {
                 return Ok(fight);
             }
         }
-        return Err(ReplayManagerError::new(format!("Warrior with uuid {} was not found in round {}", warrior.uuid(), round_index)))
+        return Err(ReplayManagerError::new(format!("Warrior with uuid {} was not found in round {}", warrior_uuid, round_index)))
     }
 
-    pub fn map_warriors_to_replays<'a>(player: &'a mut Player) -> Result<HashMap<Uuid, Vec<&'a mut Warrior>>, ReplayManagerError> {
-        let mut map: HashMap<Uuid, Vec<&'a mut Warrior>> = HashMap::new();
-        for warrior in player.warriors_mut() {
+    pub fn map_warriors_to_replays(player: &Player) -> Result<HashMap<Uuid, Vec<Uuid>>, ReplayManagerError> {
+        let mut map: HashMap<Uuid, Vec<Uuid>> = HashMap::new();
+        for warrior in player.warriors() {
             if warrior.current_tournament().is_some() {
                 let tournament_uuid = warrior.current_tournament().as_ref().unwrap();
                 let tournament_manager = TournamentManager::build()?;
                 if !tournament_manager.is_tournament_available(tournament_uuid) {
                     match map.get_mut(tournament_uuid) {
-                        Some(vec) => { vec.push(warrior); },
-                        None => { map.insert(tournament_uuid.clone(), vec![warrior]); },
+                        Some(vec) => { vec.push(warrior.uuid().clone()); },
+                        None => { map.insert(tournament_uuid.clone(), vec![warrior.uuid().clone()]); },
                     }
                 }
             }

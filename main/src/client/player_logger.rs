@@ -1,35 +1,24 @@
 use std::error::Error;
 use std::fmt::Display;
 
-use shared::player::Player;
-use shared::player::PlayerBuildError;
-use shared::player::PlayerBuilder;
-use shared::warrior::Warrior;
+use shared::player::{Player, PlayerBuildError, PlayerBuilder};
 use uuid;
 
+use crate::api;
+use crate::auth::SessionError;
 use crate::client::prompt::prompt;
-use crate::repository::{
-    FileRepository,
-    PlayerDTOFile,
-    PlayerRepository,
-    Repository,
-    RepositoryError,
-};
 
 use super::prompt::PromptError;
 
 pub struct PlayerLogger {
-    repo: PlayerRepository<FileRepository<PlayerDTOFile>, FileRepository<Warrior>>,
     player: Option<Player>,
 }
 
 impl PlayerLogger {
-    pub fn build() -> Result<Self, PlayerLoggerError> {
-        let repo = PlayerRepository::build()?;
-        Ok(Self {
-            repo,
+    pub fn new() -> PlayerLogger {
+        Self {
             player: None,
-        })
+        }
     }
 
     fn get_player_uuid(&self) -> Result<uuid::Uuid, PlayerLoggerError> {
@@ -40,19 +29,19 @@ impl PlayerLogger {
 }
 
 impl PlayerBuilder for PlayerLogger {
-    fn get_username(&mut self) -> Result<(), PlayerBuildError> {
+    fn build_username(&mut self) -> Result<(), PlayerBuildError> {
         let uuid = self.get_player_uuid()?;
         println!("Client calls repo directly");
-        let player = self.repo.get_by_uuid(&uuid)?;
+        let player = api::auth::login_from_session(&uuid)?;
         self.player = Some(player);
         Ok(())
     }
 
-    fn get_display_name(&mut self) -> Result<(), PlayerBuildError> {
+    fn build_display_name(&mut self) -> Result<(), PlayerBuildError> {
         Ok(())
     }
 
-    fn get_warriors(&mut self) -> Result<(), PlayerBuildError> {
+    fn build_warriors(&mut self) -> Result<(), PlayerBuildError> {
         Ok(())
     }
 
@@ -94,9 +83,9 @@ impl From<uuid::Error> for PlayerLoggerError {
     }
 }
 
-impl From<RepositoryError> for PlayerLoggerError {
-    fn from(value: RepositoryError) -> Self {
-        Self::new(format!("Repository Error:\n{value}"))
+impl From<SessionError> for PlayerBuildError {
+    fn from(value: SessionError) -> Self {
+        Self::new(format!("Session Error:\n{value}"))
     }
 }
 

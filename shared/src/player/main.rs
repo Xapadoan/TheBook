@@ -4,8 +4,6 @@ use uuid::Uuid;
 use crate::unique_entity::UniqueEntity;
 use crate::warrior::{MutableWarriorCollection, Warrior, WarriorCollection};
 
-use super::{PlayerBuildError, PlayerBuilder};
-
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Player {
     uuid: Uuid,
@@ -29,13 +27,6 @@ impl Player {
             display_name,
             warriors,
         }
-    }
-
-    pub fn build(mut builder: impl PlayerBuilder) -> Result<Player, PlayerBuildError> {
-        builder.get_username()?;
-        builder.get_display_name()?;
-        builder.get_warriors()?;
-        Ok(builder.build())
     }
 }
 

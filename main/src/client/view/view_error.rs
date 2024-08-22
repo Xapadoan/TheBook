@@ -6,9 +6,10 @@ use shared::player::PlayerBuildError;
 use crate::client::player_logger::PlayerLoggerError;
 use crate::client::prompt::PromptError;
 use crate::client::select_warrior::SelectWarriorError;
-use crate::repository::RepositoryError;
-use crate::tournament::manager::TournamentManagerError;
-use crate::tournament::replay::manager::ReplayManagerError;
+use crate::player::PlayerAPIError;
+use crate::replay::ReplayAPIError;
+use crate::tournament::public::TournamentAPIError;
+use crate::warrior::WarriorAPIError;
 
 #[derive(Debug)]
 pub struct ViewError {
@@ -29,12 +30,6 @@ impl Display for ViewError {
 
 impl Error for ViewError {}
 
-impl From<RepositoryError> for ViewError {
-    fn from(value: RepositoryError) -> Self {
-        Self::new(format!("Repository Error:\n{value}"))
-    }
-}
-
 impl From<PlayerLoggerError> for ViewError {
     fn from(value: PlayerLoggerError) -> Self {
         Self::new(format!("Repository Error:\n{value}"))
@@ -53,9 +48,9 @@ impl From<PromptError> for ViewError {
     }
 }
 
-impl From<ReplayManagerError> for ViewError {
-    fn from(value: ReplayManagerError) -> Self {
-        Self::new(format!("Replay Manager Error:\n{value}"))
+impl From<ReplayAPIError> for ViewError {
+    fn from(value: ReplayAPIError) -> Self {
+        Self::new(format!("Replay API Error:\n{value}"))
     }
 }
 
@@ -65,8 +60,20 @@ impl From<SelectWarriorError> for ViewError {
     }
 }
 
-impl From<TournamentManagerError> for ViewError {
-    fn from(value: TournamentManagerError) -> Self {
-        Self::new(format!("Tournament Manager Error:\n{value}"))
+impl From<TournamentAPIError> for ViewError {
+    fn from(value: TournamentAPIError) -> Self {
+        Self::new(format!("Tournament API Error:\n{value}"))
+    }
+}
+
+impl From<WarriorAPIError> for ViewError {
+    fn from(value: WarriorAPIError) -> Self {
+        Self::new(format!("Warrior API Error:\n{value}"))
+    }
+}
+
+impl From<PlayerAPIError> for ViewError {
+    fn from(value: PlayerAPIError) -> Self {
+        Self::new(format!("Player API Error:\n{value}"))
     }
 }

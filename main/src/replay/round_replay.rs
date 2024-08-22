@@ -7,7 +7,7 @@ use shared::replay::FightReplaySummary;
 use shared::unique_entity::UniqueEntity;
 use uuid::Uuid;
 
-use crate::tournament::fight::{FightResult, FightResultKind};
+use crate::tournament::{FightResult, FightResultKind};
 
 use super::manager::REPLAY_ROOT_DIR;
 

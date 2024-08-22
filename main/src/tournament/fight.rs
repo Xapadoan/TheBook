@@ -9,8 +9,7 @@ use shared::warrior::Warrior;
 use uuid::Uuid;
 
 use crate::repository::Repository;
-
-use super::replay::fight_replay::{FightReplayBuilder, FightReplayBuilderError};
+use crate::replay::{FightReplayBuilder, FightReplayBuilderError};
 
 #[derive(Debug)]
 pub struct Fight {

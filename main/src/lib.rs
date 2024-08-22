@@ -1,13 +1,43 @@
+mod auth {
+    mod signup;
+    pub use signup::signup;
+    mod session;
+    pub use session::{login_from_session, SessionError};
+}
+
+mod player {
+    mod gen_random_warrior;
+    pub use gen_random_warrior::gen_random_warrior;
+    mod error;
+    pub use error::PlayerAPIError;
+}
+
+pub mod replay {
+    mod fight_replay;
+    pub use fight_replay::{FightReplayBuilder, FightReplayBuilderError};
+    mod manager;
+    mod tournament_replay;
+    pub use tournament_replay::{TournamentReplayBuilder, TournamentReplayBuilderError};
+    mod round_replay;
+    pub use round_replay::{RoundReplayBuilder, RoundReplayBuilderError};
+    mod public;
+    pub use public::{
+        available_replays,
+        tournament_replay,
+        fight_summary_for_warrior,
+        fight_replay,
+        // to remove after merge with fight replay
+        fight_warriors,
+        ReplayAPIError,
+    };
+}
+
 mod tournament {
     pub mod auto_tournament;
     mod fight;
+    pub use fight::{FightResult, FightResultKind};
     pub mod manager;
-    pub mod replay {
-        pub mod tournament_replay;
-        pub mod round_replay;
-        pub mod fight_replay;
-        pub mod manager;
-    }
+    pub mod public;
 }
 
 pub mod repository {
@@ -18,6 +48,14 @@ pub mod repository {
     mod player_repository;
     pub use player_repository::{PlayerRepository, PlayerDTOFile};
 }
+
+mod warrior {
+    mod error;
+    pub use error::WarriorAPIError;
+    mod delete;
+    pub use delete::delete_warrior;
+}
+
 pub mod client {
     mod prompt;
     mod main;
@@ -74,6 +112,48 @@ pub mod client {
     mod player_creator;
     mod player_logger;
     mod character_sheet;
+}
+
+pub mod api {
+    pub mod auth {
+        pub use crate::auth::signup;
+        pub use crate::auth::login_from_session;
+        // remove this later
+        pub use crate::auth::SessionError;
+    }
+    pub mod tournaments {
+        pub use crate::tournament::public::{
+            playable_tournament,
+            register_contestant,
+            remove_contestant,
+            TournamentAPIError,
+        };
+    }
+
+    pub mod replay {
+        pub use crate::replay::{
+            available_replays,
+            tournament_replay,
+            fight_summary_for_warrior,
+            fight_replay,
+            fight_warriors,
+            ReplayAPIError,
+        };
+    }
+
+    pub mod warriors {
+        pub use crate::warrior::{
+            delete_warrior,
+            WarriorAPIError,
+        };
+    }
+
+    pub mod players {
+        pub use crate::player::{
+            gen_random_warrior,
+            PlayerAPIError,
+        };
+    }
 }
 
 use std::error::Error;

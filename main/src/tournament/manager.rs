@@ -4,7 +4,6 @@ use std::path::PathBuf;
 
 use shared::tournament::TournamentError;
 use shared::{random::Random, tournament::Tournament};
-use shared::tournament::contestant::TournamentContestant;
 use shared::unique_entity::UniqueEntity;
 use shared::warrior::Warrior;
 use uuid::Uuid;
@@ -56,12 +55,10 @@ impl<T: Repository<Tournament>> TournamentManager<T> {
         }
     }
 
-    pub fn register_contestant(&self, warrior: &mut Warrior, tournament: &mut Tournament) -> Result<(), TournamentManagerError> {
+    pub fn register_contestant(&self, tournament_uuid: &Uuid, warrior: &Warrior) -> Result<(), TournamentManagerError> {
+        let mut tournament = self.repo.get_by_uuid(tournament_uuid)?;
         tournament.add_contestant(warrior)?;
         self.repo.update(tournament.uuid(), &tournament)?;
-        warrior.set_current_tournament(Some(tournament.uuid().clone()));
-        let warrior_repo: FileRepository<Warrior> = FileRepository::build(PathBuf::from("saves/warriors"))?;
-        warrior_repo.update(warrior.uuid(), &warrior)?;
         Ok(())
     }
 

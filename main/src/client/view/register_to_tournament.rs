@@ -1,16 +1,16 @@
 use shared::name::Name;
 use shared::player::Player;
-use shared::warrior::{MutableWarriorCollection, Warrior};
+use shared::unique_entity::UniqueEntity;
+use shared::warrior::{Warrior, WarriorCollection};
 
+use crate::api;
 use crate::client::prompt::prompt_bool;
 use crate::client::select_warrior::select_warrior;
-use crate::tournament::manager::TournamentManager;
 
 use super::ViewError;
 
 pub fn register_to_tournament(player: &mut Player) -> Result<(), ViewError> {
-    let tournament_manager = TournamentManager::build()?;
-    let mut tournament = tournament_manager.get_playable_tournament()?;
+    let tournament = api::tournaments::playable_tournament()?;
     let send_warriors = prompt_bool(&format!(
         "A tournament, the {} will start soon, do you want to send warriors ?",
         tournament.name(),
@@ -20,8 +20,8 @@ pub fn register_to_tournament(player: &mut Player) -> Result<(), ViewError> {
         return Ok(());
     }
 
-    let mut warriors: Vec<&mut Warrior> = vec![];
-    for warrior in player.warriors_mut() {
+    let mut warriors: Vec<&Warrior> = vec![];
+    for warrior in player.warriors() {
         warriors.push(warrior)
     }
     let warrior = select_warrior(&mut warriors)?;
@@ -29,7 +29,7 @@ pub fn register_to_tournament(player: &mut Player) -> Result<(), ViewError> {
         return Ok(())
     }
     let warrior = warrior.unwrap();
-    tournament_manager.register_contestant(warrior, &mut tournament)?;
+    api::tournaments::register_contestant(tournament.uuid(), warrior.uuid())?;
 
     println!("{} registers for {}", warrior.name(), tournament.name());
 
