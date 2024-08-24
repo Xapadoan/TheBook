@@ -186,9 +186,9 @@ pub trait ResolveCriticalHit:
                 match self.body().body_part(&BodyPartKind::Knee(affected_side.clone())) {
                     None => IndividualConsequences::no_consequences(),
                     Some(knee) => if knee.is_broken() {
-                        IndividualConsequences::injures(damages + 3, Injury::KneeDislocated(affected_side))
-                    } else {
                         IndividualConsequences::only_damages(damages + 3)
+                    } else {
+                        IndividualConsequences::injures(damages + 3, Injury::KneeDislocated(affected_side))
                     }
                 }
             }
@@ -222,9 +222,9 @@ pub trait ResolveCriticalHit:
                 None => IndividualConsequences::no_consequences(),
                 Some(hand) => {
                     if hand.is_broken() {
-                        IndividualConsequences::injures(damages + 3, Injury::FootSmashed(affected_side))
-                    } else {
                         IndividualConsequences::only_damages(damages + 3)
+                    } else {
+                        IndividualConsequences::injures(damages + 3, Injury::FootSmashed(affected_side))
                     }
                 }
             }
@@ -240,7 +240,7 @@ pub trait ResolveCriticalHit:
                     BodySide::Left => Injury::LeftArmBroken,
                 };
                 if arm.is_broken() {
-                    IndividualConsequences::no_consequences()
+                    IndividualConsequences::only_damages(damages + 4)
                 } else {
                     IndividualConsequences::injures(damages + 4, injury)
                 }
@@ -252,12 +252,12 @@ pub trait ResolveCriticalHit:
         match self.body().body_part(&BodyPartKind::Leg(affected_side.clone())) {
             None => IndividualConsequences::no_consequences(),
             Some(leg) => if leg.is_broken() {
+                IndividualConsequences::only_damages(damages + 5)
+            } else {
                 IndividualConsequences::injures(
                     damages + 5,
                     Injury::OneLegBroken(affected_side),
                 )
-            } else {
-                IndividualConsequences::only_damages(damages + 5)
             }
         }
     }
