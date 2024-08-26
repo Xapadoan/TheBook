@@ -1,6 +1,7 @@
 use std::error::Error;
 use std::fmt::Display;
 
+use crate::auth::SessionManagerError;
 use crate::repository::RepositoryError;
 
 #[derive(Debug)]
@@ -25,5 +26,11 @@ impl Error for PlayerAPIError {}
 impl From<RepositoryError> for PlayerAPIError {
     fn from(value: RepositoryError) -> Self {
         Self::new(&format!("Repository Error:\n{value}"))
+    }
+}
+
+impl From<SessionManagerError> for PlayerAPIError {
+    fn from(value: SessionManagerError) -> Self {
+        Self::new(&format!("Session Manager Error:\n{value}"))
     }
 }

@@ -1,10 +1,12 @@
 mod auth {
     mod signup;
     pub use signup::signup;
-    mod session;
-    pub use session::login_from_session;
+    mod session {
+        pub mod manager;
+    }
     mod error;
     pub use error::AuthAPIError;
+    pub use session::manager::{SessionManager, SessionManagerError};
 }
 
 mod player {
@@ -14,6 +16,8 @@ mod player {
     pub use remove_warrior::remove_warrior;
     mod error;
     pub use error::PlayerAPIError;
+    mod read;
+    pub use read::read_player;
 }
 
 pub mod replay {
@@ -57,7 +61,6 @@ pub mod api {
     pub mod auth {
         pub use crate::auth::{
             signup,
-            login_from_session,
             AuthAPIError,
         };
     }
@@ -85,6 +88,7 @@ pub mod api {
         pub use crate::player::{
             gen_random_warrior,
             remove_warrior,
+            read_player as read,
             PlayerAPIError,
         };
     }

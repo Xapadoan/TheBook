@@ -1,16 +1,18 @@
 use std::path::PathBuf;
 
+use shared::auth::Session;
 use shared::equipment::weapon::{OptionalMutableWeapon, Weapon};
 use shared::player::{Player, PlayerBuildError, PlayerBuilder};
 use shared::random::Random;
+use shared::unique_entity::UniqueEntity;
 use shared::warrior::Warrior;
 use uuid::Uuid;
 
 use crate::repository::{FileRepository, PlayerRepository, Repository};
 
-use super::AuthAPIError;
+use super::{AuthAPIError, SessionManager};
 
-pub fn signup(username: String, display_name: String) -> Result<Player, AuthAPIError> {
+pub fn signup(username: String, display_name: String) -> Result<Session, AuthAPIError> {
     let mut signup = SignUp::new(username, display_name);
     if let Err(_) = signup.build_warriors() {
         panic!("SignUp.build_warriors() should never return error")
@@ -18,7 +20,9 @@ pub fn signup(username: String, display_name: String) -> Result<Player, AuthAPIE
     let player = signup.build();
     let repo = PlayerRepository::build()?;
     repo.create(&player)?;
-    Ok(player)
+    let session_manager = SessionManager::build()?;
+    let session = session_manager.create_session(player.uuid())?;
+    Ok(session)
 }
 
 struct SignUp {

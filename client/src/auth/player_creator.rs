@@ -1,8 +1,9 @@
 use server::api;
-use crate::prompt::prompt;
-use shared::player::{Player, PlayerBuildError, PlayerBuilder};
+use shared::{player::{Player, PlayerBuildError, PlayerBuilder}, unique_entity::UniqueEntity};
 
-use super::prompt::PromptError;
+use crate::prompt::{prompt, PromptError};
+
+use super::session::store_session;
 
 pub struct PlayerCreator {
     username: Option<String>,
@@ -46,7 +47,9 @@ impl PlayerBuilder for PlayerCreator {
                 );
             }
         };
-        let player = api::auth::signup(username, display_name)?;
+        let session = api::auth::signup(username, display_name)?;
+        store_session(&session)?;
+        let player = api::players::read(session.uuid()).unwrap();
         self.player = Some(player);
         Ok(())
     }

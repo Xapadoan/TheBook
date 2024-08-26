@@ -108,3 +108,8 @@ pub mod player {
     mod builder_error;
     pub use builder_error::PlayerBuildError;
 }
+
+pub mod auth {
+    mod session;
+    pub use session::Session;
+}

@@ -47,8 +47,15 @@ mod show {
     pub use main::*;
 }
 mod select_warrior;
-mod player_creator;
-mod player_logger;
+
+mod auth {
+    mod player_creator;
+    pub use player_creator::PlayerCreator;
+    mod player_logger;
+    pub use player_logger::{PlayerLogger, PlayerLoggerError};
+    mod session;
+}
+
 mod character_sheet;
 
 pub fn run() -> Result<(), view::ViewError> {

@@ -4,6 +4,8 @@ use shared::player::PlayerBuildError;
 
 use crate::repository::RepositoryError;
 
+use super::SessionManagerError;
+
 #[derive(Debug)]
 pub struct AuthAPIError {
     message: String,
@@ -26,6 +28,12 @@ impl Error for AuthAPIError {}
 impl From<RepositoryError> for AuthAPIError {
     fn from(value: RepositoryError) -> Self {
         Self::new(format!("Repository Error:\n{value}"))
+    }
+}
+
+impl From<SessionManagerError> for AuthAPIError {
+    fn from(value: SessionManagerError) -> Self {
+        Self::new(format!("Session Manager Error:\n{value}"))
     }
 }
 

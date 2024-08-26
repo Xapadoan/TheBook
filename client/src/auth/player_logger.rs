@@ -3,11 +3,12 @@ use std::fmt::Display;
 
 use server::api;
 use shared::player::{Player, PlayerBuildError, PlayerBuilder};
+use shared::unique_entity::UniqueEntity;
 use uuid;
 
-use crate::prompt::prompt;
+use crate::prompt::PromptError;
 
-use super::prompt::PromptError;
+use super::session::read_session;
 
 pub struct PlayerLogger {
     player: Option<Player>,
@@ -19,18 +20,17 @@ impl PlayerLogger {
             player: None,
         }
     }
-
-    fn get_player_uuid(&self) -> Result<uuid::Uuid, PlayerLoggerError> {
-        let str = prompt("Welcome back, enter your uuid:")?;
-        let uuid = uuid::Uuid::parse_str(&str)?;
-        Ok(uuid)
-    }
 }
 
 impl PlayerBuilder for PlayerLogger {
     fn build_username(&mut self) -> Result<(), PlayerBuildError> {
-        let uuid = self.get_player_uuid()?;
-        let player = api::auth::login_from_session(&uuid)?;
+        let player = match read_session()? {
+            Some(session) => {
+                let player = api::players::read(session.uuid());
+                player.unwrap()
+            },
+            None => panic!("Login not implemented"),
+        };
         self.player = Some(player);
         Ok(())
     }

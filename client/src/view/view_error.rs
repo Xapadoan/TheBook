@@ -8,7 +8,7 @@ use server::api::{
 };
 use shared::player::PlayerBuildError;
 
-use crate::player_logger::PlayerLoggerError;
+use crate::auth::PlayerLoggerError;
 use crate::prompt::PromptError;
 use crate::select_warrior::SelectWarriorError;
 
@@ -19,7 +19,7 @@ pub struct ViewError {
 
 impl ViewError {
     fn new(message: String) -> Self {
-        Self { message: format!("Tournament Replay Build Error\n{message}") }
+        Self { message }
     }
 }
 

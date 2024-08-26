@@ -1,7 +1,6 @@
 use shared::player::{Player, PlayerBuilder};
 
-use crate::player_creator::PlayerCreator;
-use crate::player_logger::PlayerLogger;
+use crate::auth::{PlayerCreator, PlayerLogger};
 use crate::prompt::prompt_bool;
 
 use super::view_error::ViewError;
