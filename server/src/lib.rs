@@ -48,6 +48,11 @@ mod tournament {
     pub mod public;
 }
 
+mod warrior {
+    mod manager;
+    pub use manager::{WarriorManager, WarriorManagerError};
+}
+
 pub mod repository {
     mod main;
     pub use main::{Repository, RepositoryError};

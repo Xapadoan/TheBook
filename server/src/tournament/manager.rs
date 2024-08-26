@@ -9,6 +9,7 @@ use shared::warrior::Warrior;
 use uuid::Uuid;
 
 use crate::repository::{FileRepository, Repository, RepositoryError};
+use crate::warrior::{WarriorManager, WarriorManagerError};
 
 use super::auto_tournament::AutoTournament;
 
@@ -90,8 +91,10 @@ impl<T: Repository<Tournament>> TournamentManager<T> {
 
     pub fn run_tournaments(&self) -> Result<(), TournamentManagerError> {
         let tournaments_uuids = self.repo.list()?;
+        let warriors_manager = WarriorManager::build()?;
         for uuid in tournaments_uuids {
             let mut tournament = self.repo.get_by_uuid(&uuid)?;
+            warriors_manager.apply_passive_healing(tournament.contestants_ids())?;
             let bots = self.gen_bots(&mut tournament)?;
             tournament.auto()?;
             self.delete_bots(bots)?;
@@ -133,5 +136,11 @@ impl From<RepositoryError> for TournamentManagerError {
 impl From<TournamentError> for TournamentManagerError {
     fn from(value: TournamentError) -> Self {
         Self::new(&format!("Tournament Error:\n{value}"))
+    }
+}
+
+impl From<WarriorManagerError> for TournamentManagerError {
+    fn from(value: WarriorManagerError) -> Self {
+        Self::new(&format!("Warrior Manager Error:\n{value}"))
     }
 }

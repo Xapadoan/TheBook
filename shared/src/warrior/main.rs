@@ -1,3 +1,4 @@
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
@@ -17,7 +18,7 @@ use crate::assault::parry_not_possible::CanParry;
 use crate::assault::parry_success::ResolveParrySuccess;
 use crate::assault::end_turn_consequences::EndTurnConsequencesBuilder;
 use crate::equipment::weapon::{OptionalMutableWeapon, Weapon};
-use crate::health::{Health, IsDead, IsUnconscious, MutableHealth};
+use crate::health::{Health, IsDead, IsUnconscious, MutableHealth, MutablePassiveHealing, PassiveHealing};
 use crate::knock_out::KnockOut;
 use crate::name::Name;
 use crate::random::{Random, RandomDictionary};
@@ -48,6 +49,7 @@ pub struct Warrior {
     duration_damages: Vec<DurationDamages>,
     stats: StatsManager,
     is_unconscious: bool,
+    last_passive_heal: i64,
 }
 
 impl UniqueEntity for Warrior {
@@ -85,6 +87,7 @@ impl Random for Warrior {
             duration_damages: vec![],
             stats: StatsManager::new(),
             is_unconscious: false,
+            last_passive_heal: Utc::now().timestamp(),
         }
     }
 }
@@ -206,6 +209,19 @@ impl ParryThreshold for Warrior {
 impl KnockOut for Warrior {
     fn knock_out(&mut self) {
         self.is_unconscious = true;
+    }
+}
+
+impl PassiveHealing for Warrior {
+    fn last_passive_heal(&self) -> DateTime<Utc> {
+        DateTime::from_timestamp(self.last_passive_heal, 0).unwrap()
+    }
+}
+
+// server only
+impl MutablePassiveHealing for Warrior {
+    fn set_last_passive_heal(&mut self, last_passive_heal: DateTime<Utc>) {
+        self.last_passive_heal = last_passive_heal.timestamp()
     }
 }
 

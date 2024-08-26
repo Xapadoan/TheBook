@@ -57,6 +57,10 @@ impl Tournament {
     pub fn contestants_ids_mut(&mut self) -> &mut Vec<Uuid> {
         &mut self.contestants_ids
     }
+
+    pub fn contestants_ids(&self) -> &Vec<Uuid> {
+        &self.contestants_ids
+    }
 }
 
 impl Name for Tournament {

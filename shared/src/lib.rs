@@ -74,7 +74,19 @@ pub mod equipment {
 pub mod random;
 pub mod unique_entity;
 pub mod name;
-pub mod health;
+
+pub mod health {
+    mod health;
+    pub use health::{
+        Health,
+        MutableHealth,
+        IsDead,
+        IsUnconscious,
+    };
+    mod passive_healing;
+    pub use passive_healing::{PassiveHealing, MutablePassiveHealing};
+}
+
 pub mod stats;
 
 pub mod tournament {
