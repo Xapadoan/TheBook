@@ -1,21 +1,17 @@
+use server::api;
 use shared::player::{Player, PlayerBuilder};
+use shared::unique_entity::UniqueEntity;
 
-use crate::auth::{PlayerCreator, PlayerLogger};
-use crate::prompt::prompt_bool;
+use crate::auth::{read_session, PlayerCreator};
 
 use super::view_error::ViewError;
 
 pub fn welcome_player() -> Result<Player, ViewError> {
-    let player_has_account = prompt_bool("Do you already have an account ?")?;
-    let player = if player_has_account {
-        let mut builder = PlayerLogger::new();
-        builder.build_username()?;
-        builder.build_display_name()?;
-        builder.build_warriors()?;
-        let existing_player = builder.build();
+    let player = if let Some(session) = read_session()? {
+        let existing_player = api::players::read(session.uuid())?;
         println!("Welcome back {} !", existing_player.display_name());
         existing_player
-    } else  {
+    } else {
         let mut builder = PlayerCreator::new();
         builder.build_username()?;
         builder.build_display_name()?;

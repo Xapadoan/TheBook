@@ -51,9 +51,8 @@ mod select_warrior;
 mod auth {
     mod player_creator;
     pub use player_creator::PlayerCreator;
-    mod player_logger;
-    pub use player_logger::{PlayerLogger, PlayerLoggerError};
     mod session;
+    pub use session::{read_session, SessionError};
 }
 
 mod character_sheet;

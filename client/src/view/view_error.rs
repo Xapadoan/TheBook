@@ -8,7 +8,7 @@ use server::api::{
 };
 use shared::player::PlayerBuildError;
 
-use crate::auth::PlayerLoggerError;
+use crate::auth::SessionError;
 use crate::prompt::PromptError;
 use crate::select_warrior::SelectWarriorError;
 
@@ -31,9 +31,9 @@ impl Display for ViewError {
 
 impl Error for ViewError {}
 
-impl From<PlayerLoggerError> for ViewError {
-    fn from(value: PlayerLoggerError) -> Self {
-        Self::new(format!("Repository Error:\n{value}"))
+impl From<SessionError> for ViewError {
+    fn from(value: SessionError) -> Self {
+        Self::new(format!("Session Error:\n{value}"))
     }
 }
 
