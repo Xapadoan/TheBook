@@ -27,6 +27,10 @@ impl Tournament {
         Ok(())
     }
 
+    pub fn max_contestants(&self) -> usize {
+        self.max_contestants
+    }
+
     // server only
     fn new(name: String, max_contestants: usize) -> Self {
         Self {
@@ -63,7 +67,7 @@ impl Name for Tournament {
 
 impl Random for Tournament {
     fn random() -> Self {
-        let pow = rand::thread_rng().gen_range(1..10);
+        let pow = rand::thread_rng().gen_range(1..3);
         let mut max_contestants = 2;
         let mut i = 0;
         while i < pow {

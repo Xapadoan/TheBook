@@ -45,6 +45,32 @@ impl<T: Repository<Tournament>> TournamentManager<T> {
         Ok(tournament)
     }
 
+    fn gen_bots(&self, tournament: &mut Tournament) -> Result<Vec<Uuid>, TournamentManagerError> {
+        let bots_number = tournament.max_contestants() - tournament.number_of_contestants();
+        dbg!(bots_number);
+        let mut i = 0;
+        let bots_repo = FileRepository::build(PathBuf::from("saves/warriors"))?;
+        let mut bots_uuids = vec![];
+        while i < bots_number {
+            let warrior = Warrior::random();
+            bots_repo.create(&warrior)?;
+            tournament.add_contestant(&warrior)?;
+            self.repo.update(tournament.uuid(), tournament)?;
+            bots_uuids.push(warrior.uuid().clone());
+            i += 1;
+        }
+        dbg!(&bots_uuids);
+        Ok(bots_uuids)
+    }
+
+    fn delete_bots(&self, bots: Vec<Uuid>) -> Result<(), TournamentManagerError> {
+        let bots_repo: FileRepository<Warrior> = FileRepository::build(PathBuf::from("saves/warriors"))?;
+        for bot_uuid in bots {
+            bots_repo.delete(&bot_uuid)?;
+        }
+        Ok(())
+    }
+
     pub fn get_playable_tournament(&self) -> Result<Tournament, TournamentManagerError> {
         let available_tournament = self.get_available_tournament()?;
         if available_tournament.is_some() {
@@ -66,8 +92,9 @@ impl<T: Repository<Tournament>> TournamentManager<T> {
         let tournaments_uuids = self.repo.list()?;
         for uuid in tournaments_uuids {
             let mut tournament = self.repo.get_by_uuid(&uuid)?;
+            let bots = self.gen_bots(&mut tournament)?;
             tournament.auto()?;
-            // tournament.release_warriors()?;
+            self.delete_bots(bots)?;
             self.repo.delete(&uuid)?;
         }
         Ok(())
