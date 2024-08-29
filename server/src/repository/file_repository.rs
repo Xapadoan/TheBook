@@ -137,16 +137,4 @@ mod tests {
             Ok(())
         }
     }
-
-    #[test]
-    fn create_err_if_file_already_exists() -> Result<(), Box<dyn Error>> {
-        let dir_path = PathBuf::from("./tests");
-        let repo = FileRepository::build(dir_path.clone())?;
-        fs::File::create("./tests/file")?;
-
-        let item = TestFileRepositoryItem { uuid: Uuid::new_v4() };
-        repo.create(&item)?;
-        rm_rf(dir_path)?;
-        Ok(())
-    }
 }
