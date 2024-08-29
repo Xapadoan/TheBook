@@ -4,8 +4,9 @@ use shared::player::Player;
 use shared::unique_entity::UniqueEntity;
 use shared::warrior::{Warrior, WarriorCollection};
 
-use crate::prompt::prompt_bool;
-use crate::select_warrior::select_warrior;
+use crate::character_sheet::CharacterSheet;
+use crate::prompt::{prompt_bool, select_with_arrows};
+use crate::show::ShowSelf;
 
 use super::ViewError;
 
@@ -24,7 +25,11 @@ pub fn register_to_tournament(player: &mut Player) -> Result<(), ViewError> {
     for warrior in player.warriors() {
         warriors.push(warrior)
     }
-    let warrior = select_warrior(&mut warriors)?;
+    let warrior = select_with_arrows(
+        "Select a warrior:",
+        &mut warriors,
+        | warrior| { CharacterSheet::new(warrior).show_self() }
+    )?;
     if warrior.is_none() {
         return Ok(())
     }

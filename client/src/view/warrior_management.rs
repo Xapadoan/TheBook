@@ -6,8 +6,7 @@ use shared::warrior::{MutableWarriorCollection, Warrior, WarriorCollection};
 use uuid::Uuid;
 
 use server::api;
-use crate::prompt::prompt_bool;
-use crate::select_warrior::select_warrior;
+use crate::prompt::{prompt_bool, select_with_keys};
 use crate::show::ShowFightReplay;
 
 use super::view_error::ViewError;
@@ -32,7 +31,11 @@ pub fn returning_warriors(player: &mut Player) -> Result<(), ViewError> {
             }
         }
         'show_warrior: loop {
-            let warrior = select_warrior(&mut warriors)?;
+            let warrior = select_with_keys(
+                "Witch warrior's tournament do you want to replay ?",
+                &mut warriors,
+                |warrior| { warrior.name().to_string() }
+            )?;
             if warrior.is_none() {
                 break 'show_warrior;
             }

@@ -10,7 +10,6 @@ use shared::player::PlayerBuildError;
 
 use crate::auth::SessionError;
 use crate::prompt::PromptError;
-use crate::select_warrior::SelectWarriorError;
 
 #[derive(Debug)]
 pub struct ViewError {
@@ -52,12 +51,6 @@ impl From<PromptError> for ViewError {
 impl From<ReplayAPIError> for ViewError {
     fn from(value: ReplayAPIError) -> Self {
         Self::new(format!("Replay API Error:\n{value}"))
-    }
-}
-
-impl From<SelectWarriorError> for ViewError {
-    fn from(value: SelectWarriorError) -> Self {
-        Self::new(format!("Select Warrior Error:\n{value}"))
     }
 }
 
