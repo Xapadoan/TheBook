@@ -1,6 +1,7 @@
 use server::api;
 use shared::name::Name;
 use shared::player::Player;
+use shared::tournament::contestant::TournamentContestant;
 use shared::unique_entity::UniqueEntity;
 use shared::warrior::{Warrior, WarriorCollection};
 
@@ -21,13 +22,13 @@ pub fn register_to_tournament(player: &mut Player) -> Result<(), ViewError> {
         return Ok(());
     }
 
-    let mut warriors: Vec<&Warrior> = vec![];
-    for warrior in player.warriors() {
-        warriors.push(warrior)
-    }
+    let warriors: Vec<&Warrior> = player.warriors()
+        .iter()
+        .filter(|w| w.current_tournament().is_none())
+        .collect();
     let warrior = select_with_arrows(
         "Select a warrior:",
-        &mut warriors,
+        &warriors,
         | warrior| { CharacterSheet::new(warrior).show_self() }
     )?;
     if warrior.is_none() {

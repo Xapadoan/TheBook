@@ -24,12 +24,10 @@ pub fn returning_warriors(player: &mut Player) -> Result<(), ViewError> {
             return Ok(());
         }
 
-        let mut warriors: Vec<&Warrior> = vec![];
-        for warrior in player.warriors() {
-            if warrior_uuids.contains(warrior.uuid()) {
-                warriors.push(&warrior);
-            }
-        }
+        let mut warriors: Vec<&Warrior> = player.warriors()
+            .iter()
+            .filter(|w| warrior_uuids.contains(w.uuid()))
+            .collect();
         'show_warrior: loop {
             let warrior = select_with_keys(
                 "Witch warrior's tournament do you want to replay ?",
