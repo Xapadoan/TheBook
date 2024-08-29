@@ -18,6 +18,7 @@ use crate::assault::parry_not_possible::CanParry;
 use crate::assault::parry_success::ResolveParrySuccess;
 use crate::assault::end_turn_consequences::EndTurnConsequencesBuilder;
 use crate::equipment::weapon::{OptionalMutableWeapon, Weapon};
+use crate::experience::{Experience, GainExperience};
 use crate::health::{Health, IsDead, IsUnconscious, MutableHealth, MutablePassiveHealing, PassiveHealing};
 use crate::knock_out::KnockOut;
 use crate::name::Name;
@@ -50,6 +51,7 @@ pub struct Warrior {
     stats: StatsManager,
     is_unconscious: bool,
     last_passive_heal: i64,
+    experience: u64,
 }
 
 impl UniqueEntity for Warrior {
@@ -88,6 +90,7 @@ impl Random for Warrior {
             stats: StatsManager::new(),
             is_unconscious: false,
             last_passive_heal: Utc::now().timestamp(),
+            experience: 0,
         }
     }
 }
@@ -222,6 +225,17 @@ impl PassiveHealing for Warrior {
 impl MutablePassiveHealing for Warrior {
     fn set_last_passive_heal(&mut self, last_passive_heal: DateTime<Utc>) {
         self.last_passive_heal = last_passive_heal.timestamp()
+    }
+}
+
+impl Experience for Warrior {
+    fn xp(&self) -> u64 {
+        self.experience
+    }
+}
+impl GainExperience for Warrior {
+    fn gain_xp(&mut self, xp: u64) {
+        self.experience += xp;
     }
 }
 

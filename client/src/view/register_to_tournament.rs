@@ -6,12 +6,12 @@ use shared::unique_entity::UniqueEntity;
 use shared::warrior::{Warrior, WarriorCollection};
 
 use crate::character_sheet::CharacterSheet;
-use crate::prompt::{prompt_bool, select_with_arrows};
+use crate::prompt::{prompt_bool, swap_select_with_arrows};
 use crate::show::ShowSelf;
 
 use super::ViewError;
 
-pub fn register_to_tournament(player: &mut Player) -> Result<(), ViewError> {
+pub fn register_to_tournament(player: Player) -> Result<(), ViewError> {
     let tournament = api::tournaments::playable_tournament()?;
     let send_warriors = prompt_bool(&format!(
         "A tournament, the {} will start soon, do you want to send warriors ?",
@@ -22,13 +22,13 @@ pub fn register_to_tournament(player: &mut Player) -> Result<(), ViewError> {
         return Ok(());
     }
 
-    let warriors: Vec<&Warrior> = player.warriors()
+    let mut warriors: Vec<&Warrior> = player.warriors()
         .iter()
         .filter(|w| w.current_tournament().is_none())
         .collect();
-    let warrior = select_with_arrows(
+    let warrior = swap_select_with_arrows(
         "Select a warrior:",
-        &warriors,
+        &mut warriors,
         | warrior| { CharacterSheet::new(warrior).show_self() }
     )?;
     if warrior.is_none() {

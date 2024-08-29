@@ -1,6 +1,7 @@
 use std::error::Error;
 use std::fmt::Display;
 
+use server::api::auth::AuthAPIError;
 use server::api::{
     players::PlayerAPIError,
     replay::ReplayAPIError,
@@ -63,5 +64,11 @@ impl From<TournamentAPIError> for ViewError {
 impl From<PlayerAPIError> for ViewError {
     fn from(value: PlayerAPIError) -> Self {
         Self::new(format!("Player API Error:\n{value}"))
+    }
+}
+
+impl From<AuthAPIError> for ViewError {
+    fn from(value: AuthAPIError) -> Self {
+        Self::new(format!("Auth API Error:\n{value}"))
     }
 }

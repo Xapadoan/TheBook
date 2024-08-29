@@ -2,6 +2,7 @@ use std::error::Error;
 use std::fmt::Display;
 
 use shared::equipment::weapon::OptionalMutableWeapon;
+use shared::experience::GainExperience;
 use shared::health::{IsDead, IsUnconscious};
 use shared::replay::turn_summary::TurnSummary;
 use shared::unique_entity::UniqueEntity;
@@ -78,6 +79,7 @@ impl Fight {
                 || self.blue_corner.is_unconscious()
                 || self.blue_corner.weapon().is_none()
             {
+                self.red_corner.gain_xp(20);
                 let result = FightResult {
                     blue_corner_uuid: self.blue_corner.uuid().clone(),
                     red_corner_uuid: self.red_corner.uuid().clone(),
@@ -91,6 +93,7 @@ impl Fight {
                 || self.red_corner.is_unconscious()
                 || self.red_corner.weapon().is_none()
             {
+                self.blue_corner.gain_xp(20);
                 let result = FightResult {
                     blue_corner_uuid: self.blue_corner.uuid().clone(),
                     red_corner_uuid: self.red_corner.uuid().clone(),

@@ -2,18 +2,18 @@ use shared::health::IsDead;
 use shared::name::Name;
 use shared::player::Player;
 use shared::unique_entity::UniqueEntity;
-use shared::warrior::{MutableWarriorCollection, Warrior, WarriorCollection};
+use shared::warrior::{Warrior, WarriorCollection};
 use uuid::Uuid;
 
 use server::api;
-use crate::prompt::{prompt_bool, select_with_keys};
+use crate::prompt::{prompt_bool, swap_select_with_keys};
 use crate::show::ShowFightReplay;
 
 use super::view_error::ViewError;
 
-pub fn returning_warriors(player: &mut Player) -> Result<(), ViewError> {
-    let map = api::replay::available_replays(player.uuid())?;
-    for (tournament_uuid, warrior_uuids) in map.iter() {
+pub fn returning_warriors(player: Player) -> Result<(), ViewError> {
+    let mut map = api::replay::available_replays(player.uuid())?;
+    for (tournament_uuid, warrior_uuids) in map.iter_mut() {
         let tournament = api::replay::tournament_replay(tournament_uuid)?;
         let show_replay = prompt_bool(&format!(
             "The {} tournament ended, {} of your warriors were there do you want to see what happened ?",
@@ -29,10 +29,10 @@ pub fn returning_warriors(player: &mut Player) -> Result<(), ViewError> {
             .filter(|w| warrior_uuids.contains(w.uuid()))
             .collect();
         'show_warrior: loop {
-            let warrior = select_with_keys(
+            let warrior = swap_select_with_keys(
                 "Witch warrior's tournament do you want to replay ?",
                 &mut warriors,
-                |warrior| { warrior.name().to_string() }
+                |warrior: &Warrior| { warrior.name().to_string() }
             )?;
             if warrior.is_none() {
                 break 'show_warrior;
@@ -91,23 +91,14 @@ fn show_warrior_tournament(
     Ok(())
 }
 
-fn replace_dead_warriors(player: &mut Player) -> Result<(), ViewError> {
-    let mut dead_warriors_uuids: Vec<Uuid> = vec![];
+fn replace_dead_warriors(player: Player) -> Result<(), ViewError> {
     for warrior in player.warriors() {
         if warrior.is_dead() {
-            dead_warriors_uuids.push(warrior.uuid().clone());
+            println!("{} died during the last tournament", warrior.name());
+            api::players::remove_warrior(player.uuid(), warrior.uuid())?;
+            let new_warrior = api::players::gen_random_warrior(player.uuid())?;
+            println!("{} will join your team", new_warrior.name());
         }
-    }
-    for uuid in dead_warriors_uuids {
-        if let Some(w) = player.take_warrior(&uuid) {
-            println!("{} died during the last tournament", w.name());
-            api::players::remove_warrior(player.uuid(), w.uuid())?;
-            dbg!("Delete Warrior OK");
-        }
-        let w = api::players::gen_random_warrior(player.uuid())?;
-        dbg!("Gen warrior OK");
-        println!("{} will join your team", w.name());
-        player.warriors_mut().push(w);
     }
     Ok(())
 }

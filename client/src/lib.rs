@@ -7,7 +7,11 @@ mod prompt {
         prompt_bool,
     };
     mod select;
-    pub use select::{select_with_arrows, select_with_keys};
+    pub use select::{
+        select_with_keys,
+        swap_select_with_keys,
+        swap_select_with_arrows,
+    };
 }
 
 mod view {
@@ -16,7 +20,7 @@ mod view {
     mod warrior_management;
     pub use warrior_management::returning_warriors;
     mod player_auth;
-    pub use player_auth::welcome_player;
+    pub use player_auth::authenticate_player;
     mod register_to_tournament;
     pub use register_to_tournament::register_to_tournament;
     mod main_view;
@@ -61,16 +65,14 @@ mod show {
 }
 
 mod auth {
-    mod player_creator;
-    pub use player_creator::PlayerCreator;
     mod session;
-    pub use session::{read_session, SessionError};
+    pub use session::{read_session, store_session, SessionError};
 }
 
 mod character_sheet;
 
 pub fn run() -> Result<(), view::ViewError> {
-    let mut player = view::welcome_player()?;
+    let mut player = view::authenticate_player()?;
     view::main_view(&mut player)?;
     // view::register_to_tournament(&mut player)?;
     Ok(())

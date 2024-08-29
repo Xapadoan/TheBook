@@ -1,6 +1,7 @@
 use shared::assault::attack_attempt::AttackThreshold;
 use shared::assault::parry_attempt::ParryThreshold;
 use shared::equipment::weapon::{OptionalMutableWeapon, Weapon};
+use shared::experience::Experience;
 use shared::health::{Health, MutableHealth};
 use shared::name::Name;
 use shared::stats::{Stat, StatModifier, Stats, StatsManager};
@@ -15,6 +16,7 @@ pub struct CharacterSheet<'a> {
     body: &'a Body,
     stats: &'a StatsManager,
     weapon: &'a Option<Weapon>,
+    experience: u64,
 }
 
 impl<'a> CharacterSheet<'a> {
@@ -25,6 +27,7 @@ impl<'a> CharacterSheet<'a> {
             body: warrior.body(),
             stats: warrior.stats(),
             weapon: warrior.weapon(),
+            experience: warrior.xp(),
         }
     }
 }
@@ -37,13 +40,15 @@ impl<'a> ShowSelf for CharacterSheet<'a> {
             String::from("None")
         };
         format!(
-            "{}\n{}/{}\nAT: {} PRD: {}\n{}",
+            "{}\n{}/{}\nAT: {} PRD: {}\n{}\nLevel: {} ({}xp)",
             self.name,
             self.health.current(),
             self.health.max(),
             self.attack_threshold(),
             self.parry_threshold(),
             weapon_str,
+            self.level(),
+            self.xp(),
         )
     }
 }
@@ -67,5 +72,11 @@ impl<'a> ParryThreshold for CharacterSheet<'a> {
         }
         parry = self.body.modify_stat(parry);
         parry.value()
+    }
+}
+
+impl<'a> Experience for CharacterSheet<'a> {
+    fn xp(&self) -> u64 {
+        self.experience
     }
 }

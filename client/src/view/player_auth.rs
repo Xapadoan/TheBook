@@ -1,23 +1,24 @@
 use server::api;
-use shared::player::{Player, PlayerBuilder};
-use shared::unique_entity::UniqueEntity;
+use shared::auth::Session;
 
-use crate::auth::{read_session, PlayerCreator};
+use crate::auth::{read_session, store_session};
+use crate::prompt::prompt;
 
 use super::view_error::ViewError;
 
-pub fn welcome_player() -> Result<Player, ViewError> {
-    let player = if let Some(session) = read_session()? {
-        let existing_player = api::players::read(session.uuid())?;
-        println!("Welcome back {} !", existing_player.display_name());
-        existing_player
+pub fn authenticate_player() -> Result<Session, ViewError> {
+    if let Some(session) = read_session()? {
+        Ok(session)
     } else {
-        let mut builder = PlayerCreator::new();
-        builder.build_username()?;
-        builder.build_display_name()?;
-        builder.build_warriors()?;
-        let new_player = builder.build();
-        new_player
-    };
-    Ok(player)
+        let session = signup_view()?;
+        store_session(&session)?;
+        Ok(session)
+    }
+}
+
+fn signup_view() -> Result<Session, ViewError> {
+    let username = prompt("Choose a username:")?;
+    let display_name = prompt("Choose a display_name")?;
+    let session = api::auth::signup(username, display_name)?;
+    Ok(session)
 }

@@ -1,6 +1,7 @@
 use std::fmt;
 
-use shared::player::Player;
+use server::api;
+use shared::{auth::Session, unique_entity::UniqueEntity};
 
 use crate::prompt::select_with_keys;
 
@@ -28,7 +29,7 @@ impl fmt::Display for MainViewChoice {
     }
 }
 
-pub fn main_view(player: &mut Player) -> Result<(), ViewError> {
+pub fn main_view(session: &Session) -> Result<(), ViewError> {
     loop {
         let choice = select_with_keys(
             "What do we do ?",
@@ -39,7 +40,9 @@ pub fn main_view(player: &mut Player) -> Result<(), ViewError> {
             Some(c) => {
                 match c {
                     MainViewChoice::ManageTournaments => {
+                        let player = api::players::read(session.uuid())?;
                         returning_warriors(player)?;
+                        let player = api::players::read(session.uuid())?;
                         register_to_tournament(player)?;
                     },
                     MainViewChoice::ManageWarriors => {
