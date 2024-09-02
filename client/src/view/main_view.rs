@@ -43,8 +43,7 @@ pub fn main_view(session: &Session) -> Result<(), ViewError> {
             Some(c) => {
                 match c {
                     MainViewChoice::ManageTournaments => {
-                        let player = api::players::read(session.uuid())?;
-                        returning_warriors(player)?;
+                        returning_warriors(session)?;
                         let player = api::players::read(session.uuid())?;
                         register_to_tournament(player)?;
                     },
