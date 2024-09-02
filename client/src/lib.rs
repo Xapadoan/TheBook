@@ -17,8 +17,8 @@ mod prompt {
 mod view {
     mod view_error;
     pub use view_error::ViewError;
-    mod warrior_management;
-    pub use warrior_management::returning_warriors;
+    mod finished_tournaments;
+    pub use finished_tournaments::returning_warriors;
     mod player_auth;
     pub use player_auth::authenticate_player;
     mod register_to_tournament;
