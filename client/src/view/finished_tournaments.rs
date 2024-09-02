@@ -1,3 +1,4 @@
+use shared::auth::Session;
 use shared::health::IsDead;
 use shared::name::Name;
 use shared::player::Player;
@@ -11,7 +12,8 @@ use crate::show::ShowWarriorFightReplay;
 
 use super::view_error::ViewError;
 
-pub fn returning_warriors(player: Player) -> Result<(), ViewError> {
+pub fn returning_warriors(session: &Session) -> Result<(), ViewError> {
+    let player = api::players::read(session.uuid())?;
     let mut map = api::replay::available_replays(player.uuid())?;
     for (tournament_uuid, warrior_uuids) in map.iter_mut() {
         let tournament = api::replay::tournament_replay(tournament_uuid)?;
