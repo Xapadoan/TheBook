@@ -1,7 +1,10 @@
 use std::error::Error;
 
 use server::repository::{PlayerRepository, Repository};
-use shared::{equipment::weapon::{self, Weapon}, inventory::{HasInventory, HasMutableInventory, Item, Items, MutableItems}, random::Random, unique_entity::UniqueEntity};
+use shared::equipment::weapon::Weapon;
+use shared::inventory::{HasInventory, HasMutableInventory, Item, Items, MutableItems};
+use shared::random::Random;
+use shared::unique_entity::UniqueEntity;
 
 use super::create_player;
 

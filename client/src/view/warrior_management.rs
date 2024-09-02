@@ -41,11 +41,9 @@ pub fn returning_warriors(player: Player) -> Result<(), ViewError> {
             let number_of_rounds = tournament.number_of_rounds();
             show_warrior_tournament(tournament_uuid, warrior, number_of_rounds)?;
             api::tournaments::remove_contestant(warrior.uuid())?;
-            eprintln!("Remove contestant OK");
         }
     }
     replace_dead_warriors(player)?;
-    eprintln!("Remove dead warriors OK");
     Ok(())
 }
 
@@ -57,7 +55,6 @@ fn show_warrior_tournament(
     let mut round_index: u8 = 0;
     let mut warrior_lost = false;
     while !warrior_lost && usize::from(round_index) < number_of_rounds {
-        eprintln!("Showing round {round_index} / {number_of_rounds}");
         let fight_summary = api::replay::fight_summary_for_warrior(
             tournament_uuid,
             warrior.uuid(),
@@ -88,7 +85,6 @@ fn show_warrior_tournament(
             let fight_replay = api::replay::fight_replay(tournament_uuid, &fight_summary)?;
             let (mut warrior1, mut warrior2) = api::replay::fight_warriors(tournament_uuid, &fight_summary)?;
             fight_replay.show_warrior_fight_replay((&mut warrior1, &mut warrior2), warrior.uuid());
-            eprintln!("Show Tournament OK");
         }
         round_index += 1;
     }

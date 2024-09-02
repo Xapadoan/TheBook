@@ -8,28 +8,6 @@ use crate::show::ShowSelf;
 
 use super::show_turn_summary::ShowTurnSummary;
 
-pub trait ShowFightReplay {
-    fn show_fight_replay(&self, warriors: (&mut Warrior, &mut Warrior));
-}
-
-impl ShowFightReplay for FightReplay {
-    fn show_fight_replay(&self, warriors: (&mut Warrior, &mut Warrior)) {
-        let (blue_corner, red_corner) = get_corners(self, warriors);
-        let mut blue_corner_dropped_items = Inventory::new();
-        let mut red_corner_dropped_items = Inventory::new();
-        for turn in self.turn_summaries() {
-            println!("=== BEGIN TURN ===");
-            println!("{}", turn.show_turn_summary(
-                blue_corner,
-                &mut blue_corner_dropped_items,
-                red_corner,
-                &mut red_corner_dropped_items,
-            ));
-            println!("==== END TURN ====\n");
-        }
-    }
-}
-
 pub trait ShowWarriorFightReplay {
     fn show_warrior_fight_replay(&self, warriors: (&mut Warrior, &mut Warrior), warrior_uuid: &Uuid);
 }

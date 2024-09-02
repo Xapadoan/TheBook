@@ -2,7 +2,6 @@ use std::path::PathBuf;
 
 use shared::equipment::weapon::OptionalMutableWeapon;
 use shared::inventory::{HasMutableInventory, Item, MutableItems};
-use shared::name::Name;
 use shared::warrior::body::body_part::PROTECTABLE_BODY_PARTS;
 use shared::warrior::{MutableWarriorCollection, Warrior};
 use uuid::Uuid;
@@ -24,7 +23,6 @@ pub fn remove_warrior(player_uuid: &Uuid, warrior_uuid: &Uuid) -> Result<(), Pla
                 player.inventory_mut().add_item(Item::Protection(protection));
             }
             if let Some(weapon) = warrior.weapon_mut().take() {
-                eprintln!("Taking {} to inventory", weapon.name());
                 player.inventory_mut().add_item(Item::Weapon(weapon));
             }
             warrior_repo.delete(warrior_uuid)?;

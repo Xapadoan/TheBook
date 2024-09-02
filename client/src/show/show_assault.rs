@@ -49,7 +49,6 @@ impl AssaultReplay for AssaultSummary {
         if let Some(critical) = self.attack_critical() {
             return critical.show_replay(assailant, victim, self.consequences())
         }
-        dbg!(&self);
         return String::from("???");
     }
 }

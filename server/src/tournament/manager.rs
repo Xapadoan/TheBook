@@ -3,11 +3,11 @@ use std::fmt::Display;
 use std::path::PathBuf;
 
 use shared::inventory::{HasMutableInventory, MutableItems};
-use shared::player::{Player, PlayerBuildError, PlayerBuilder};
+use shared::player::{PlayerBuildError, PlayerBuilder};
 use shared::tournament::TournamentError;
 use shared::{random::Random, tournament::Tournament};
 use shared::unique_entity::UniqueEntity;
-use shared::warrior::{self, MutableWarriorCollection, Warrior, WarriorCollection};
+use shared::warrior::{Warrior, WarriorCollection};
 use uuid::Uuid;
 
 use crate::repository::{FileRepository, PlayerRepository, Repository, RepositoryError};
@@ -57,12 +57,9 @@ impl<T: Repository<Tournament>> TournamentManager<T> {
         let bots_repo = PlayerRepository::build()?;
         let bot = bot_builder.build();
         for warrior in bot.warriors() {
-            eprintln!("Registering bot warrior {}", warrior.uuid().to_string());
             tournament.add_contestant(bot.uuid(), warrior)?;
-            // self.register_contestant(bot.uuid(), tournament.uuid(), warrior)?;
         }
         bots_repo.create(&bot)?;
-        // self.repo.update(tournament.uuid(), &tournament)?;
         Ok(bot.uuid().clone())
     }
 
