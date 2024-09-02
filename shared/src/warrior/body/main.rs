@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 use crate::assault::common_traits::ReduceDamages;
-use crate::equipment::protection::OptionalMutableProtection;
+use crate::equipment::protection::{OptionalMutableProtection, Protection};
 use crate::stats::{Stat, StatModifier};
 
 use super::body_part::{

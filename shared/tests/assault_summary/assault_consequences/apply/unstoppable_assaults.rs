@@ -1,4 +1,5 @@
 use shared::assault::assault_consequence::{AssaultConsequences, IndividualConsequences};
+use shared::inventory::Inventory;
 use shared::temporary_handicap::{
     OptionalAssaultMisses,
     OptionalParryMisses,
@@ -16,12 +17,19 @@ pub fn unstoppable_assaults_causes_parry_misses() {
     );
     let mut assailant = TestAssailant::new();
     let mut victim = TestAssailant::new();
+    let mut assailant_dropped_items = Inventory::new();
+    let mut victim_dropped_items = Inventory::new();
     let consequences = AssaultConsequences::new(
         IndividualConsequences::unstoppable_assaults(misses.clone()),
         IndividualConsequences::no_consequences(),
     );
 
-    consequences.apply(&mut assailant, &mut victim);
+    consequences.apply(
+        &mut assailant,
+        &mut assailant_dropped_items,
+        &mut victim,
+        &mut victim_dropped_items,
+    );
     assert!(assailant.parry_misses().is_some(), "can still parry");
 
     let actual_misses = assailant.parry_misses().as_ref().unwrap();
@@ -37,12 +45,19 @@ pub fn unstoppable_assaults_causes_assault_misses() {
     );
     let mut assailant = TestAssailant::new();
     let mut victim = TestAssailant::new();
+    let mut assailant_dropped_items = Inventory::new();
+    let mut victim_dropped_items = Inventory::new();
     let consequences = AssaultConsequences::new(
         IndividualConsequences::unstoppable_assaults(misses.clone()),
         IndividualConsequences::no_consequences(),
     );
 
-    consequences.apply(&mut assailant, &mut victim);
+    consequences.apply(
+        &mut assailant,
+        &mut assailant_dropped_items,
+        &mut victim,
+        &mut victim_dropped_items,
+    );
     assert!(assailant.assault_misses().is_some(), "can still attack");
 
     let actual_misses = assailant.parry_misses().as_ref().unwrap();

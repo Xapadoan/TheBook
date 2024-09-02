@@ -4,7 +4,7 @@ use crate::{assault::common_traits::ReduceDamages, name::Name};
 
 use super::rupture::Rupture;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Protection {
     amount: u8,
     rupture: Option<u8>,

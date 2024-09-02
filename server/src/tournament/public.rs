@@ -2,7 +2,6 @@ use std::{error::Error, fmt::Display, path::PathBuf};
 
 use shared::tournament::contestant::TournamentContestant;
 use shared::tournament::Tournament;
-use shared::unique_entity::UniqueEntity;
 use shared::warrior::Warrior;
 use uuid::Uuid;
 
@@ -17,21 +16,14 @@ pub fn playable_tournament() -> Result<Tournament, TournamentAPIError> {
     Ok(tournament)
 }
 
-pub fn register_contestant(tournament_uuid: &Uuid, warrior_uuid: &Uuid) -> Result<(), TournamentAPIError> {
-    let repo: FileRepository<Warrior> = FileRepository::build(PathBuf::from("saves/warriors"))?;
-    let mut warrior = repo.get_by_uuid(warrior_uuid)?;
-    let manager = TournamentManager::build()?;
-    manager.register_contestant(tournament_uuid, &mut warrior)?;
-    warrior.set_current_tournament(Some(tournament_uuid.clone()));
-    repo.update(warrior.uuid(), &warrior)?;
-    Ok(())
-}
-
 pub fn remove_contestant(warrior_uuid: &Uuid) -> Result<(), TournamentAPIError> {
+    eprintln!("Removing contestant {warrior_uuid}");
     let repo = FileRepository::build(PathBuf::from("saves/warriors"))?;
     let mut warrior: Warrior = repo.get_by_uuid(warrior_uuid)?;
+    eprintln!("GET OK");
     warrior.set_current_tournament(None);
     repo.update(warrior_uuid, &warrior)?;
+    eprintln!("UPDATE OK");
     Ok(())
 }
 

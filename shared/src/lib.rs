@@ -127,3 +127,10 @@ pub mod auth {
 }
 
 pub mod experience;
+
+pub mod inventory {
+    mod inventory;
+    pub use inventory::{Inventory, HasInventory, HasMutableInventory};
+    mod item;
+    pub use item::{Item, Items, MutableItems};
+}

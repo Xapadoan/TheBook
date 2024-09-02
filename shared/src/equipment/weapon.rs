@@ -5,7 +5,7 @@ use crate::{assault::common_traits::DealDamages, dice::Dice, name::Name, random:
 
 use super::rupture::Rupture;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub enum WeaponKind {
     Sword,
     GreatSword,
@@ -29,7 +29,7 @@ impl Random for WeaponKind {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Weapon {
     name: String,
     kind: WeaponKind,

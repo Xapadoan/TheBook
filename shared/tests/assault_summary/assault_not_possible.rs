@@ -3,6 +3,7 @@ use shared::assault::assault_consequence::{AssaultConsequences, IndividualConseq
 use shared::assault::assault_summary::AssaultSummary;
 use shared::equipment::rupture::RUPTURE_MAX;
 use shared::equipment::weapon::{OptionalMutableWeapon, Weapon};
+use shared::inventory::Inventory;
 use shared::random::Random;
 use shared::temporary_handicap::{OptionalAssaultMisses, TemporaryHandicap, TemporaryHandicapReason};
 
@@ -20,6 +21,8 @@ fn cant_assault_without_weapon() {
 fn cant_assault_after_losing_weapon() {
     let mut warrior1 = TestAssailant::new();
     let mut warrior2 = TestAssailant::new();
+    let mut warrior1_dropped_items = Inventory::new();
+    let mut warrior2_dropped_items = Inventory::new();
     let weapon1 = Weapon::random();
     let weapon2 = Weapon::random();
     warrior1.weapon_mut().replace(weapon1);
@@ -29,7 +32,12 @@ fn cant_assault_after_losing_weapon() {
         IndividualConsequences::no_consequences(),
         IndividualConsequences::damage_weapon(RUPTURE_MAX),
     );
-    victim_loses_weapon.apply(&mut warrior1, &mut warrior2);
+    victim_loses_weapon.apply(
+        &mut warrior1,
+        &mut warrior1_dropped_items,
+        &mut warrior2,
+        &mut warrior2_dropped_items,
+    );
     assert_eq!(warrior2.weapon().is_none(), true, "Weapon is still Some");
 
     let after = AssaultSummary::new(&warrior2, &warrior1);
@@ -44,6 +52,8 @@ fn cant_assault_when_misses_assaults() {
     );
     let mut assailant = TestAssailant::new();
     let mut victim = TestAssailant::new();
+    let mut assailant_dropped_items = Inventory::new();
+    let mut victim_dropped_items = Inventory::new();
     let weapon1 = Weapon::random();
     assailant.weapon_mut().replace(weapon1);
     let weapon2 = Weapon::random();
@@ -53,7 +63,12 @@ fn cant_assault_when_misses_assaults() {
         IndividualConsequences::no_consequences(),
     );
 
-    consequences.apply(&mut assailant, &mut victim);
+    consequences.apply(
+        &mut assailant,
+        &mut assailant_dropped_items,
+        &mut victim,
+        &mut victim_dropped_items,
+    );
     assert!(assailant.assault_misses().is_some(), "can still attack");
 
     let assault = AssaultSummary::new(&mut assailant, &mut victim);

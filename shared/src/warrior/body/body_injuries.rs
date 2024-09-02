@@ -1,4 +1,4 @@
-use super::body_part::{BodyPartKind, BodySide, OptionalBodyPart, OptionalMutableBodyPart, ALL_FINGERS};
+use super::body_part::{BodyPart, BodyPartKind, BodySide, OptionalBodyPart, OptionalMutableBodyPart, ALL_FINGERS};
 use super::injury::{Injuries, Injury};
 use super::Body;
 
@@ -155,32 +155,56 @@ impl Injuries for Body {
         injuries
     }
 
-    fn add_injury(&mut self, injury: Injury) {
+    fn add_injury(&mut self, injury: Injury) -> Vec<BodyPart> {
+        let mut severed_parts = vec![];
         match injury {
             Injury::FingerSevered(side, finger) => self.remove_part(
-                &BodyPartKind::Finger(side.clone(), finger.clone())
+                &BodyPartKind::Finger(side.clone(), finger.clone()),
+                &mut severed_parts,
             ),
-            Injury::FootSevered(side) => self.remove_part(&BodyPartKind::Foot(side.clone())),
+            Injury::FootSevered(side) => self.remove_part(
+                &BodyPartKind::Foot(side.clone()),
+                &mut severed_parts,
+            ),
             Injury::FootSmashed(side) => self.break_part(&BodyPartKind::Foot(side.clone())),
             Injury::GenitalsCrushed => self.break_part(&BodyPartKind::Genitals),
             Injury::KneeDislocated(side) => self.break_part(&BodyPartKind::Knee(side.clone())),
             Injury::LeftArmBroken => self.break_part(&BodyPartKind::Arm(BodySide::Left)),
-            Injury::LeftArmSevered => self.remove_part(&BodyPartKind::Arm(BodySide::Left)),
+            Injury::LeftArmSevered => self.remove_part(
+                &BodyPartKind::Arm(BodySide::Left),
+                &mut severed_parts,
+            ),
             Injury::LeftElbowDislocated => { eprintln!("[WARN] {:?} have no corresponding BodyPartKind", self) },
             Injury::LeftHandBroken => self.break_part(&BodyPartKind::Hand(BodySide::Left)),
-            Injury::LeftHandSevered => self.remove_part(&BodyPartKind::Hand(BodySide::Left)),
+            Injury::LeftHandSevered => self.remove_part(
+                &BodyPartKind::Hand(BodySide::Left),
+                &mut severed_parts,
+            ),
             Injury::LeftShoulderDislocated => { eprintln!("[WARN] {:?} have no corresponding BodyPartKind", self)},
-            Injury::OneEyeGouged(side) => self.remove_part(&BodyPartKind::Eye(side.clone())),
+            Injury::OneEyeGouged(side) => self.remove_part(
+                &BodyPartKind::Eye(side.clone()),
+                &mut severed_parts,
+            ),
             Injury::OneLegBroken(side) => self.break_part(&BodyPartKind::Leg(side.clone())),
-            Injury::OneLegSevered(side) => self.remove_part(&BodyPartKind::Leg(side.clone())),
+            Injury::OneLegSevered(side) => self.remove_part(
+                &BodyPartKind::Leg(side.clone()),
+                &mut severed_parts,
+            ),
             Injury::RightArmBroken => self.break_part(&BodyPartKind::Arm(BodySide::Right)),
-            Injury::RightArmSevered => self.remove_part(&BodyPartKind::Arm(BodySide::Right)),
+            Injury::RightArmSevered => self.remove_part(
+                &BodyPartKind::Arm(BodySide::Right),
+                &mut severed_parts,
+            ),
             Injury::RightElbowDislocated => { eprintln!("[WARN] {:?} have no corresponding BodyPartKind", self) },
             Injury::RightHandBroken => self.break_part(&BodyPartKind::Hand(BodySide::Right)),
-            Injury::RightHandSevered => self.remove_part(&BodyPartKind::Hand(BodySide::Right)),
+            Injury::RightHandSevered => self.remove_part(
+                &BodyPartKind::Hand(BodySide::Right),
+                &mut severed_parts,
+            ),
             Injury::RightShoulderDislocated => { eprintln!("[WARN] {:?} have no corresponding BodyPartKind", self)},
             _ => { eprintln!("[WARN] {:?} should not be passed to add_injury", self) },
         }
+        severed_parts
     }
 }
 

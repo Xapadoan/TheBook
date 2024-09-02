@@ -6,8 +6,7 @@ use shared::warrior::Warrior;
 use uuid::Uuid;
 
 use crate::repository::{FileRepository, PlayerRepository, Repository};
-
-use super::PlayerAPIError;
+use crate::player::PlayerAPIError;
 
 pub fn gen_random_warrior(player_uuid: &Uuid) -> Result<Warrior, PlayerAPIError> {
     let player_repo = PlayerRepository::build()?;

@@ -2,6 +2,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::equipment::protection::OptionalMutableProtection;
 use crate::equipment::rupture::{Rupture, RUPTURE_MAX};
+use crate::inventory::{Inventory, Item, MutableItems};
 use crate::warrior::body::body_part::{BodyPartKind, OptionalMutableBodyPart};
 use crate::warrior::body::injury::{Injuries, Injury};
 use crate::temporary_handicap::TemporaryHandicap;
@@ -224,13 +225,26 @@ impl IndividualConsequences {
         }
     }
 
-    fn apply(&self, victim: &mut dyn Assailant) {
+    fn apply(&self, victim: &mut dyn Assailant, victim_dropped_items: &mut Inventory) {
         victim.take_damage(self.damages);
         if let Some(armor_damages) = &self.armor_damages {
             armor_damages.apply(victim);
         }
         if let Some(injury) = &self.injury {
-            victim.body_mut().add_injury(injury.clone())
+            match &injury {
+                Injury::RightArmSevered => {
+                    if let Some(weapon) = victim.weapon_mut().take() {
+                        victim_dropped_items.add_item(Item::Weapon(weapon));
+                    }
+                },
+                _ => {},
+            }
+            let severed_parts = victim.body_mut().add_injury(injury.clone());
+            for mut part in severed_parts.into_iter() {
+                if let Some(protection) = part.protection_mut().take() {
+                    victim_dropped_items.add_item(Item::Protection(protection));
+                }
+            }
         }
         if self.knock_out {
             victim.knock_out();
@@ -243,7 +257,9 @@ impl IndividualConsequences {
             victim.assault_misses_mut().replace(misses.clone());
         }
         if self.drop_weapon {
-            victim.weapon_mut().take();
+            if let Some(weapon) = victim.weapon_mut().take() {
+                victim_dropped_items.add_item(Item::Weapon(weapon));
+            }
         }
         if let Some(rupture_damages) = &self.weapon_damages {
             if let Some(weapon) = victim.weapon_mut() {
@@ -301,9 +317,14 @@ impl AssaultConsequences {
         }
     }
 
-    pub fn apply(&self, assailant: &mut dyn Assailant, victim: &mut dyn Assailant) {
-        self.for_assailant.apply(assailant);
-        self.for_victim.apply(victim);
+    pub fn apply(&self,
+        assailant: &mut dyn Assailant,
+        assailant_dropped_items: &mut Inventory,
+        victim: &mut dyn Assailant,
+        victim_dropped_items: &mut Inventory,
+    ) {
+        self.for_assailant.apply(assailant, assailant_dropped_items);
+        self.for_victim.apply(victim, victim_dropped_items);
         if assailant.assault_misses().is_some() && self.for_assailant.assault_misses.is_none() {
             assailant.miss_assault();
         }

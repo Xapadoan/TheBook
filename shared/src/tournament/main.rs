@@ -1,11 +1,12 @@
-use std::error::Error;
+use std::{collections::HashMap, error::Error};
 use std::fmt::Display;
 
 use rand::Rng;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::{name::Name, random::{Random, RandomDictionary}, unique_entity::UniqueEntity};
+use crate::inventory::MutableItems;
+use crate::{inventory::Inventory, name::Name, random::{Random, RandomDictionary}, unique_entity::UniqueEntity};
 
 use super::{contestant::TournamentContestant, TournamentNameDictionary};
 
@@ -14,16 +15,22 @@ pub struct Tournament {
     uuid: Uuid,
     name: String,
     max_contestants: usize,
-    contestants_ids: Vec<Uuid>,
+    // contestants_ids: Vec<Uuid>,
+    contestants: HashMap<Uuid, Vec<Uuid>>,
+    dropped_items: HashMap<Uuid, Inventory>,
 }
 
 impl Tournament {
     // server only
-    pub fn add_contestant(&mut self, warrior: &dyn TournamentContestant) -> Result<(), TournamentError> {
-        if self.contestants_ids.len() + 1 > self.max_contestants {
+    pub fn add_contestant(&mut self, player_uuid: &Uuid, warrior: &dyn TournamentContestant) -> Result<(), TournamentError> {
+        if self.number_of_contestants() + 1 > self.max_contestants {
             return Err(TournamentError::new(String::from("Tournament will not allow more contestants")));
         }
-        self.contestants_ids.push(warrior.uuid().clone());
+        if let Some(player_contestants) = self.contestants.get_mut(player_uuid) {
+            player_contestants.push(warrior.uuid().clone());
+        } else {
+            self.contestants.insert(player_uuid.clone(), vec![warrior.uuid().clone()]);
+        }
         Ok(())
     }
 
@@ -37,12 +44,18 @@ impl Tournament {
             uuid: Uuid::new_v4(),
             name,
             max_contestants,
-            contestants_ids: vec![],
+            // contestants_ids: vec![],
+            contestants: HashMap::new(),
+            dropped_items: HashMap::new(),
         }
     }
 
     pub fn number_of_contestants(&self) -> usize {
-        self.contestants_ids.len()
+        let mut count = 0;
+        for player_contestants in self.contestants.values() {
+            count += player_contestants.len();
+        }
+        count
     }
 
     pub fn number_of_rounds(&self) -> usize {
@@ -50,16 +63,50 @@ impl Tournament {
     }
 
     pub fn is_full(&self) -> bool {
-        self.contestants_ids.len() >= self.max_contestants
+        self.number_of_contestants() >= self.max_contestants
+    }
+
+    pub fn contestants(&self) -> &HashMap<Uuid, Vec<Uuid>> {
+        &self.contestants
+    }
+
+    // server_only
+    pub fn contestants_ids(&self) -> Vec<Uuid> {
+        let mut all_contestants = vec![];
+        for player_contestants in self.contestants.values() {
+            all_contestants = [
+                all_contestants,
+                player_contestants.to_vec(),
+            ].concat()
+        }
+        all_contestants
+    }
+
+    pub fn dropped_items(&self) -> &HashMap<Uuid, Inventory> {
+        &self.dropped_items
     }
 
     // server only
-    pub fn contestants_ids_mut(&mut self) -> &mut Vec<Uuid> {
-        &mut self.contestants_ids
+    pub fn add_dropped_items(
+        &mut self,
+        warrior_uuid: &Uuid,
+        mut dropped_items: Inventory,
+    ) {
+        if let Some(already_dropped_items) = self.dropped_items.get_mut(warrior_uuid) {
+            while let Some(item) = dropped_items.remove_item(0) {
+                already_dropped_items.add_item(item);
+            }
+        } else {
+            self.dropped_items.insert(warrior_uuid.clone(), dropped_items);
+        }
     }
 
-    pub fn contestants_ids(&self) -> &Vec<Uuid> {
-        &self.contestants_ids
+    //server only
+    pub fn take_dropped_items(
+        &mut self,
+        warrior_uuid: &Uuid,
+    ) -> Option<Inventory> {
+        self.dropped_items.remove(warrior_uuid)
     }
 }
 
@@ -122,10 +169,12 @@ mod test {
             uuid: Uuid::new_v4(),
             name: String::from(TournamentNameDictionary::random_item()),
             max_contestants: 1,
-            contestants_ids: vec![Uuid::new_v4()],
+            contestants: HashMap::new(),
+            dropped_items: HashMap::new(),
         };
+        let player_uuid = Uuid::new_v4();
         let warrior = Warrior::random();
-        let result = tournament.add_contestant(&warrior);
+        let result = tournament.add_contestant(&player_uuid, &warrior);
         assert!(!result.is_ok())
     }
 
@@ -135,19 +184,21 @@ mod test {
             uuid: Uuid::new_v4(),
             name: String::from(TournamentNameDictionary::random_item()),
             max_contestants: 2,
-            contestants_ids: vec![],
+            contestants: HashMap::new(),
+            dropped_items: HashMap::new(),
         };
         let mut expected_uuids: Vec<Uuid> = vec![];
+        let player_uuid = Uuid::new_v4();
         let warrior = Warrior::random();
         expected_uuids.push(warrior.uuid().clone());
-        let result = tournament.add_contestant(&warrior);
+        let result = tournament.add_contestant(&player_uuid, &warrior);
         assert!(result.is_ok());
-        assert_eq!(tournament.contestants_ids, expected_uuids);
+        assert_eq!(tournament.contestants_ids(), expected_uuids);
 
         let warrior = Warrior::random();
         expected_uuids.push(warrior.uuid().clone());
-        let result = tournament.add_contestant(&warrior);
+        let result = tournament.add_contestant(&player_uuid, &warrior);
         assert!(result.is_ok());
-        assert_eq!(tournament.contestants_ids, expected_uuids);
+        assert_eq!(tournament.contestants_ids(), expected_uuids);
     }
 }

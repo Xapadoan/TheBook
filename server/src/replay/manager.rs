@@ -78,11 +78,7 @@ impl ReplayManager {
     pub fn get_fight_summary_for_warrior(&self, warrior_uuid: &Uuid, round_index: u8) -> Result<FightReplaySummary, ReplayManagerError> {
         let round_summary = self.get_round_summary(round_index)?;
         for fight in round_summary {
-            if fight.winner().is_some_and(|uuid| &uuid == warrior_uuid) {
-                return Ok(fight);
-            } else if fight.loser().is_some_and(|uuid| { &uuid == warrior_uuid }) {
-                return Ok(fight);
-            } else if fight.tie().is_some_and(|(uuid1, uuid2) | { &uuid1 == warrior_uuid || &uuid2 == warrior_uuid }) {
+            if fight.blue_corner_uuid() == warrior_uuid || fight.red_corner_uuid() == warrior_uuid {
                 return Ok(fight);
             }
         }

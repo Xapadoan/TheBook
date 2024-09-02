@@ -10,14 +10,20 @@ mod auth {
 }
 
 mod player {
-    mod gen_random_warrior;
-    pub use gen_random_warrior::gen_random_warrior;
-    mod remove_warrior;
-    pub use remove_warrior::remove_warrior;
+    pub mod warriors {
+        mod gen_random_warrior;
+        pub use gen_random_warrior::gen_random_warrior;
+        mod remove_warrior;
+        pub use remove_warrior::remove_warrior;
+        mod take_protections;
+        pub use take_protections::TakeProtections;
+    }
     mod error;
     pub use error::PlayerAPIError;
     mod read;
     pub use read::read_player;
+    mod tournaments;
+    pub use tournaments::register_contestant;
 }
 
 pub mod replay {
@@ -43,9 +49,10 @@ pub mod replay {
 mod tournament {
     pub mod auto_tournament;
     mod fight;
-    pub use fight::{FightResult, FightResultKind};
+    // pub use fight::{FightResult, FightResultKind};
     pub mod manager;
     pub mod public;
+    mod bot_player_builder;
 }
 
 mod warrior {
@@ -72,7 +79,6 @@ pub mod api {
     pub mod tournaments {
         pub use crate::tournament::public::{
             playable_tournament,
-            register_contestant,
             remove_contestant,
             TournamentAPIError,
         };
@@ -91,9 +97,9 @@ pub mod api {
 
     pub mod players {
         pub use crate::player::{
-            gen_random_warrior,
-            remove_warrior,
+            warriors::{gen_random_warrior, remove_warrior},
             read_player as read,
+            register_contestant,
             PlayerAPIError,
         };
     }

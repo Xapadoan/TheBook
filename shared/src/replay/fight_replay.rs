@@ -44,8 +44,6 @@ impl FightReplay {
 pub struct FightReplaySummary {
     replay_uuid: Uuid,
     winner: Option<Uuid>,
-    loser: Option<Uuid>,
-    tie: Option<(Uuid, Uuid)>,
     blue_corner_uuid: Uuid,
     red_corner_uuid: Uuid,
 }
@@ -53,14 +51,6 @@ pub struct FightReplaySummary {
 impl FightReplaySummary {
     pub fn winner(&self) -> &Option<Uuid> {
         &self.winner
-    }
-
-    pub fn loser(&self) -> &Option<Uuid> {
-        &self.loser
-    }
-
-    pub fn tie(&self) -> &Option<(Uuid, Uuid)> {
-        &self.tie
     }
 
     pub fn replay_uuid(&self) -> &Uuid {
@@ -79,16 +69,12 @@ impl FightReplaySummary {
     pub fn new(
         replay_uuid: Uuid,
         winner: Option<Uuid>,
-        loser: Option<Uuid>,
-        tie: Option<(Uuid, Uuid)>,
         blue_corner_uuid: Uuid,
         red_corner_uuid: Uuid,
     ) -> Self {
         Self {
             replay_uuid,
             winner,
-            loser,
-            tie,
             blue_corner_uuid,
             red_corner_uuid,
         }

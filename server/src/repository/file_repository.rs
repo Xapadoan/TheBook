@@ -60,10 +60,21 @@ impl<T: Serialize + DeserializeOwned + UniqueEntity> Repository<T> for FileRepos
 
     fn get_by_uuid(&self, uuid: &Uuid) -> Result<T, RepositoryError> {
         let path = self.full_path(format!("{}.save", uuid.to_string()));
-        let file = fs::File::open(path)?;
-        let buf = BufReader::new(file);
-        let item: T = serde_json::from_reader(buf)?;
-        Ok(item)
+        match fs::File::open(&path) {
+            Ok(file) => {
+                let buf = BufReader::new(file);
+                let item: T = serde_json::from_reader(buf)?;
+                Ok(item)
+            },
+            Err(error) => {
+                match error.kind() {
+                    io::ErrorKind::NotFound => Err(RepositoryError::new(
+                        format!("READ: Path {} not found", path.to_string_lossy())
+                    )),
+                    _ => Err(RepositoryError::from(error))
+                }
+            }
+        }
     }
 
     fn update(&self, uuid: &Uuid, item: &T) -> Result<(), RepositoryError> {
@@ -100,6 +111,7 @@ impl From<uuid::Error> for RepositoryError {
 
 #[cfg(test)]
 mod tests {
+    const TEST_REPOS_PATH: &'static str = "./test_repos";
     use uuid::Uuid;
     use serde::Deserialize;
     use std::error::Error;
@@ -126,7 +138,7 @@ mod tests {
 
     #[test]
     fn build_create_dir_if_no_exists() -> Result<(), Box<dyn Error>> {
-        let path = PathBuf::from("./tests");
+        let path = PathBuf::from(TEST_REPOS_PATH);
         rm_rf(&path)?;
 
         let repo: FileRepository<TestFileRepositoryItem> = FileRepository::build(path)?;

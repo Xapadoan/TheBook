@@ -1,4 +1,6 @@
-use shared::assault::assault_summary::AssaultSummary;
+use std::collections::HashMap;
+
+use shared::{assault::assault_summary::AssaultSummary, inventory::Inventory};
 use shared::assault::common_traits::TakeDamage;
 use shared::assault::end_turn_consequences::EndTurnConsequences;
 use shared::replay::turn_summary::TurnSummary;
@@ -13,7 +15,9 @@ pub trait ShowTurnSummary {
     fn show_turn_summary(
         &self,
         blue_corner: &mut Warrior,
+        blue_corner_lost_items: &mut Inventory,
         red_corner: &mut Warrior,
+        red_corner_lost_items: &mut Inventory,
     ) -> String;
 }
 
@@ -21,22 +25,40 @@ impl ShowTurnSummary for TurnSummary {
     fn show_turn_summary(
         &self,
         blue_corner: &mut Warrior,
+        blue_corner_lost_items: &mut Inventory,
         red_corner: &mut Warrior,
+        red_corner_lost_items: &mut Inventory,
     ) -> String {
         let assaults = self.assaults();
-        let (assailant, victim) = get_roles(
+        let mut roles = get_roles(
             &assaults[0],
-            (blue_corner, red_corner),
+            (blue_corner, blue_corner_lost_items),
+            (red_corner, red_corner_lost_items),
         );
+        let (assailant, assailant_dropped_items) = roles.remove("assailant").unwrap();
+        let (victim, victim_dropped_items) = roles.remove("victim").unwrap();
         let mut str = format!("{}", assaults[0].assault_replay(assailant, victim));
-        assaults[0].consequences().apply(assailant, victim);
-
-        let (assailant, victim) = get_roles(
-            &assaults[1],
-            (blue_corner, red_corner),
+        assaults[0].consequences().apply(
+            assailant,
+            assailant_dropped_items,
+            victim,
+            victim_dropped_items,
         );
+
+        let mut roles = get_roles(
+            &assaults[1],
+            (blue_corner, blue_corner_lost_items),
+            (red_corner, red_corner_lost_items),
+        );
+        let (assailant, assailant_dropped_items) = roles.remove("assailant").unwrap();
+        let (victim, victim_dropped_items) = roles.remove("victim").unwrap();
         str = format!("{}\n{}", str, assaults[1].assault_replay(assailant, victim));
-        assaults[1].consequences().apply(assailant, victim);
+        assaults[1].consequences().apply(
+            assailant,
+            assailant_dropped_items,
+            victim,
+            victim_dropped_items,
+        );
 
         let blue_turn_end_str = show_end_turn(self.blue_turn_end(), blue_corner);
         if !blue_turn_end_str.is_empty() {
@@ -59,13 +81,18 @@ impl ShowTurnSummary for TurnSummary {
 
 fn get_roles<'a>(
     assault: &AssaultSummary,
-    actors: (&'a mut Warrior, &'a mut Warrior)
-) -> (&'a mut Warrior, &'a mut Warrior) {
-    if assault.assailant_uuid() == actors.0.uuid() {
-        (actors.0, actors.1)
+    blue_corner: (&'a mut Warrior, &'a mut Inventory),
+    red_corner: (&'a mut Warrior, &'a mut Inventory),
+) -> HashMap<&'static str, (&'a mut Warrior, &'a mut Inventory)> {
+    let mut roles = HashMap::new();
+    if assault.assailant_uuid() == blue_corner.0.uuid() {
+        roles.insert("assailant", blue_corner);
+        roles.insert("victim", red_corner);
     } else {
-        (actors.1, actors.0)
+        roles.insert("assailant", red_corner);
+        roles.insert("victim", blue_corner);
     }
+    roles
 }
 
 fn show_end_turn(end: &EndTurnConsequences, victim: &dyn ReplayActor) -> String {

@@ -27,6 +27,10 @@ impl<T: Repository<Warrior>> FightReplayBuilder<T> {
     pub fn push_turn_summary(&mut self, turn_summary: TurnSummary) {
         self.turn_summaries.push(turn_summary)
     }
+
+    pub fn replay_uuid(&self) -> &Uuid {
+        &self.replay_uuid
+    }
 }
 
 impl FightReplayBuilder<FileRepository<Warrior>> {
@@ -44,10 +48,6 @@ impl FightReplayBuilder<FileRepository<Warrior>> {
         let path = self.warriors_repo.full_path("turns.replay");
         fs::write(&path, serialized_turn_summaries)?;
         Ok(())
-    }
-
-    pub fn replay_uuid(&self) -> &Uuid {
-        &self.replay_uuid
     }
 }
 

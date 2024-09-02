@@ -1,6 +1,7 @@
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
+use crate::inventory::{HasInventory, HasMutableInventory, Inventory};
 use crate::unique_entity::UniqueEntity;
 use crate::warrior::{MutableWarriorCollection, Warrior, WarriorCollection};
 
@@ -10,6 +11,7 @@ pub struct Player {
     username: String,
     display_name: String,
     warriors: Vec<Warrior>,
+    inventory: Inventory,
 }
 
 impl Player {
@@ -20,12 +22,19 @@ impl Player {
         &self.display_name
     }
     // server only
-    pub fn new(uuid: Uuid, username: String, display_name: String, warriors: Vec<Warrior>) -> Self {
+    pub fn new(
+        uuid: Uuid,
+        username: String,
+        display_name: String,
+        warriors: Vec<Warrior>,
+        inventory: Inventory,
+    ) -> Self {
         Self {
             uuid,
             username,
             display_name,
             warriors,
+            inventory,
         }
     }
 }
@@ -45,5 +54,17 @@ impl WarriorCollection for Player {
 impl MutableWarriorCollection for Player {
     fn warriors_mut(&mut self) -> &mut Vec<Warrior> {
         &mut self.warriors
+    }
+}
+
+impl HasInventory for Player {
+    fn inventory(&self) -> &Inventory {
+        &self.inventory
+    }
+}
+
+impl HasMutableInventory for Player {
+    fn inventory_mut(&mut self) -> &mut Inventory {
+        &mut self.inventory
     }
 }

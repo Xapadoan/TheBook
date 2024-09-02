@@ -2,6 +2,7 @@ use std::path::PathBuf;
 
 use shared::auth::Session;
 use shared::equipment::weapon::{OptionalMutableWeapon, Weapon};
+use shared::inventory::Inventory;
 use shared::player::{Player, PlayerBuildError, PlayerBuilder};
 use shared::random::Random;
 use shared::unique_entity::UniqueEntity;
@@ -61,12 +62,16 @@ impl PlayerBuilder for SignUp {
         }
         Ok(())
     }
+    fn build_inventory(&mut self) -> Result<(), PlayerBuildError> {
+        Ok(())
+    }
     fn build(self) -> Player {
         Player::new(
             Uuid::new_v4(),
             self.username,
             self.display_name,
             self.warriors,
+            Inventory::new(),
         )
     }
 }

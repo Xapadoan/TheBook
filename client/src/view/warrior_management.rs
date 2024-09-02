@@ -7,7 +7,7 @@ use uuid::Uuid;
 
 use server::api;
 use crate::prompt::{prompt_bool, swap_select_with_keys};
-use crate::show::ShowFightReplay;
+use crate::show::ShowWarriorFightReplay;
 
 use super::view_error::ViewError;
 
@@ -41,9 +41,11 @@ pub fn returning_warriors(player: Player) -> Result<(), ViewError> {
             let number_of_rounds = tournament.number_of_rounds();
             show_warrior_tournament(tournament_uuid, warrior, number_of_rounds)?;
             api::tournaments::remove_contestant(warrior.uuid())?;
+            eprintln!("Remove contestant OK");
         }
     }
     replace_dead_warriors(player)?;
+    eprintln!("Remove dead warriors OK");
     Ok(())
 }
 
@@ -55,6 +57,7 @@ fn show_warrior_tournament(
     let mut round_index: u8 = 0;
     let mut warrior_lost = false;
     while !warrior_lost && usize::from(round_index) < number_of_rounds {
+        eprintln!("Showing round {round_index} / {number_of_rounds}");
         let fight_summary = api::replay::fight_summary_for_warrior(
             tournament_uuid,
             warrior.uuid(),
@@ -66,7 +69,7 @@ fn show_warrior_tournament(
                 warrior.name(),
                 round_index + 1,
             )
-        } else if fight_summary.loser().is_some_and(|uuid| &uuid == warrior.uuid()) {
+        } else if fight_summary.winner().is_some_and(|uuid| &uuid != warrior.uuid()) {
             warrior_lost = true;
             format!(
                 "{} lost the {}th round, do you want to see a replay of the fight ?",
@@ -84,7 +87,8 @@ fn show_warrior_tournament(
         if show_fight_replay {
             let fight_replay = api::replay::fight_replay(tournament_uuid, &fight_summary)?;
             let (mut warrior1, mut warrior2) = api::replay::fight_warriors(tournament_uuid, &fight_summary)?;
-            fight_replay.show_fight_replay((&mut warrior1, &mut warrior2));
+            fight_replay.show_warrior_fight_replay((&mut warrior1, &mut warrior2), warrior.uuid());
+            eprintln!("Show Tournament OK");
         }
         round_index += 1;
     }
@@ -94,7 +98,10 @@ fn show_warrior_tournament(
 fn replace_dead_warriors(player: Player) -> Result<(), ViewError> {
     for warrior in player.warriors() {
         if warrior.is_dead() {
-            println!("{} died during the last tournament", warrior.name());
+            println!(
+                "{} died during the last tournament, all his items have been sent to your inventory",
+                warrior.name(),
+            );
             api::players::remove_warrior(player.uuid(), warrior.uuid())?;
             let new_warrior = api::players::gen_random_warrior(player.uuid())?;
             println!("{} will join your team", new_warrior.name());

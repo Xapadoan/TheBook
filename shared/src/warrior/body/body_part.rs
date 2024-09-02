@@ -10,18 +10,44 @@ pub trait OptionalBodyPart {
 
 pub trait OptionalMutableBodyPart: OptionalBodyPart {
     fn body_part_mut(&mut self, body_part_kind: &BodyPartKind) -> &mut Option<BodyPart>;
-    fn remove_part(&mut self, body_part_kind: &BodyPartKind) {
-        self.body_part_mut(body_part_kind).take();
+    fn remove_part(&mut self, body_part_kind: &BodyPartKind, severed_parts: &mut Vec<BodyPart>) {
+        if let Some(part) = self.body_part_mut(body_part_kind).take() {
+            severed_parts.push(part);
+        }
         match body_part_kind {
-            BodyPartKind::Leg(side) => self.remove_part(&BodyPartKind::Knee(side.clone())),
-            BodyPartKind::Knee(side) => self.remove_part(&BodyPartKind::Foot(side.clone())),
-            BodyPartKind::Arm(side) => self.remove_part(&BodyPartKind::Hand(side.clone())),
+            BodyPartKind::Leg(side) => self.remove_part(
+                &BodyPartKind::Knee(side.clone()),
+                severed_parts,
+            ),
+            BodyPartKind::Knee(side) => self.remove_part(
+                &BodyPartKind::Foot(side.clone()),
+                severed_parts,
+            ),
+            BodyPartKind::Arm(side) => self.remove_part(
+                &BodyPartKind::Hand(side.clone()),
+                severed_parts,
+            ),
             BodyPartKind::Hand(side) => {
-                self.remove_part(&BodyPartKind::Finger(side.clone(), FingerName::Thumb));
-                self.remove_part(&BodyPartKind::Finger(side.clone(), FingerName::PointerFinger));
-                self.remove_part(&BodyPartKind::Finger(side.clone(), FingerName::MiddleFinger));
-                self.remove_part(&BodyPartKind::Finger(side.clone(), FingerName::RingFinger));
-                self.remove_part(&BodyPartKind::Finger(side.clone(), FingerName::PinkyFinger));
+                self.remove_part(
+                    &BodyPartKind::Finger(side.clone(), FingerName::Thumb),
+                    severed_parts,
+                );
+                self.remove_part(
+                    &BodyPartKind::Finger(side.clone(), FingerName::PointerFinger),
+                    severed_parts,
+                );
+                self.remove_part(
+                    &BodyPartKind::Finger(side.clone(), FingerName::MiddleFinger),
+                    severed_parts,
+                );
+                self.remove_part(
+                    &BodyPartKind::Finger(side.clone(), FingerName::RingFinger),
+                    severed_parts,
+                );
+                self.remove_part(
+                    &BodyPartKind::Finger(side.clone(), FingerName::PinkyFinger),
+                    severed_parts,
+                );
             },
             _ => {},
         }

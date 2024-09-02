@@ -35,7 +35,7 @@ pub fn register_to_tournament(player: Player) -> Result<(), ViewError> {
         return Ok(())
     }
     let warrior = warrior.unwrap();
-    api::tournaments::register_contestant(tournament.uuid(), warrior.uuid())?;
+    api::players::register_contestant(player.uuid(), tournament.uuid(), warrior.uuid())?;
 
     println!("{} registers for {}", warrior.name(), tournament.name());
 

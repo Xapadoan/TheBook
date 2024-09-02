@@ -4,10 +4,7 @@ use std::{fs, io};
 use std::path::PathBuf;
 
 use shared::replay::FightReplaySummary;
-use shared::unique_entity::UniqueEntity;
 use uuid::Uuid;
-
-use crate::tournament::{FightResult, FightResultKind};
 
 use super::manager::REPLAY_ROOT_DIR;
 
@@ -28,27 +25,7 @@ impl RoundReplayBuilder {
         })
     }
 
-    pub fn push_summary(&mut self, replay_uuid: &Uuid, fight_result: &FightResult) {
-        let (winner, loser, tie) = match fight_result.kind() {
-            FightResultKind::Tie(warriors) => (
-                None,
-                None,
-                Some((warriors.0.uuid().clone(), warriors.1.uuid().clone()))
-            ),
-            FightResultKind::Victory(fighters) => (
-                Some(fighters.winner().uuid().clone()),
-                Some(fighters.loser().uuid().clone()),
-                None,
-            )
-        };
-        let summary = FightReplaySummary::new(
-            replay_uuid.clone(),
-            winner,
-            loser,
-            tie,
-            fight_result.blue_corner_uuid().clone(),
-            fight_result.red_corner_uuid().clone(),
-        );
+    pub fn push_summary(&mut self, summary: FightReplaySummary) {
         self.fights_summaries.push(summary);
     }
 

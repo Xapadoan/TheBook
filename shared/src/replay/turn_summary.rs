@@ -4,6 +4,7 @@ use uuid::Uuid;
 use crate::assault::assailant::Assailant;
 use crate::assault::assault_summary::AssaultSummary;
 use crate::assault::end_turn_consequences::EndTurnConsequences;
+use crate::inventory::Inventory;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct TurnSummary {
@@ -28,16 +29,25 @@ impl TurnSummary {
     }
 
     // server only
-    pub fn new(blue_corner: &mut dyn Assailant, red_corner: &mut dyn Assailant) -> Self {
+    pub fn new(
+        blue_corner: &mut dyn Assailant,
+        blue_corner_dropped_items: &mut Inventory,
+        red_corner: &mut dyn Assailant,
+        red_corner_dropped_items: &mut Inventory,
+    ) -> Self {
         let blue_assault = AssaultSummary::new(blue_corner, red_corner);
         blue_assault.consequences().apply(
             blue_corner,
+            blue_corner_dropped_items,
             red_corner,
+            red_corner_dropped_items,
         );
         let red_assault = AssaultSummary::new(red_corner, blue_corner);
         red_assault.consequences().apply(
             red_corner,
+            red_corner_dropped_items,
             blue_corner,
+            blue_corner_dropped_items,
         );
         Self {
             blue_corner_uuid: blue_corner.uuid().clone(),

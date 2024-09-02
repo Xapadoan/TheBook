@@ -2,13 +2,16 @@ use std::error::Error;
 use std::fmt::Display;
 use std::path::PathBuf;
 
+use shared::inventory::{HasMutableInventory, MutableItems};
+use shared::player::{Player, PlayerBuildError, PlayerBuilder};
 use shared::tournament::TournamentError;
 use shared::{random::Random, tournament::Tournament};
 use shared::unique_entity::UniqueEntity;
-use shared::warrior::Warrior;
+use shared::warrior::{self, MutableWarriorCollection, Warrior, WarriorCollection};
 use uuid::Uuid;
 
-use crate::repository::{FileRepository, Repository, RepositoryError};
+use crate::repository::{FileRepository, PlayerRepository, Repository, RepositoryError};
+use crate::tournament::bot_player_builder::BotPlayerBuilder;
 use crate::warrior::{WarriorManager, WarriorManagerError};
 
 use super::auto_tournament::AutoTournament;
@@ -46,29 +49,26 @@ impl<T: Repository<Tournament>> TournamentManager<T> {
         Ok(tournament)
     }
 
-    fn gen_bots(&self, tournament: &mut Tournament) -> Result<Vec<Uuid>, TournamentManagerError> {
-        let bots_number = tournament.max_contestants() - tournament.number_of_contestants();
-        dbg!(bots_number);
-        let mut i = 0;
-        let bots_repo = FileRepository::build(PathBuf::from("saves/warriors"))?;
-        let mut bots_uuids = vec![];
-        while i < bots_number {
-            let warrior = Warrior::random();
-            bots_repo.create(&warrior)?;
-            tournament.add_contestant(&warrior)?;
-            self.repo.update(tournament.uuid(), tournament)?;
-            bots_uuids.push(warrior.uuid().clone());
-            i += 1;
+    fn gen_bot_player(&self, tournament: &mut Tournament) -> Result<Uuid, TournamentManagerError> {
+        let mut bot_builder = BotPlayerBuilder::new(tournament);
+        bot_builder.build_username()?;
+        bot_builder.build_display_name()?;
+        bot_builder.build_warriors()?;
+        let bots_repo = PlayerRepository::build()?;
+        let bot = bot_builder.build();
+        for warrior in bot.warriors() {
+            eprintln!("Registering bot warrior {}", warrior.uuid().to_string());
+            tournament.add_contestant(bot.uuid(), warrior)?;
+            // self.register_contestant(bot.uuid(), tournament.uuid(), warrior)?;
         }
-        dbg!(&bots_uuids);
-        Ok(bots_uuids)
+        bots_repo.create(&bot)?;
+        // self.repo.update(tournament.uuid(), &tournament)?;
+        Ok(bot.uuid().clone())
     }
 
-    fn delete_bots(&self, bots: Vec<Uuid>) -> Result<(), TournamentManagerError> {
-        let bots_repo: FileRepository<Warrior> = FileRepository::build(PathBuf::from("saves/warriors"))?;
-        for bot_uuid in bots {
-            bots_repo.delete(&bot_uuid)?;
-        }
+    fn delete_bot_player(&self, bot_uuid: &Uuid) -> Result<(), TournamentManagerError> {
+        let bots_repo = PlayerRepository::build()?;
+        bots_repo.delete(bot_uuid)?;
         Ok(())
     }
 
@@ -82,9 +82,9 @@ impl<T: Repository<Tournament>> TournamentManager<T> {
         }
     }
 
-    pub fn register_contestant(&self, tournament_uuid: &Uuid, warrior: &Warrior) -> Result<(), TournamentManagerError> {
+    pub fn register_contestant(&self, player_uuid: &Uuid, tournament_uuid: &Uuid, warrior: &Warrior) -> Result<(), TournamentManagerError> {
         let mut tournament = self.repo.get_by_uuid(tournament_uuid)?;
-        tournament.add_contestant(warrior)?;
+        tournament.add_contestant(player_uuid, warrior)?;
         self.repo.update(tournament.uuid(), &tournament)?;
         Ok(())
     }
@@ -94,10 +94,22 @@ impl<T: Repository<Tournament>> TournamentManager<T> {
         let warriors_manager = WarriorManager::build()?;
         for uuid in tournaments_uuids {
             let mut tournament = self.repo.get_by_uuid(&uuid)?;
-            warriors_manager.apply_passive_healing(tournament.contestants_ids())?;
-            let bots = self.gen_bots(&mut tournament)?;
+            warriors_manager.apply_passive_healing(&tournament.contestants_ids())?;
+            let bot_player_uuid = self.gen_bot_player(&mut tournament)?;
             tournament.auto()?;
-            self.delete_bots(bots)?;
+            for (player_uuid, contestants) in tournament.contestants().clone() {
+                let player_repository = PlayerRepository::build()?;
+                let mut player = player_repository.get_by_uuid(&player_uuid)?;
+                for warrior_uuid in contestants {
+                    if let Some(mut dropped_items) = tournament.take_dropped_items(&warrior_uuid) {
+                        while let Some(item) = dropped_items.remove_item(0) {
+                            player.inventory_mut().add_item(item);
+                        }
+                    }
+                }
+                player_repository.update(&player_uuid, &player)?;
+            }
+            self.delete_bot_player(&bot_player_uuid)?;
             self.repo.delete(&uuid)?;
         }
         Ok(())
@@ -142,5 +154,11 @@ impl From<TournamentError> for TournamentManagerError {
 impl From<WarriorManagerError> for TournamentManagerError {
     fn from(value: WarriorManagerError) -> Self {
         Self::new(&format!("Warrior Manager Error:\n{value}"))
+    }
+}
+
+impl From<PlayerBuildError> for TournamentManagerError {
+    fn from(value: PlayerBuildError) -> Self {
+        Self::new(&format!("Bot Player Error:\n{value}"))
     }
 }

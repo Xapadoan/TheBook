@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::stats::{Stat, StatModifier};
 
-use super::body_part::{BodySide, FingerName, OptionalMutableBodyPart};
+use super::body_part::{BodyPart, BodySide, FingerName, OptionalMutableBodyPart};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub enum Injury {
@@ -132,7 +132,7 @@ impl PartialEq for Injury {
 
 pub trait Injuries: OptionalMutableBodyPart {
     fn injuries(&self) -> Vec<Injury>;
-    fn add_injury(&mut self, injury: Injury);
+    fn add_injury(&mut self, injury: Injury) -> Vec<BodyPart>;
 }
 
 impl StatModifier for Injury {

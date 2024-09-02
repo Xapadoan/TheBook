@@ -5,17 +5,19 @@ use shared::{auth::Session, unique_entity::UniqueEntity};
 
 use crate::prompt::select_with_keys;
 
-use super::{register_to_tournament, returning_warriors, ViewError};
+use super::{inventory_view, register_to_tournament, returning_warriors, ViewError};
 
 enum MainViewChoice {
     ManageWarriors,
     ManageTournaments,
+    ManageItems,
     // Quit,
 }
 
-const MAIN_VIEW_OPTIONS: [&'static MainViewChoice; 2] = [
+const MAIN_VIEW_OPTIONS: [&'static MainViewChoice; 3] = [
     &MainViewChoice::ManageTournaments,
     &MainViewChoice::ManageWarriors,
+    &MainViewChoice::ManageItems,
     // &MainViewChoice::Quit,
 ];
 
@@ -24,6 +26,7 @@ impl fmt::Display for MainViewChoice {
         match self {
             MainViewChoice::ManageTournaments => write!(f, "Manage Tournaments"),
             MainViewChoice::ManageWarriors => write!(f, "Manage Warriors"),
+            MainViewChoice::ManageItems => write!(f, "Manage Items"),
             // MainViewChoice::Quit => write!(f, "Quit"),
         }
     }
@@ -47,6 +50,9 @@ pub fn main_view(session: &Session) -> Result<(), ViewError> {
                     },
                     MainViewChoice::ManageWarriors => {
                     },
+                    MainViewChoice::ManageItems => {
+                        inventory_view::inventory_view(session)?;
+                    }
                 }
             }
             None => {

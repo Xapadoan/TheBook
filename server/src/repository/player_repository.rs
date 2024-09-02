@@ -1,6 +1,7 @@
 use std::path::PathBuf;
 
 use serde::{Deserialize, Serialize};
+use shared::inventory::{HasInventory, Inventory, Items, MutableItems};
 use shared::player::{Player, PlayerBuildError, PlayerBuilder};
 use shared::unique_entity::UniqueEntity;
 use shared::warrior::{Warrior, WarriorCollection};
@@ -15,6 +16,7 @@ pub struct PlayerDTOFile {
     username: String,
     display_name: String,
     warrior_ids: Vec<Uuid>,
+    inventory: Inventory,
 }
 
 impl From<&Player> for PlayerDTOFile {
@@ -23,11 +25,16 @@ impl From<&Player> for PlayerDTOFile {
         for warrior in value.warriors() {
             warrior_ids.push(warrior.uuid().clone())
         }
+        let mut inventory = Inventory::new();
+        for item in value.inventory().items() {
+            inventory.add_item(item.clone());
+        }
         Self {
             uuid: value.uuid().clone(),
             username: String::from(value.username()),
             display_name: String::from(value.display_name()),
             warrior_ids,
+            inventory,
         }
     }
 }
@@ -64,12 +71,16 @@ impl<'a, T: Repository<Warrior>> PlayerBuilder for PlayerBuilderFromRepo<'a, T> 
         }
         Ok(())
     }
+    fn build_inventory(&mut self) -> Result<(), PlayerBuildError> {
+        Ok(())
+    }
     fn build(self) -> Player {
         Player::new(
             self.dto.uuid,
             self.dto.username,
             self.dto.display_name,
             self.warriors,
+            self.dto.inventory,
         )
     }
 }
@@ -93,8 +104,8 @@ impl<T: Repository<PlayerDTOFile>, K: Repository<Warrior>> Repository<Player> fo
     }
 
     fn create(&self, item: &Player) -> Result<(), RepositoryError> {
-        let cto = PlayerDTOFile::from(item);
-        self.dto_repo.create(&cto)?;
+        let dto = PlayerDTOFile::from(item);
+        self.dto_repo.create(&dto)?;
         for warrior in item.warriors() {
             self.warriors_repo.create(warrior)?;
         }
@@ -111,8 +122,8 @@ impl<T: Repository<PlayerDTOFile>, K: Repository<Warrior>> Repository<Player> fo
     }
 
     fn update(&self, uuid: &Uuid, item: &Player) -> Result<(), RepositoryError> {
-        let cto = PlayerDTOFile::from(item);
-        self.dto_repo.update(uuid, &cto)?;
+        let dto = PlayerDTOFile::from(item);
+        self.dto_repo.update(uuid, &dto)?;
         for warrior in item.warriors() {
             self.warriors_repo.update(warrior.uuid(), warrior)?;
         }

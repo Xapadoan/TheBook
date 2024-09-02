@@ -25,6 +25,7 @@ mod view {
     pub use register_to_tournament::register_to_tournament;
     mod main_view;
     pub use main_view::main_view;
+    mod inventory_view;
 }
 mod show {
     mod main;
@@ -35,6 +36,7 @@ mod show {
         mod show_temporary_handicap;
         mod show_warrior;
         mod show_weapon;
+        mod show_item;
     
         pub use main::ShowSelf;
     }
@@ -58,7 +60,7 @@ mod show {
     mod show_resolution;
     mod show_self_critical_hit;
     mod show_fight_replay;
-    pub use show_fight_replay::ShowFightReplay;
+    pub use show_fight_replay::ShowWarriorFightReplay;
     mod show_turn_summary;
 
     pub use main::*;

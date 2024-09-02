@@ -1,5 +1,6 @@
 use shared::assault::assault_consequence::{AssaultConsequences, IndividualConsequences};
 use shared::equipment::weapon::{OptionalMutableWeapon, Weapon};
+use shared::inventory::Inventory;
 use shared::random::Random;
 use shared::temporary_handicap::{OptionalAssaultMisses, OptionalMutableAssaultMisses, OptionalMutableParryMisses, OptionalParryMisses, TemporaryHandicap, TemporaryHandicapReason};
 
@@ -8,10 +9,12 @@ use crate::common::TestAssailant;
 #[test]
 fn victim_miss_parry_if_not_just_applied() {
     let mut assailant = TestAssailant::new();
+    let mut assailant_dropped_items = Inventory::new();
     let weapon = Weapon::random();
     assailant.weapon_mut().replace(weapon);
 
     let mut victim = TestAssailant::new();
+    let mut victim_dropped_items = Inventory::new();
     let weapon = Weapon::random();
     victim.weapon_mut().replace(weapon);
     victim.parry_misses_mut().replace(
@@ -27,7 +30,12 @@ fn victim_miss_parry_if_not_just_applied() {
         IndividualConsequences::no_consequences(),
         IndividualConsequences::no_consequences(),
     );
-    no_consequences.apply(&mut assailant, &mut victim);
+    no_consequences.apply(
+        &mut assailant,
+        &mut assailant_dropped_items,
+        &mut victim,
+        &mut victim_dropped_items,
+    );
     assert_eq!(
         victim.parry_misses().as_ref().unwrap().count(),
         1,
@@ -38,10 +46,12 @@ fn victim_miss_parry_if_not_just_applied() {
 #[test]
 fn victim_do_not_miss_parry_if_just_applied() {
     let mut assailant = TestAssailant::new();
+    let mut assailant_dropped_items = Inventory::new();
     let weapon = Weapon::random();
     assailant.weapon_mut().replace(weapon);
 
     let mut victim = TestAssailant::new();
+    let mut victim_dropped_items = Inventory::new();
     let weapon = Weapon::random();
     victim.weapon_mut().replace(weapon);
     assert!(
@@ -55,7 +65,12 @@ fn victim_do_not_miss_parry_if_just_applied() {
             TemporaryHandicap::new(2, TemporaryHandicapReason::FellDown)
         ),
     );
-    no_consequences.apply(&mut assailant, &mut victim);
+    no_consequences.apply(
+        &mut assailant,
+        &mut assailant_dropped_items,
+        &mut victim,
+        &mut victim_dropped_items,
+    );
     assert_eq!(
         victim.parry_misses().as_ref().unwrap().count(),
         2,
@@ -66,6 +81,7 @@ fn victim_do_not_miss_parry_if_just_applied() {
 #[test]
 fn assailant_miss_assault_if_not_just_applied() {
     let mut assailant = TestAssailant::new();
+    let mut assailant_dropped_items = Inventory::new();
     let weapon = Weapon::random();
     assailant.weapon_mut().replace(weapon);
     assailant.assault_misses_mut().replace(
@@ -78,6 +94,7 @@ fn assailant_miss_assault_if_not_just_applied() {
     );
 
     let mut victim = TestAssailant::new();
+    let mut victim_dropped_items = Inventory::new();
     let weapon = Weapon::random();
     victim.weapon_mut().replace(weapon);
 
@@ -85,7 +102,12 @@ fn assailant_miss_assault_if_not_just_applied() {
         IndividualConsequences::no_consequences(),
         IndividualConsequences::no_consequences(),
     );
-    no_consequences.apply(&mut assailant, &mut victim);
+    no_consequences.apply(
+        &mut assailant,
+        &mut assailant_dropped_items,
+        &mut victim,
+        &mut victim_dropped_items,
+    );
     assert_eq!(
         assailant.assault_misses().as_ref().unwrap().count(),
         1,
@@ -96,6 +118,7 @@ fn assailant_miss_assault_if_not_just_applied() {
 #[test]
 fn assailant_do_not_miss_assault_if_just_applied() {
     let mut assailant = TestAssailant::new();
+    let mut assailant_dropped_items = Inventory::new();
     let weapon = Weapon::random();
     assailant.weapon_mut().replace(weapon);
     assert!(
@@ -104,6 +127,7 @@ fn assailant_do_not_miss_assault_if_just_applied() {
     );
 
     let mut victim = TestAssailant::new();
+    let mut victim_dropped_items = Inventory::new();
     let weapon = Weapon::random();
     victim.weapon_mut().replace(weapon);
 
@@ -113,7 +137,12 @@ fn assailant_do_not_miss_assault_if_just_applied() {
         ),
         IndividualConsequences::no_consequences(),
     );
-    no_consequences.apply(&mut assailant, &mut victim);
+    no_consequences.apply(
+        &mut assailant,
+        &mut assailant_dropped_items,
+        &mut victim,
+        &mut victim_dropped_items,
+    );
     assert_eq!(
         assailant.assault_misses().as_ref().unwrap().count(),
         2,

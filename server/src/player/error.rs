@@ -3,6 +3,7 @@ use std::fmt::Display;
 
 use crate::auth::SessionManagerError;
 use crate::repository::RepositoryError;
+use crate::tournament::manager::TournamentManagerError;
 
 #[derive(Debug)]
 pub struct PlayerAPIError {
@@ -32,5 +33,11 @@ impl From<RepositoryError> for PlayerAPIError {
 impl From<SessionManagerError> for PlayerAPIError {
     fn from(value: SessionManagerError) -> Self {
         Self::new(&format!("Session Manager Error:\n{value}"))
+    }
+}
+
+impl From<TournamentManagerError> for PlayerAPIError {
+    fn from(value: TournamentManagerError) -> Self {
+        Self::new(&format!("Tournament Manager Error:\n{value}"))
     }
 }
