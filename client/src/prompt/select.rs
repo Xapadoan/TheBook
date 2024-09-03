@@ -35,6 +35,17 @@ pub fn swap_select_with_arrows<'a, T, F: Fn(&'a T) -> String>(
     }
 }
 
+pub fn select_with_arrows<'a, T, F: Fn(&'a T) -> String>(
+    message: &str,
+    options: &[&'a T],
+    display: F,
+) -> Result<Option<&'a T>, PromptError> {
+    match select_index_arrows(message, options, display)? {
+        None => Ok(None),
+        Some(index) => Ok(Some(options[index]))
+    }
+}
+
 fn select_index_arrows<'a, T, F: Fn(&'a T) -> String>(
     message: &str,
     options: &[&'a T],

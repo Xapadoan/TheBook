@@ -1,7 +1,16 @@
 use std::error::Error;
 
-use server::{api::players::remove_warrior, repository::{PlayerRepository, Repository}};
-use shared::{equipment::weapon::OptionalMutableWeapon, inventory::{HasInventory, Items}, random::Random, unique_entity::UniqueEntity, warrior::Warrior};
+use server::{
+    api::players::remove_warrior,
+    repository::{PlayerRepository, Repository},
+};
+use shared::{
+    equipment::weapon::OptionalMutableWeapon,
+    inventory::HasInventory,
+    random::Random,
+    unique_entity::UniqueEntity,
+    warrior::Warrior,
+};
 
 use crate::repository::create_player;
 

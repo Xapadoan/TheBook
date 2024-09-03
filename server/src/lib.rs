@@ -17,6 +17,8 @@ mod player {
         pub use remove_warrior::remove_warrior;
         mod take_protections;
         pub use take_protections::TakeProtections;
+        mod give_weapon;
+        pub use give_weapon::give_weapon;
     }
     mod error;
     pub use error::PlayerAPIError;
@@ -102,6 +104,13 @@ pub mod api {
             register_contestant,
             PlayerAPIError,
         };
+        pub mod warriors {
+            pub use crate::player::warriors::{
+                give_weapon,
+                gen_random_warrior as gen_random,
+                remove_warrior as remove,
+            };
+        }
     }
 }
 

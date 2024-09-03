@@ -5,7 +5,7 @@ use shared::{auth::Session, unique_entity::UniqueEntity};
 
 use crate::prompt::select_with_keys;
 
-use super::{inventory_view, register_to_tournament, returning_warriors, ViewError};
+use super::{inventory_view, register_to_tournament, returning_warriors, warriors_view::warriors_view, ViewError};
 
 enum MainViewChoice {
     ManageWarriors,
@@ -48,6 +48,7 @@ pub fn main_view(session: &Session) -> Result<(), ViewError> {
                         register_to_tournament(player)?;
                     },
                     MainViewChoice::ManageWarriors => {
+                        warriors_view(session)?;
                     },
                     MainViewChoice::ManageItems => {
                         inventory_view::inventory_view(session)?;

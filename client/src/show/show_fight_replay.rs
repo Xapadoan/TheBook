@@ -1,4 +1,4 @@
-use shared::inventory::{Inventory, Items};
+use shared::inventory::Inventory;
 use shared::replay::FightReplay;
 use shared::unique_entity::UniqueEntity;
 use shared::warrior::Warrior;
@@ -46,7 +46,7 @@ fn get_corners<'a>(replay: &FightReplay, warriors: (&'a mut Warrior, &'a mut War
 fn show_dropped_items(warrior: &Warrior, dropped_items: &Inventory) {
     if dropped_items.items().len() < 1 { return }
     println!("During the fight, {} lost:", warrior.show_self());
-    for item in dropped_items.items() {
+    for (_, item) in dropped_items.items() {
         println!("\t{}", item.show_self())
     }
     println!("Those are not lost, you can find them in your inventory");

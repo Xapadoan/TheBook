@@ -10,6 +10,7 @@ mod prompt {
     pub use select::{
         select_with_keys,
         swap_select_with_keys,
+        select_with_arrows,
         swap_select_with_arrows,
     };
 }
@@ -26,6 +27,7 @@ mod view {
     mod main_view;
     pub use main_view::main_view;
     mod inventory_view;
+    mod warriors_view;
 }
 mod show {
     mod main;

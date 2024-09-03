@@ -1,7 +1,7 @@
 use std::path::PathBuf;
 
 use serde::{Deserialize, Serialize};
-use shared::inventory::{HasInventory, Inventory, Items, MutableItems};
+use shared::inventory::{HasInventory, Inventory, MutableItems};
 use shared::player::{Player, PlayerBuildError, PlayerBuilder};
 use shared::unique_entity::UniqueEntity;
 use shared::warrior::{Warrior, WarriorCollection};
@@ -26,7 +26,7 @@ impl From<&Player> for PlayerDTOFile {
             warrior_ids.push(warrior.uuid().clone())
         }
         let mut inventory = Inventory::new();
-        for item in value.inventory().items() {
+        for (_, item) in value.inventory().items() {
             inventory.add_item(item.clone());
         }
         Self {

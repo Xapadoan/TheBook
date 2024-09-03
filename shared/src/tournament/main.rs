@@ -93,7 +93,7 @@ impl Tournament {
         mut dropped_items: Inventory,
     ) {
         if let Some(already_dropped_items) = self.dropped_items.get_mut(warrior_uuid) {
-            while let Some(item) = dropped_items.remove_item(0) {
+            for (_, item) in dropped_items.items_mut().drain() {
                 already_dropped_items.add_item(item);
             }
         } else {

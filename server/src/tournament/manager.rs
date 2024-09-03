@@ -99,7 +99,7 @@ impl<T: Repository<Tournament>> TournamentManager<T> {
                 let mut player = player_repository.get_by_uuid(&player_uuid)?;
                 for warrior_uuid in contestants {
                     if let Some(mut dropped_items) = tournament.take_dropped_items(&warrior_uuid) {
-                        while let Some(item) = dropped_items.remove_item(0) {
+                        for (_, item) in dropped_items.items_mut().drain() {
                             player.inventory_mut().add_item(item);
                         }
                     }

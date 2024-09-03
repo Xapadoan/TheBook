@@ -2,7 +2,7 @@ use crate::common::TestAssailant;
 use shared::assault::assault_consequence::{AssaultConsequences, IndividualConsequences};
 use shared::equipment::rupture::{Rupture, RUPTURE_MAX};
 use shared::equipment::weapon::{OptionalMutableWeapon, Weapon};
-use shared::inventory::{Inventory, Items};
+use shared::inventory::Inventory;
 use shared::random::Random;
 
 #[test]

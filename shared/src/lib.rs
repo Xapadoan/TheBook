@@ -131,6 +131,8 @@ pub mod experience;
 pub mod inventory {
     mod inventory;
     pub use inventory::{Inventory, HasInventory, HasMutableInventory};
+    mod error;
+    pub use error::InventoryError;
     mod item;
-    pub use item::{Item, Items, MutableItems};
+    pub use item::{Item, MutableItems};
 }

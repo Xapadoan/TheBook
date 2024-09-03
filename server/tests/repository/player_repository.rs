@@ -2,7 +2,7 @@ use std::error::Error;
 
 use server::repository::{PlayerRepository, Repository};
 use shared::equipment::weapon::Weapon;
-use shared::inventory::{HasInventory, HasMutableInventory, Item, Items, MutableItems};
+use shared::inventory::{HasInventory, HasMutableInventory, Item, MutableItems};
 use shared::random::Random;
 use shared::unique_entity::UniqueEntity;
 
