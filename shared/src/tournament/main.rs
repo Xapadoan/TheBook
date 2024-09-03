@@ -175,7 +175,12 @@ mod test {
         let player_uuid = Uuid::new_v4();
         let warrior = Warrior::random();
         let result = tournament.add_contestant(&player_uuid, &warrior);
-        assert!(!result.is_ok())
+        assert!(result.is_ok());
+
+        let player_uuid = Uuid::new_v4();
+        let warrior = Warrior::random();
+        let result = tournament.add_contestant(&player_uuid, &warrior);
+        assert!(!result.is_ok());
     }
 
     #[test]
