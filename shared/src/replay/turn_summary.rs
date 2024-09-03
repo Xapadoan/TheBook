@@ -31,23 +31,23 @@ impl TurnSummary {
     // server only
     pub fn new(
         blue_corner: &mut dyn Assailant,
-        blue_corner_dropped_items: &mut Inventory,
+        blue_corner_inventory: &mut Inventory,
         red_corner: &mut dyn Assailant,
-        red_corner_dropped_items: &mut Inventory,
+        red_corner_inventory: &mut Inventory,
     ) -> Self {
         let blue_assault = AssaultSummary::new(blue_corner, red_corner);
         blue_assault.consequences().apply(
             blue_corner,
-            blue_corner_dropped_items,
+            blue_corner_inventory,
             red_corner,
-            red_corner_dropped_items,
+            red_corner_inventory,
         );
         let red_assault = AssaultSummary::new(red_corner, blue_corner);
         red_assault.consequences().apply(
             red_corner,
-            red_corner_dropped_items,
+            red_corner_inventory,
             blue_corner,
-            blue_corner_dropped_items,
+            blue_corner_inventory,
         );
         Self {
             blue_corner_uuid: blue_corner.uuid().clone(),

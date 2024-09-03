@@ -17,6 +17,7 @@ use crate::replay::{
 use crate::repository::{FileRepository, Repository, RepositoryError};
 
 use super::fight::{Fight, FightError};
+use super::fight_reward::FightReward;
 
 
 impl From<RepositoryError> for TournamentError {
@@ -91,25 +92,30 @@ impl AutoTournament for Tournament {
             for pair in pairs {
                 let mut fight_replay_builder = FightReplayBuilder::build(self.uuid())?;
                 let mut warrior1 = repo.get_by_uuid(&pair.0)?;
-                let mut warrior1_dropped_items = Inventory::new();
+                let mut warrior1_inventory = Inventory::new();
                 let mut warrior2 = repo.get_by_uuid(&pair.1)?;
-                let mut warrior2_dropped_items = Inventory::new();
+                let mut warrior2_inventory = Inventory::new();
                 fight_replay_builder.record_warriors_init_state(&warrior1, &warrior2)?;
                 let result = Fight::auto(
                     &mut fight_replay_builder,
                     &mut warrior1,
-                    &mut warrior1_dropped_items,
+                    &mut warrior1_inventory,
                     &mut warrior2,
-                    &mut warrior2_dropped_items,
+                    &mut warrior2_inventory,
                 )?;
-                self.add_dropped_items(warrior1.uuid(), warrior1_dropped_items);
-                self.add_dropped_items(warrior2.uuid(), warrior2_dropped_items);
                 fight_replay_builder.write_turn_summaries()?;
-                repo.update(warrior1.uuid(), &warrior1)?;
-                repo.update(warrior2.uuid(), &warrior2)?;
                 if let Some(winner) = result.winner() {
+                    if warrior1.uuid() == winner {
+                        warrior1_inventory.add_gold(self.fight_reward(round_index as usize));
+                    } else {
+                        warrior2_inventory.add_gold(self.fight_reward(round_index as usize));
+                    }
                     remaining_contestants_ids.push(winner.clone())
                 }
+                self.add_to_contestant_inventory(warrior1.uuid(), warrior1_inventory);
+                self.add_to_contestant_inventory(warrior2.uuid(), warrior2_inventory);
+                repo.update(warrior1.uuid(), &warrior1)?;
+                repo.update(warrior2.uuid(), &warrior2)?;
                 round_replay_builder.push_summary(result);
             }
             round_replay_builder.write_summaries()?;

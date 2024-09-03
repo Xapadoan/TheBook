@@ -55,6 +55,7 @@ mod tournament {
     pub mod manager;
     pub mod public;
     mod bot_player_builder;
+    mod fight_reward;
 }
 
 mod warrior {

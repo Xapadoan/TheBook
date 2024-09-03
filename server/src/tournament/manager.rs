@@ -2,7 +2,7 @@ use std::error::Error;
 use std::fmt::Display;
 use std::path::PathBuf;
 
-use shared::inventory::{HasMutableInventory, MutableItems};
+use shared::inventory::HasMutableInventory;
 use shared::player::{PlayerBuildError, PlayerBuilder};
 use shared::tournament::TournamentError;
 use shared::{random::Random, tournament::Tournament};
@@ -98,10 +98,8 @@ impl<T: Repository<Tournament>> TournamentManager<T> {
                 let player_repository = PlayerRepository::build()?;
                 let mut player = player_repository.get_by_uuid(&player_uuid)?;
                 for warrior_uuid in contestants {
-                    if let Some(mut dropped_items) = tournament.take_dropped_items(&warrior_uuid) {
-                        for (_, item) in dropped_items.items_mut().drain() {
-                            player.inventory_mut().add_item(item);
-                        }
+                    if let Some(inventory) = tournament.take_contestant_inventory(&warrior_uuid) {
+                        player.inventory_mut().join(inventory);
                     }
                 }
                 player_repository.update(&player_uuid, &player)?;

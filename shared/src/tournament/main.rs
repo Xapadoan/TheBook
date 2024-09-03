@@ -5,8 +5,10 @@ use rand::Rng;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::inventory::MutableItems;
-use crate::{inventory::Inventory, name::Name, random::{Random, RandomDictionary}, unique_entity::UniqueEntity};
+use crate::inventory::Inventory;
+use crate::name::Name;
+use crate::random::{Random, RandomDictionary};
+use crate::unique_entity::UniqueEntity;
 
 use super::{contestant::TournamentContestant, TournamentNameDictionary};
 
@@ -15,9 +17,8 @@ pub struct Tournament {
     uuid: Uuid,
     name: String,
     max_contestants: usize,
-    // contestants_ids: Vec<Uuid>,
     contestants: HashMap<Uuid, Vec<Uuid>>,
-    dropped_items: HashMap<Uuid, Inventory>,
+    contestants_inventories: HashMap<Uuid, Inventory>,
 }
 
 impl Tournament {
@@ -44,9 +45,8 @@ impl Tournament {
             uuid: Uuid::new_v4(),
             name,
             max_contestants,
-            // contestants_ids: vec![],
             contestants: HashMap::new(),
-            dropped_items: HashMap::new(),
+            contestants_inventories: HashMap::new(),
         }
     }
 
@@ -82,31 +82,29 @@ impl Tournament {
         all_contestants
     }
 
-    pub fn dropped_items(&self) -> &HashMap<Uuid, Inventory> {
-        &self.dropped_items
+    pub fn contestants_inventories(&self) -> &HashMap<Uuid, Inventory> {
+        &self.contestants_inventories
     }
 
     // server only
-    pub fn add_dropped_items(
+    pub fn add_to_contestant_inventory(
         &mut self,
         warrior_uuid: &Uuid,
-        mut dropped_items: Inventory,
+        inventory: Inventory,
     ) {
-        if let Some(already_dropped_items) = self.dropped_items.get_mut(warrior_uuid) {
-            for (_, item) in dropped_items.items_mut().drain() {
-                already_dropped_items.add_item(item);
-            }
+        if let Some(existing_inventory) = self.contestants_inventories.get_mut(warrior_uuid) {
+            existing_inventory.join(inventory);
         } else {
-            self.dropped_items.insert(warrior_uuid.clone(), dropped_items);
+            self.contestants_inventories.insert(warrior_uuid.clone(), inventory);
         }
     }
 
     //server only
-    pub fn take_dropped_items(
+    pub fn take_contestant_inventory(
         &mut self,
         warrior_uuid: &Uuid,
     ) -> Option<Inventory> {
-        self.dropped_items.remove(warrior_uuid)
+        self.contestants_inventories.remove(warrior_uuid)
     }
 }
 
@@ -170,7 +168,7 @@ mod test {
             name: String::from(TournamentNameDictionary::random_item()),
             max_contestants: 1,
             contestants: HashMap::new(),
-            dropped_items: HashMap::new(),
+            contestants_inventories: HashMap::new(),
         };
         let player_uuid = Uuid::new_v4();
         let warrior = Warrior::random();
@@ -190,7 +188,7 @@ mod test {
             name: String::from(TournamentNameDictionary::random_item()),
             max_contestants: 2,
             contestants: HashMap::new(),
-            dropped_items: HashMap::new(),
+            contestants_inventories: HashMap::new(),
         };
         let mut expected_uuids: Vec<Uuid> = vec![];
         let player_uuid = Uuid::new_v4();

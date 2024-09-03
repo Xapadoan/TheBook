@@ -225,7 +225,7 @@ impl IndividualConsequences {
         }
     }
 
-    fn apply(&self, victim: &mut dyn Assailant, victim_dropped_items: &mut Inventory) {
+    fn apply(&self, victim: &mut dyn Assailant, victim_inventory: &mut Inventory) {
         victim.take_damage(self.damages);
         if let Some(armor_damages) = &self.armor_damages {
             armor_damages.apply(victim);
@@ -234,7 +234,7 @@ impl IndividualConsequences {
             match &injury {
                 Injury::RightArmSevered => {
                     if let Some(weapon) = victim.weapon_mut().take() {
-                        victim_dropped_items.add_item(Item::Weapon(weapon));
+                        victim_inventory.add_item(Item::Weapon(weapon));
                     }
                 },
                 _ => {},
@@ -242,7 +242,7 @@ impl IndividualConsequences {
             let severed_parts = victim.body_mut().add_injury(injury.clone());
             for mut part in severed_parts.into_iter() {
                 if let Some(protection) = part.protection_mut().take() {
-                    victim_dropped_items.add_item(Item::Protection(protection));
+                    victim_inventory.add_item(Item::Protection(protection));
                 }
             }
         }
@@ -258,7 +258,7 @@ impl IndividualConsequences {
         }
         if self.drop_weapon {
             if let Some(weapon) = victim.weapon_mut().take() {
-                victim_dropped_items.add_item(Item::Weapon(weapon));
+                victim_inventory.add_item(Item::Weapon(weapon));
             }
         }
         if let Some(rupture_damages) = &self.weapon_damages {
@@ -319,12 +319,12 @@ impl AssaultConsequences {
 
     pub fn apply(&self,
         assailant: &mut dyn Assailant,
-        assailant_dropped_items: &mut Inventory,
+        assailant_inventory: &mut Inventory,
         victim: &mut dyn Assailant,
-        victim_dropped_items: &mut Inventory,
+        victim_inventory: &mut Inventory,
     ) {
-        self.for_assailant.apply(assailant, assailant_dropped_items);
-        self.for_victim.apply(victim, victim_dropped_items);
+        self.for_assailant.apply(assailant, assailant_inventory);
+        self.for_victim.apply(victim, victim_inventory);
         if assailant.assault_misses().is_some() && self.for_assailant.assault_misses.is_none() {
             assailant.miss_assault();
         }

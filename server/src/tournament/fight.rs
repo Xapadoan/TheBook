@@ -20,9 +20,9 @@ impl Fight {
     pub fn auto<T: Repository<Warrior>>(
         replay_builder: &mut FightReplayBuilder<T>,
         blue_corner: &mut Warrior,
-        blue_corner_dropped_items: &mut Inventory,
+        blue_corner_inventory: &mut Inventory,
         red_corner: &mut Warrior,
-        red_corner_dropped_items: &mut Inventory,
+        red_corner_inventory: &mut Inventory,
     ) -> Result<FightReplaySummary, FightError> {
         replay_builder.record_warriors_init_state(blue_corner, red_corner)?;
         let mut turn: u8 = 0;
@@ -30,9 +30,9 @@ impl Fight {
         while turn < u8::MAX {
             let turn_summary = TurnSummary::new(
                 blue_corner,
-                blue_corner_dropped_items,
+                blue_corner_inventory,
                 red_corner,
-                red_corner_dropped_items,
+                red_corner_inventory,
             );
             replay_builder.push_turn_summary(turn_summary);
             turn += 1;
