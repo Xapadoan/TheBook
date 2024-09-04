@@ -3,6 +3,7 @@ use std::fmt::Display;
 
 use crate::auth::SessionManagerError;
 use crate::repository::RepositoryError;
+use crate::shop::ShopManagerError;
 use crate::tournament::manager::TournamentManagerError;
 
 #[derive(Debug)]
@@ -39,5 +40,11 @@ impl From<SessionManagerError> for PlayerAPIError {
 impl From<TournamentManagerError> for PlayerAPIError {
     fn from(value: TournamentManagerError) -> Self {
         Self::new(&format!("Tournament Manager Error:\n{value}"))
+    }
+}
+
+impl From<ShopManagerError> for PlayerAPIError {
+    fn from(value: ShopManagerError) -> Self {
+        Self::new(&format!("Shop Manager Error:\n{value}"))
     }
 }

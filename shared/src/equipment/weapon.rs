@@ -1,7 +1,11 @@
 use rand::Rng;
 use serde::{Deserialize, Serialize};
 
-use crate::{assault::common_traits::DealDamages, dice::Dice, name::Name, random::Random, stats::{Stat, StatModifier}};
+use crate::assault::common_traits::DealDamages;
+use crate::dice::Dice;
+use crate::name::Name;
+use crate::random::Random;
+use crate::stats::StatModifier;
 
 use super::rupture::Rupture;
 
@@ -34,6 +38,7 @@ pub struct Weapon {
     name: String,
     kind: WeaponKind,
     is_sharp: bool,
+    is_two_handed: bool,
     rupture: Option<u8>,
     add_dmg: u8,
     attack_mod: i8,
@@ -47,6 +52,7 @@ impl Weapon {
                 name: String::from("Shitty Sword"),
                 kind,
                 is_sharp: true,
+                is_two_handed: false,
                 add_dmg: 3,
                 attack_mod: 0,
                 parry_mod: -1,
@@ -56,6 +62,7 @@ impl Weapon {
                 name: String::from("Rusty Axe"),
                 kind,
                 is_sharp: true,
+                is_two_handed: false,
                 add_dmg: 3,
                 attack_mod: 0,
                 parry_mod: -2,
@@ -65,6 +72,7 @@ impl Weapon {
                 name: String::from("Coarse Battle Axe"),
                 kind,
                 is_sharp: true,
+                is_two_handed: true,
                 add_dmg: 5,
                 attack_mod: -3,
                 parry_mod: -4,
@@ -74,6 +82,7 @@ impl Weapon {
                 name: String::from("Basic Great Sword"),
                 kind,
                 is_sharp: true,
+                is_two_handed: true,
                 add_dmg: 5,
                 attack_mod: -3,
                 parry_mod: -4,
@@ -83,6 +92,7 @@ impl Weapon {
                 name: String::from("Shitty Hammer"),
                 kind,
                 is_sharp: false,
+                is_two_handed: false,
                 add_dmg: 3,
                 attack_mod: 0,
                 parry_mod: -2,
@@ -92,6 +102,7 @@ impl Weapon {
                 name: String::from("Coarse War Hammer"),
                 kind,
                 is_sharp: false,
+                is_two_handed: true,
                 add_dmg: 5,
                 attack_mod: -3,
                 parry_mod: -4,
@@ -102,6 +113,14 @@ impl Weapon {
 
     pub fn is_sharp(&self) -> bool {
         self.is_sharp
+    }
+
+    pub fn is_two_handed(&self) -> bool {
+        self.is_two_handed
+    }
+
+    pub fn additional_damages(&self) -> u8 {
+        self.add_dmg
     }
 }
 
@@ -136,11 +155,11 @@ impl DealDamages for Weapon {
 }
 
 impl StatModifier for Weapon {
-    fn modify_stat(&self, base: Stat) -> Stat {
-        match base {
-            Stat::Attack(_) => base.modify(self.attack_mod),
-            Stat::Parry(_) => base.modify(self.parry_mod),
-        }
+    fn attack_mod(&self) -> i8 {
+        self.attack_mod
+    }
+    fn parry_mod(&self) -> i8 {
+        self.parry_mod
     }
 }
 

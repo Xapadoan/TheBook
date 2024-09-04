@@ -26,6 +26,7 @@ impl From<&Player> for PlayerDTOFile {
             warrior_ids.push(warrior.uuid().clone())
         }
         let mut inventory = Inventory::new();
+        inventory.add_gold(value.inventory().gold());
         for (_, item) in value.inventory().items() {
             inventory.add_item(item.clone());
         }

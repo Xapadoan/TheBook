@@ -26,6 +26,8 @@ mod player {
     pub use read::read_player;
     mod tournaments;
     pub use tournaments::register_contestant;
+    mod shop;
+    pub use shop::{buy_item, sell_item};
 }
 
 pub mod replay {
@@ -72,6 +74,15 @@ pub mod repository {
     pub use player_repository::{PlayerRepository, PlayerDTOFile};
 }
 
+mod shop {
+    mod manager;
+    pub use manager::ShopManager;
+    mod error;
+    pub use error::{ShopManagerError, ShopManagerErrorKind};
+    mod public;
+    pub use public::{read_shop, ShopAPIError};
+}
+
 pub mod api {
     pub mod auth {
         pub use crate::auth::{
@@ -112,16 +123,33 @@ pub mod api {
                 remove_warrior as remove,
             };
         }
+        pub mod shop {
+            pub use crate::player::{
+                buy_item,
+                sell_item,
+            };
+        }
+    }
+
+    pub mod shop {
+        pub use crate::shop::{
+            read_shop,
+            ShopAPIError,
+        };
     }
 }
 
 use std::error::Error;
 
+use shop::ShopManager;
 use tournament::manager::TournamentManager;
 
 pub fn run(config: &Config) -> Result<(), Box<dyn Error>> {
     if config.run_tournaments {
         run_tournaments()?;
+    }
+    if config.reset_shop {
+        ShopManager::reset_shop()?;
     }
     Ok(())
 }
@@ -135,18 +163,23 @@ fn run_tournaments() -> Result<(), Box<dyn Error>> {
 
 pub struct Config {
     run_tournaments: bool,
+    reset_shop: bool,
 }
 
 impl Config {
     pub fn new(args: &[String]) -> Self {
-        if args.len() < 2 {
-            return Self { run_tournaments: false };
-        }
+        let mut config = Self {
+            run_tournaments: false,
+            reset_shop: false,
+        };
 
-        if args[1] == "--run-tournaments" {
-            return Self { run_tournaments: true };
-        } else {
-            return Self { run_tournaments: false };
+        for arg in args {
+            if arg == "--run-tournaments" {
+                config.run_tournaments = true;
+            } else if arg == "--reset-shop" {
+                config.reset_shop = true;
+            }
         }
+        config
     }
 }

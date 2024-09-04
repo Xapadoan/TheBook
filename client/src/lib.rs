@@ -26,7 +26,7 @@ mod view {
     pub use register_to_tournament::register_to_tournament;
     mod main_view;
     pub use main_view::main_view;
-    mod inventory_view;
+    mod shop_view;
     mod warriors_view;
 }
 mod show {

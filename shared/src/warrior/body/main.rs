@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::assault::common_traits::ReduceDamages;
 use crate::equipment::protection::OptionalMutableProtection;
-use crate::stats::{Stat, StatModifier};
+use crate::stats::StatModifier;
 
 use super::body_part::{
     BodyPart,
@@ -199,11 +199,18 @@ impl ReduceDamages for Body {
 }
 
 impl StatModifier for Body {
-    fn modify_stat(&self, base: Stat) -> Stat {
-        let mut stat = base;
+    fn attack_mod(&self) -> i8 {
+        let mut modifier = 0;
         for injury in self.injuries() {
-            stat = injury.modify_stat(stat);
+            modifier += injury.attack_mod();
         }
-        stat
+        modifier
+    }
+    fn parry_mod(&self) -> i8 {
+        let mut modifier = 0;
+        for injury in self.injuries() {
+            modifier += injury.parry_mod();
+        }
+        modifier
     }
 }

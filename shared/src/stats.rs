@@ -31,7 +31,14 @@ impl Stat {
 }
 
 pub trait StatModifier {
-    fn modify_stat(&self, base: Stat) -> Stat;
+    fn attack_mod(&self) -> i8;
+    fn parry_mod(&self) -> i8;
+    fn modify_stat(&self, base: Stat) -> Stat {
+        match base {
+            Stat::Attack(_) => base.modify(self.attack_mod()),
+            Stat::Parry(_) => base.modify(self.parry_mod()),
+        }
+    }
 }
 
 pub trait Stats {

@@ -135,4 +135,11 @@ pub mod inventory {
     pub use error::InventoryError;
     mod item;
     pub use item::{Item, MutableItems};
+    mod gold_value;
+    pub use gold_value::GoldValue;
+}
+
+pub mod shop {
+    mod shop;
+    pub use shop::Shop;
 }

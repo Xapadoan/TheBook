@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::stats::{Stat, StatModifier};
+use crate::stats::StatModifier;
 
 use super::body_part::{BodyPart, BodySide, FingerName, OptionalMutableBodyPart};
 
@@ -136,88 +136,66 @@ pub trait Injuries: OptionalMutableBodyPart {
 }
 
 impl StatModifier for Injury {
-    fn modify_stat(&self, base: Stat) -> Stat {
+    fn attack_mod(&self) -> i8 {
         match self {
-            Injury::BothEyesGouged => match base {
-                Stat::Attack(_) => base.modify(-5),
-                Stat::Parry(_) => base.modify(-8),
-            },
-            Injury::BothLegsBroken => match base {
-                Stat::Attack(_) => base.modify(-8),
-                Stat::Parry(_) => base.modify(-8),
-            },
-            Injury::BothLegsSevered => match base {
-                Stat::Attack(_) => base.modify(-8),
-                Stat::Parry(_) => base.modify(-8),
-            },
-            Injury::FingerSevered(_, _) => base,
-            Injury::FootSevered(_) |
-            Injury::FootSmashed(_) => match base {
-                Stat::Attack(_) => base.modify(-2),
-                Stat::Parry(_) => base.modify(-2),
-            },
-            Injury::GenitalsCrushed => base,
-            Injury::KneeDislocated(_) => match base {
-                Stat::Attack(_) => base.modify(-1),
-                Stat::Parry(_) => base.modify(-2),
-            },
-            Injury::LeftArmBroken => match base {
-                Stat::Attack(_) => base.modify(-2),
-                Stat::Parry(_) => base.modify(-3),
-            },
-            Injury::LeftArmSevered => match base {
-                Stat::Attack(_) => base.modify(-3),
-                Stat::Parry(_) => base.modify(-4),
-            },
-            Injury::LeftElbowDislocated |
-            Injury::LeftShoulderDislocated => match base {
-                Stat::Attack(_) => base.modify(-1),
-                Stat::Parry(_) => base.modify(-2),
-            },
-            Injury::LeftHandBroken |
-            Injury::LeftHandSevered => match base {
-                Stat::Attack(_) => base.modify(-2),
-                Stat::Parry(_) => base.modify(-3),
-            },
-            Injury::OneEyeGouged(_) => match base {
-                Stat::Attack(_) => base.modify(-1),
-                Stat::Parry(_) => base.modify(-2),
-            },
-            Injury::OneLegBroken(_) => match base {
-                Stat::Attack(_) => base.modify(-4),
-                Stat::Parry(_) => base.modify(-6),
-            },
-            Injury::OneLegSevered(_) => match base {
-                Stat::Attack(_) => base.modify(-4),
-                Stat::Parry(_) => base.modify(-6),
-            },
-            Injury::RightArmBroken => match base {
-                Stat::Attack(_) => base.modify(-5),
-                Stat::Parry(_) => base.modify(-6),
-            },
-            Injury::RightArmSevered => match base {
-                Stat::Attack(_) => base.modify(-5),
-                Stat::Parry(_) => base.modify(-6),
-            },
-            Injury::RightElbowDislocated |
-            Injury::RightShoulderDislocated => match base {
-                Stat::Attack(_) => base.modify(-1),
-                Stat::Parry(_) => base.modify(-2),
-            },
-            Injury::RightHandBroken => match base {
-                Stat::Attack(_) => base.modify(-5),
-                Stat::Parry(_) => base.modify(-6),
-            },
-            Injury::RightHandSevered => match base {
-                Stat::Attack(_) => base.modify(-5),
-                Stat::Parry(_) => base.modify(-6),
-            },
+            Self::BothEyesGouged => -5,
+            Self::BothLegsBroken |
+            Self::BothLegsSevered => -8,
+            Self::FingerSevered(_, _) => 0,
+            Self::FootSevered(_) |
+            Self::FootSmashed(_) => -2,
+            Self::GenitalsCrushed => 0,
+            Self::KneeDislocated(_) => -1,
+            Self::LeftArmBroken => -2,
+            Self::LeftArmSevered => -3,
+            Self::LeftElbowDislocated |
+            Self::LeftShoulderDislocated => -1,
+            Self::LeftHandBroken |
+            Self::LeftHandSevered => -2,
+            Self::OneEyeGouged(_) => -1,
+            Self::OneLegBroken(_) |
+            Self::OneLegSevered(_) => -4,
+            Self::RightArmBroken |
+            Self::RightArmSevered => -5,
+            Self::RightElbowDislocated |
+            Self::RightShoulderDislocated => -1,
+            Self::RightHandBroken |
+            Self::RightHandSevered => -5,
+        }
+    }
+    fn parry_mod(&self) -> i8 {
+        match self {
+            Self::BothEyesGouged => -8,
+            Self::BothLegsBroken |
+            Self::BothLegsSevered => -8,
+            Self::FingerSevered(_, _) => 0,
+            Self::FootSevered(_) |
+            Self::FootSmashed(_) => -2,
+            Self::GenitalsCrushed => 0,
+            Self::KneeDislocated(_) => -2,
+            Self::LeftArmBroken => -3,
+            Self::LeftArmSevered => -4,
+            Self::LeftElbowDislocated |
+            Self::LeftShoulderDislocated => -2,
+            Self::LeftHandBroken |
+            Self::LeftHandSevered => -3,
+            Self::OneEyeGouged(_) => -2,
+            Self::OneLegBroken(_) |
+            Self::OneLegSevered(_) => -6,
+            Self::RightArmBroken |
+            Self::RightArmSevered => -6,
+            Self::RightElbowDislocated |
+            Self::RightShoulderDislocated => -2,
+            Self::RightHandBroken |
+            Self::RightHandSevered => -6,
         }
     }
 }
 
 #[cfg(test)]
 mod tests {
+    use crate::stats::Stat;
+
     use super::*;
 
     #[test]

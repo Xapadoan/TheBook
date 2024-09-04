@@ -2,6 +2,7 @@ use std::error::Error;
 use std::fmt::Display;
 
 use server::api::auth::AuthAPIError;
+use server::api::shop::ShopAPIError;
 use server::api::{
     players::PlayerAPIError,
     replay::ReplayAPIError,
@@ -70,5 +71,11 @@ impl From<PlayerAPIError> for ViewError {
 impl From<AuthAPIError> for ViewError {
     fn from(value: AuthAPIError) -> Self {
         Self::new(format!("Auth API Error:\n{value}"))
+    }
+}
+
+impl From<ShopAPIError> for ViewError {
+    fn from(value: ShopAPIError) -> Self {
+        Self::new(format!("Shop API Error:\n{value}"))
     }
 }
