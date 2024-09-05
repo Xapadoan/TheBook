@@ -2,8 +2,8 @@ use chrono::{DateTime, TimeDelta, Utc};
 
 use super::MutableHealth;
 
-const PASSIVE_HEAL_INTERVAL: u64 = 3600 * 2;
-const PASSIVE_HEAL_RATIO: u64 = 1;
+const PASSIVE_HEAL_INTERVAL: u64 = 3600;
+const PASSIVE_HEAL_RATIO: u64 = 2;
 
 pub trait PassiveHealing {
     fn last_passive_heal(&self) -> DateTime<Utc>;
