@@ -24,6 +24,7 @@ pub struct AssaultConsequences {
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct IndividualConsequences {
     damages: u8,
+    raw_damages: u8,
     armor_damages: Option<ArmorDamages>,
     injury: Option<Injury>,
     duration_damages: Option<DurationDamages>,
@@ -39,6 +40,7 @@ pub struct IndividualConsequences {
 impl IndividualConsequences {
     pub fn new(
         damages: u8,
+        raw_damages: u8,
         armor_damages: Option<ArmorDamages>,
         injury: Option<Injury>,
         duration_damages: Option<DurationDamages>,
@@ -52,6 +54,7 @@ impl IndividualConsequences {
     ) -> Self {
         Self {
             damages,
+            raw_damages,
             armor_damages,
             injury,
             duration_damages,
@@ -68,6 +71,7 @@ impl IndividualConsequences {
     pub fn no_consequences() -> Self {
         Self {
             damages: 0,
+            raw_damages: 0,
             armor_damages: None,
             injury: None,
             duration_damages: None,
@@ -84,6 +88,7 @@ impl IndividualConsequences {
     pub fn only_damages(damages: u8) -> Self {
         Self {
             damages,
+            raw_damages: 0,
             armor_damages: None,
             injury: None,
             duration_damages: None,
@@ -97,9 +102,27 @@ impl IndividualConsequences {
         }
     }
 
-    pub fn damage_armor(damages: u8, armor_damages: ArmorDamages) -> Self {
+    pub fn raw_damages(raw_damages: u8) -> Self {
         Self {
-            damages,
+            damages: 0,
+            raw_damages,
+            armor_damages: None,
+            injury: None,
+            duration_damages: None,
+            knock_out: false,
+            assault_misses: None,
+            parry_misses: None,
+            drop_weapon: false,
+            weapon_damages: None,
+            counter_critical_hit: None,
+            self_critical_hit: None,
+        }
+    }
+
+    pub fn damage_armor(raw_damages: u8, armor_damages: ArmorDamages) -> Self {
+        Self {
+            damages: 0,
+            raw_damages,
             armor_damages: Some(armor_damages),
             injury: None,
             duration_damages: None,
@@ -113,9 +136,10 @@ impl IndividualConsequences {
         }
     }
 
-    pub fn injures(damages: u8, injury: Injury) -> Self {
+    pub fn injures(raw_damages: u8, injury: Injury) -> Self {
         Self {
-            damages,
+            damages: 0,
+            raw_damages,
             armor_damages: None,
             injury: Some(injury),
             duration_damages: None,
@@ -129,9 +153,10 @@ impl IndividualConsequences {
         }
     }
 
-    pub fn damage_on_duration(damages: u8, duration_damages: DurationDamages) -> Self {
+    pub fn damage_on_duration(raw_damages: u8, duration_damages: DurationDamages) -> Self {
         Self {
-            damages,
+            damages: 0,
+            raw_damages,
             armor_damages: None,
             injury: None,
             duration_damages: Some(duration_damages),
@@ -145,9 +170,10 @@ impl IndividualConsequences {
         }
     }
 
-    pub fn knock_out(damages: u8) -> Self {
+    pub fn knock_out(raw_damages: u8) -> Self {
         Self {
-            damages,
+            damages: 0,
+            raw_damages,
             armor_damages: None,
             injury: None,
             duration_damages: None,
@@ -164,6 +190,7 @@ impl IndividualConsequences {
     pub fn miss_assaults(misses: TemporaryHandicap) -> Self {
         Self {
             damages: 0,
+            raw_damages: 0,
             armor_damages: None,
             injury: None,
             duration_damages: None,
@@ -180,6 +207,7 @@ impl IndividualConsequences {
     pub fn unstoppable_assaults(misses: TemporaryHandicap) -> Self {
         Self {
             damages: 0,
+            raw_damages: 0,
             armor_damages: None,
             injury: None,
             duration_damages: None,
@@ -196,6 +224,7 @@ impl IndividualConsequences {
     pub fn drop_weapon() -> Self {
         Self {
             damages: 0,
+            raw_damages: 0,
             armor_damages: None,
             injury: None,
             duration_damages: None,
@@ -212,6 +241,7 @@ impl IndividualConsequences {
     pub fn damage_weapon(rupture_damages: u8) -> Self {
         Self {
             damages: 0,
+            raw_damages: 0,
             armor_damages: None,
             injury: None,
             duration_damages: None,
