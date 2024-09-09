@@ -102,7 +102,7 @@ impl IndividualConsequences {
         }
     }
 
-    pub fn raw_damages(raw_damages: u8) -> Self {
+    pub fn only_raw_damages(raw_damages: u8) -> Self {
         Self {
             damages: 0,
             raw_damages,
@@ -257,6 +257,7 @@ impl IndividualConsequences {
 
     fn apply(&self, victim: &mut dyn Assailant, victim_inventory: &mut Inventory) {
         victim.take_damage(self.damages);
+        victim.take_damage(self.raw_damages);
         if let Some(armor_damages) = &self.armor_damages {
             armor_damages.apply(victim);
         }
@@ -317,6 +318,9 @@ impl IndividualConsequences {
     }
     pub fn damages(&self) -> u8 {
         self.damages
+    }
+    pub fn raw_damages(&self) -> u8 {
+        self.raw_damages
     }
     pub fn counter_critical_hit(&self) -> &Option<CriticalHit> {
         &self.counter_critical_hit

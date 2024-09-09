@@ -72,7 +72,7 @@ pub trait ResolveCriticalHit:
             }
         }
         if armored_body_parts.len() < 1 {
-            IndividualConsequences::raw_damages(damages)
+            IndividualConsequences::only_raw_damages(damages)
         } else if armored_body_parts.len() == 1 {
             IndividualConsequences::damage_armor(
                 damages,
@@ -186,7 +186,7 @@ pub trait ResolveCriticalHit:
                 match self.body().body_part(&BodyPartKind::Knee(affected_side.clone())) {
                     None => IndividualConsequences::no_consequences(),
                     Some(knee) => if knee.is_broken() {
-                        IndividualConsequences::raw_damages(damages + 3)
+                        IndividualConsequences::only_raw_damages(damages + 3)
                     } else {
                         IndividualConsequences::injures(damages + 3, Injury::KneeDislocated(affected_side))
                     }
@@ -206,7 +206,7 @@ pub trait ResolveCriticalHit:
                         BodySide::Left => Injury::LeftHandBroken,
                     };
                     if hand.is_broken() {
-                        IndividualConsequences::raw_damages(damages + 3)
+                        IndividualConsequences::only_raw_damages(damages + 3)
                     } else {
                         IndividualConsequences::injures(damages + 3, injury)
                     }
@@ -222,7 +222,7 @@ pub trait ResolveCriticalHit:
                 None => IndividualConsequences::no_consequences(),
                 Some(hand) => {
                     if hand.is_broken() {
-                        IndividualConsequences::raw_damages(damages + 3)
+                        IndividualConsequences::only_raw_damages(damages + 3)
                     } else {
                         IndividualConsequences::injures(damages + 3, Injury::FootSmashed(affected_side))
                     }
@@ -240,7 +240,7 @@ pub trait ResolveCriticalHit:
                     BodySide::Left => Injury::LeftArmBroken,
                 };
                 if arm.is_broken() {
-                    IndividualConsequences::raw_damages(damages + 4)
+                    IndividualConsequences::only_raw_damages(damages + 4)
                 } else {
                     IndividualConsequences::injures(damages + 4, injury)
                 }
@@ -252,7 +252,7 @@ pub trait ResolveCriticalHit:
         match self.body().body_part(&BodyPartKind::Leg(affected_side.clone())) {
             None => IndividualConsequences::no_consequences(),
             Some(leg) => if leg.is_broken() {
-                IndividualConsequences::raw_damages(damages + 5)
+                IndividualConsequences::only_raw_damages(damages + 5)
             } else {
                 IndividualConsequences::injures(
                     damages + 5,
@@ -275,7 +275,7 @@ pub trait ResolveCriticalHit:
             None => IndividualConsequences::no_consequences(),
             Some(genitals) => {
                 if genitals.is_broken() {
-                    IndividualConsequences::raw_damages(damages + 5)
+                    IndividualConsequences::only_raw_damages(damages + 5)
                 } else {
                     IndividualConsequences::injures(damages + 5, Injury::GenitalsCrushed)
                 }
@@ -283,13 +283,13 @@ pub trait ResolveCriticalHit:
         }
     }
     fn resolve_raw_damages(&self, damages: u8) -> IndividualConsequences {
-        IndividualConsequences::raw_damages(damages)
+        IndividualConsequences::only_raw_damages(damages)
     }
     fn resolve_duration_damage(&self, damages: u8) -> IndividualConsequences {
         IndividualConsequences::damage_on_duration(damages, DurationDamages::new())
     }
     fn resolve_death(&self) -> IndividualConsequences {
-        IndividualConsequences::raw_damages(u8::MAX)
+        IndividualConsequences::only_raw_damages(u8::MAX)
     }
     fn resolve_knock_out(&self, damages: u8) -> IndividualConsequences {
         IndividualConsequences::knock_out(damages)
