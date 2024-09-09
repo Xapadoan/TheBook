@@ -59,7 +59,14 @@ impl Tournament {
     }
 
     pub fn number_of_rounds(&self) -> usize {
-        self.number_of_contestants() / 2
+        let mut contestants = self.number_of_contestants();
+        let mut rounds_count = 0;
+        while contestants > 1 {
+            contestants /= 2;
+            rounds_count += 1;
+        }
+
+        rounds_count
     }
 
     pub fn is_full(&self) -> bool {
@@ -203,5 +210,55 @@ mod test {
         let result = tournament.add_contestant(&player_uuid, &warrior);
         assert!(result.is_ok());
         assert_eq!(tournament.contestants_ids(), expected_uuids);
+    }
+
+    fn gen_contestants(number: u8) -> HashMap<Uuid, Vec<Uuid>> {
+        let mut contestants = HashMap::new();
+        let mut i = 0;
+        while i < number {
+            contestants.insert(Uuid::new_v4(), vec![Uuid::new_v4()]);
+            i += 1;
+        }
+
+        contestants
+    }
+
+    #[test]
+    fn number_of_rounds_must_be_coherent() {
+        let contestants = gen_contestants(2);
+        let tournament = Tournament {
+            uuid: Uuid::new_v4(),
+            name: String::from(TournamentNameDictionary::random_item()),
+            max_contestants: 2,
+            contestants,
+            contestants_inventories: HashMap::new(),
+        };
+
+        assert_eq!(tournament.number_of_contestants(), 2);
+        assert_eq!(tournament.number_of_rounds(), 1);
+
+        let contestants = gen_contestants(4);
+        let tournament = Tournament {
+            uuid: Uuid::new_v4(),
+            name: String::from(TournamentNameDictionary::random_item()),
+            max_contestants: 4,
+            contestants,
+            contestants_inventories: HashMap::new(),
+        };
+
+        assert_eq!(tournament.number_of_contestants(), 4);
+        assert_eq!(tournament.number_of_rounds(), 2);
+
+        let contestants = gen_contestants(8);
+        let tournament = Tournament {
+            uuid: Uuid::new_v4(),
+            name: String::from(TournamentNameDictionary::random_item()),
+            max_contestants: 8,
+            contestants,
+            contestants_inventories: HashMap::new(),
+        };
+
+        assert_eq!(tournament.number_of_contestants(), 8);
+        assert_eq!(tournament.number_of_rounds(), 3);
     }
 }

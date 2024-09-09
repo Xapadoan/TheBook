@@ -57,6 +57,7 @@ fn show_warrior_tournament(
     let mut round_index: u8 = 0;
     let mut warrior_lost = false;
     while !warrior_lost && usize::from(round_index) < number_of_rounds {
+        println!("Showing fight for round {} / {}", round_index + 1, number_of_rounds);
         let fight_summary = api::replay::fight_summary_for_warrior(
             tournament_uuid,
             warrior.uuid(),
