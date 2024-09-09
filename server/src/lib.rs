@@ -17,8 +17,9 @@ mod player {
         pub use remove_warrior::remove_warrior;
         mod take_protections;
         pub use take_protections::TakeProtections;
-        mod give_weapon;
-        pub use give_weapon::give_weapon;
+        mod give_item;
+        pub use give_item::{give_weapon, equip_protection};
+        mod replace_protection;
     }
     mod error;
     pub use error::PlayerAPIError;
@@ -121,6 +122,7 @@ pub mod api {
                 give_weapon,
                 gen_random_warrior as gen_random,
                 remove_warrior as remove,
+                equip_protection,
             };
         }
         pub mod shop {

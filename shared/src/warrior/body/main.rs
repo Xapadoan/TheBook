@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 use crate::assault::common_traits::ReduceDamages;
-use crate::equipment::protection::OptionalMutableProtection;
+use crate::equipment::protection::{CanWearProtection, OptionalMutableProtection, Protection, ProtectionKind};
 use crate::stats::StatModifier;
 
 use super::body_part::{
@@ -212,5 +212,32 @@ impl StatModifier for Body {
             modifier += injury.parry_mod();
         }
         modifier
+    }
+}
+
+impl<T: HasMutableBody> CanWearProtection for T {
+    fn can_wear_protection(&self, protection: &Protection) -> bool {
+        match protection.kind() {
+            ProtectionKind::Armlets => {
+                self.body().body_part(&BodyPartKind::Arm(BodySide::Left)).is_some() ||
+                self.body().body_part(&BodyPartKind::Arm(BodySide::Right)).is_some()
+            },
+            ProtectionKind::Boots => {
+                self.body().body_part(&BodyPartKind::Foot(BodySide::Left)).is_some() ||
+                self.body().body_part(&BodyPartKind::Foot(BodySide::Right)).is_some()
+            },
+            ProtectionKind::Breastplate |
+            ProtectionKind::ChainMail |
+            ProtectionKind::Gambeson => self.body().body_part(&BodyPartKind::Torso).is_some(),
+            ProtectionKind::Gloves => {
+                self.body().body_part(&BodyPartKind::Hand(BodySide::Left)).is_some() ||
+                self.body().body_part(&BodyPartKind::Hand(BodySide::Right)).is_some()
+            },
+            ProtectionKind::Greaves => {
+                self.body().body_part(&BodyPartKind::Leg(BodySide::Left)).is_some() ||
+                self.body().body_part(&BodyPartKind::Leg(BodySide::Right)).is_some()
+            },
+            ProtectionKind::Helm => self.body().body_part(&BodyPartKind::Head).is_some()
+        }
     }
 }

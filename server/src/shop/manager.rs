@@ -1,7 +1,7 @@
 use std::{fs, path::PathBuf};
 
 use shared::{
-    equipment::weapon::{Weapon, WeaponKind},
+    equipment::{protection::{Protection, ProtectionKind}, weapon::{Weapon, WeaponKind}},
     inventory::{Inventory, Item, MutableItems},
     shop::Shop,
 };
@@ -40,6 +40,7 @@ impl ShopManager {
 
     pub fn reset_shop() -> Result<(), ShopManagerError> {
         let mut inventory = Inventory::new();
+
         let weapon = Weapon::new(WeaponKind::Axe);
         inventory.add_item(Item::Weapon(weapon));
         let weapon = Weapon::new(WeaponKind::BattleAxe);
@@ -52,6 +53,24 @@ impl ShopManager {
         inventory.add_item(Item::Weapon(weapon));
         let weapon = Weapon::new(WeaponKind::WarHammer);
         inventory.add_item(Item::Weapon(weapon));
+
+        let protection = Protection::new(ProtectionKind::Armlets);
+        inventory.add_item(Item::Protection(protection));
+        let protection = Protection::new(ProtectionKind::Boots);
+        inventory.add_item(Item::Protection(protection));
+        let protection = Protection::new(ProtectionKind::Breastplate);
+        inventory.add_item(Item::Protection(protection));
+        let protection = Protection::new(ProtectionKind::ChainMail);
+        inventory.add_item(Item::Protection(protection));
+        let protection = Protection::new(ProtectionKind::Gambeson);
+        inventory.add_item(Item::Protection(protection));
+        let protection = Protection::new(ProtectionKind::Gloves);
+        inventory.add_item(Item::Protection(protection));
+        let protection = Protection::new(ProtectionKind::Greaves);
+        inventory.add_item(Item::Protection(protection));
+        let protection = Protection::new(ProtectionKind::Helm);
+        inventory.add_item(Item::Protection(protection));
+
         let shop = Shop::new(inventory);
 
         let dir_exist = PathBuf::from(SHOP_INVENTORY_DIR).as_path().try_exists();

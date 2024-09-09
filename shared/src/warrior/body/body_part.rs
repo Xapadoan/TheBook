@@ -1,7 +1,7 @@
 use rand::Rng;
 use serde::{Deserialize, Serialize};
 
-use crate::equipment::protection::{OptionalMutableProtection, Protection};
+use crate::equipment::protection::{CanWearProtection, OptionalMutableProtection, Protection, ProtectionKind};
 use crate::random::Random;
 
 pub trait OptionalBodyPart {
@@ -95,6 +95,71 @@ impl OptionalMutableProtection for BodyPart {
 
     fn protection_mut(&mut self) -> &mut Option<Protection> {
         &mut self.protection
+    }
+
+    fn replace_protection(&mut self, protection: Protection) -> Option<Protection> {
+        match self.kind() {
+            &BodyPartKind::Arm(_) => match protection.kind() {
+                ProtectionKind::Armlets => self.protection_mut().replace(protection),
+                _ => Some(protection),
+            },
+            &BodyPartKind::Foot(_) => match protection.kind() {
+                ProtectionKind::Boots => self.protection_mut().replace(protection),
+                _ => Some(protection),
+            },
+            &BodyPartKind::Hand(_) => match protection.kind() {
+                ProtectionKind::Gloves => self.protection_mut().replace(protection),
+                _ => Some(protection),
+            },
+            &BodyPartKind::Head => match protection.kind() {
+                ProtectionKind::Helm => self.protection_mut().replace(protection),
+                _ => Some(protection),
+            },
+            &BodyPartKind::Leg(_) => match protection.kind() {
+                ProtectionKind::Greaves => self.protection_mut().replace(protection),
+                _ => Some(protection),
+            },
+            &BodyPartKind::Torso => match protection.kind() {
+                ProtectionKind::Breastplate |
+                ProtectionKind::ChainMail |
+                ProtectionKind::Gambeson => self.protection_mut().replace(protection),
+                _ => Some(protection)
+            }
+            _ => Some(protection)
+        }
+    }
+}
+
+impl CanWearProtection for BodyPart {
+    fn can_wear_protection(&self, protection: &Protection) -> bool {
+        match protection.kind() {
+            ProtectionKind::Armlets => match self.kind() {
+                BodyPartKind::Arm(_) => true,
+                _ => false,
+            },
+            ProtectionKind::Boots => match self.kind() {
+                BodyPartKind::Foot(_) => true,
+                _ => false,
+            },
+            ProtectionKind::Breastplate |
+            ProtectionKind::ChainMail |
+            ProtectionKind::Gambeson => match self.kind() {
+                BodyPartKind::Torso => true,
+                _ => false,
+            },
+            ProtectionKind::Gloves => match  self.kind() {
+                BodyPartKind::Hand(_) => true,
+                _ => false,
+            },
+            ProtectionKind::Greaves => match self.kind() {
+                BodyPartKind::Leg(_) => true,
+                _ => false,
+            },
+            ProtectionKind::Helm => match self.kind() {
+                BodyPartKind::Head => true,
+                _ => false,
+            }
+        }
     }
 }
 

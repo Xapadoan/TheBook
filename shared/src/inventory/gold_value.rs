@@ -1,6 +1,6 @@
 use crate::{
     equipment::{
-        rupture::{Rupture, RUPTURE_MAX}, weapon::Weapon
+        protection::{Protection, ProtectionKind}, rupture::{Rupture, RUPTURE_MAX}, weapon::Weapon
     },
     stats::StatModifier,
 };
@@ -11,21 +11,45 @@ pub trait GoldValue {
     fn gold_value(&self) -> u32;
 }
 
+impl GoldValue for Protection {
+    fn gold_value(&self) -> u32 {
+        let mut value = equipment_rupture_value(self.rupture());
+        let pr_base = match self.kind() {
+            ProtectionKind::Breastplate |
+            ProtectionKind::ChainMail => 3,
+            ProtectionKind::Gambeson => 2,
+            ProtectionKind::Boots |
+            ProtectionKind::Gloves |
+            ProtectionKind::Helm => 0,
+            ProtectionKind::Armlets |
+            ProtectionKind::Greaves => 1
+        };
+        let mut pr_value = 100;
+        let mut i = self.amount();
+        while i > pr_base {
+            value += pr_value;
+            pr_value *= 3;
+            i -= 1;
+        }
+
+        value
+    }
+}
+
 impl GoldValue for Weapon {
     fn gold_value(&self) -> u32 {
-        let rupture_value = equipment_rupture_value(self.rupture());
+        let mut value = if self.is_two_handed() { 100 } else { 50 };
+        value += equipment_rupture_value(self.rupture());
         let dmg = if self.is_two_handed() { 5 } else { 3 };
         let mut dmg_value = 30;
         let mut i = self.additional_damages();
         while i > dmg {
+            value += dmg_value;
             dmg_value *= 2;
             i -= 1;
         }
 
-        let mut value = if self.is_two_handed() { 100 } else { 50 };
-        value += rupture_value;
-        value += dmg_value;
-        value = modify_value(self, value);
+        value = modify_gold_value(self, value);
 
         value
     }
@@ -34,7 +58,7 @@ impl GoldValue for Weapon {
 impl GoldValue for Item {
     fn gold_value(&self) -> u32 {
         match self {
-            Self::Protection(_) => panic!("Not yet implemented"),
+            Self::Protection(protection) => protection.gold_value(),
             Self::Weapon(weapon) => weapon.gold_value(),
         }
     }
@@ -87,7 +111,13 @@ impl StatsValueThresholds for Weapon {
     }
 }
 
-fn modify_value<T: StatModifier + StatsValueThresholds>(item: &T, base: u32) -> u32 {
+impl StatsValueThresholds for Protection {
+    fn base_value_thresholds(&self) -> (i8, i8) {
+        (0, 0)
+    }
+}
+
+fn modify_gold_value<T: StatModifier + StatsValueThresholds>(item: &T, base: u32) -> u32 {
     let mut new_value = base;
     let (at, pr) = item.base_value_thresholds();
     let at_value = stat_modifier_value(

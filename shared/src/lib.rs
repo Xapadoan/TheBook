@@ -132,7 +132,7 @@ pub mod inventory {
     mod inventory;
     pub use inventory::{Inventory, HasInventory, HasMutableInventory};
     mod error;
-    pub use error::InventoryError;
+    pub use error::{InventoryError, InventoryErrorKind};
     mod item;
     pub use item::{Item, MutableItems};
     mod gold_value;

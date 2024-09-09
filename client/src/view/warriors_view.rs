@@ -2,12 +2,15 @@ use std::fmt;
 
 use server::api;
 use shared::auth::Session;
+use shared::equipment::protection::{CanWearProtection, OptionalMutableProtection, Protection};
 use shared::equipment::weapon::Weapon;
 use shared::inventory::{HasInventory, Item};
 use shared::name::Name;
 use shared::player::Player;
 use shared::tournament::contestant::TournamentContestant;
 use shared::unique_entity::UniqueEntity;
+use shared::warrior::body::body_part::{BodyPart, OptionalBodyPart, PROTECTABLE_BODY_PARTS};
+use shared::warrior::body::HasBody;
 use shared::warrior::{Warrior, WarriorCollection};
 use uuid::Uuid;
 
@@ -19,16 +22,19 @@ use super::ViewError;
 
 enum WarriorManagementChoice {
     ReplaceWeapon,
+    EquipProtection,
 }
 
-const CHOICES: [&'static WarriorManagementChoice; 1] = [
+const CHOICES: [&'static WarriorManagementChoice; 2] = [
     &WarriorManagementChoice::ReplaceWeapon,
+    &WarriorManagementChoice::EquipProtection,
 ];
 
 impl fmt::Display for WarriorManagementChoice {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             WarriorManagementChoice::ReplaceWeapon => write!(f, "Replace weapon"),
+            WarriorManagementChoice::EquipProtection => write!(f, "Equip protection"),
         }
     }
 }
@@ -57,6 +63,7 @@ pub fn warriors_view(session: &Session) -> Result<(), ViewError> {
                         Some(choice) => {
                             match choice {
                                 WarriorManagementChoice::ReplaceWeapon => replace_weapon_view(&player, warrior)?,
+                                WarriorManagementChoice::EquipProtection => equip_protection_view(&player, warrior)?,
                             }
                         },
                     }
@@ -65,33 +72,6 @@ pub fn warriors_view(session: &Session) -> Result<(), ViewError> {
         }
 
     }
-    // while let Some(warrior) = selected_warrior {
-    //     match select_with_keys(
-    //         &format!("What do you want to do to {}", warrior.name()),
-    //         &CHOICES,
-    //         |option| { format!("{option}") }
-    //     )? {
-    //         Some(choice) => {
-    //             match choice {
-    //                 WarriorManagementChoice::ReplaceWeapon => replace_weapon_view(&player, warrior)?,
-    //             }
-    //             let selected_warrior_uuid = warrior.uuid().clone();
-    //             player = api::players::read(session.uuid())?;
-    //             warriors = pl
-    //             selected_warrior = player.warriors()
-    //                 .iter()
-    //                 .find(|w| { *w.uuid() == selected_warrior_uuid });
-    //         },
-    //         None => {
-    //             selected_warrior = select_with_arrows(
-    //                 "Select a warrior to manage:",
-    //                 &warriors,
-    //                 |warrior| { CharacterSheet::new(warrior).show_self() },
-    //             )?;
-    //         }
-    //     }
-    // }
-    // Ok(())
 }
 
 fn replace_weapon_view(player: &Player, warrior: &Warrior) -> Result<(), ViewError> {
@@ -117,6 +97,59 @@ fn replace_weapon_view(player: &Player, warrior: &Warrior) -> Result<(), ViewErr
     api::players::warriors::give_weapon(
         player.uuid(),
         warrior.uuid(),
+        &inventory_slot_uuid,
+    )?;
+    Ok(())
+}
+
+fn equip_protection_view(player: &Player, warrior: &Warrior) -> Result<(), ViewError> {
+    let available_body_parts: Vec<&BodyPart> = PROTECTABLE_BODY_PARTS.iter()
+        .filter_map(|kind| {
+            match warrior.body().body_part(kind) {
+                None => None,
+                Some(part) => Some(part),
+            }})
+        .collect();
+    let body_part = match select_with_keys(
+        &format!("Select a limb to protect:"),
+        &available_body_parts,
+        |part| {
+            match part.protection() {
+                None => part.kind().show_self(),
+                Some(protection) => format!("{} ({})", part.kind().show_self(), protection.show_self())
+            }
+        }
+    )? {
+        Some(part) => part,
+        None => { return Ok(()) },
+    };
+    let available_protections: Vec<(&Uuid, &Protection)> = player.inventory().items()
+        .iter()
+        .filter_map(|(id, item)| {
+            match item {
+                Item::Protection(protection) => if body_part.can_wear_protection(protection) {
+                    Some((id, protection))
+                } else {
+                    None
+                }
+                _ => None,
+            }
+        })
+        .collect();
+    let available_protections_ref: Vec<&(&Uuid, &Protection)> = available_protections.iter().collect();
+    let inventory_slot_uuid = match select_with_keys(
+        &format!("Select a protection to give to {}:", warrior.name()),
+        &available_protections_ref,
+        |(_, protection)| { protection.show_self() },
+    )? {
+        Some((id, _)) => (*id).clone(),
+        None => return Ok(()),
+    };
+
+    api::players::warriors::equip_protection(
+        player.uuid(),
+        warrior.uuid(),
+        body_part.kind(),
         &inventory_slot_uuid,
     )?;
     Ok(())

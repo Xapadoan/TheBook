@@ -11,6 +11,7 @@ pub struct InventoryError<T: Debug> {
 pub enum InventoryErrorKind {
     NotAWeapon,
     NotAProtection,
+    ItemNotFound,
 }
 
 impl<T: Debug> InventoryError<T> {
@@ -24,6 +25,10 @@ impl<T: Debug> InventoryError<T> {
                 message: "Not a weapon".to_string(),
                 context,
             },
+            InventoryErrorKind::ItemNotFound => Self {
+                message: "Item not found".to_string(),
+                context,
+            }
         }
     }
 }

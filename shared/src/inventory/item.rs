@@ -16,8 +16,19 @@ impl TryFrom<Item> for Weapon {
 
     fn try_from(value: Item) -> Result<Self, Self::Error> {
         match value {
-            Item::Protection(_) => Err(InventoryError::new(&InventoryErrorKind::NotAWeapon, value)),
-            Item::Weapon(weapon) => Ok(weapon)
+            Item::Weapon(weapon) => Ok(weapon),
+            _ => Err(InventoryError::new(&InventoryErrorKind::NotAWeapon, value)),
+        }
+    }
+}
+
+impl TryFrom<Item> for Protection {
+    type Error = InventoryError<Item>;
+
+    fn try_from(value: Item) -> Result<Self, Self::Error> {
+        match value {
+            Item::Protection(protection) => Ok(protection),
+            _ => Err(InventoryError::new(&InventoryErrorKind::NotAProtection, value)),
         }
     }
 }
