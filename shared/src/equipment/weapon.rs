@@ -43,6 +43,7 @@ pub struct Weapon {
     add_dmg: u8,
     attack_mod: i8,
     parry_mod: i8,
+    courage_mod: i8,
 }
 
 impl Weapon {
@@ -56,6 +57,7 @@ impl Weapon {
                 add_dmg: 3,
                 attack_mod: 0,
                 parry_mod: -1,
+                courage_mod: -1,
                 rupture: Some(4),
             },
             WeaponKind::Axe => Self {
@@ -66,6 +68,7 @@ impl Weapon {
                 add_dmg: 3,
                 attack_mod: 0,
                 parry_mod: -2,
+                courage_mod: 0,
                 rupture: Some(3),
             },
             WeaponKind::BattleAxe => Self {
@@ -76,6 +79,7 @@ impl Weapon {
                 add_dmg: 5,
                 attack_mod: -3,
                 parry_mod: -4,
+                courage_mod: 0,
                 rupture: Some(3),
             },
             WeaponKind::GreatSword => Self {
@@ -86,6 +90,7 @@ impl Weapon {
                 add_dmg: 5,
                 attack_mod: -3,
                 parry_mod: -4,
+                courage_mod: 0,
                 rupture: Some(4),
             },
             WeaponKind::Hammer => Self {
@@ -96,6 +101,7 @@ impl Weapon {
                 add_dmg: 3,
                 attack_mod: 0,
                 parry_mod: -2,
+                courage_mod: 0,
                 rupture: Some(4),
             },
             WeaponKind::WarHammer => Self {
@@ -106,6 +112,7 @@ impl Weapon {
                 add_dmg: 5,
                 attack_mod: -3,
                 parry_mod: -4,
+                courage_mod: 0,
                 rupture: Some(4),
             },
         }
@@ -160,6 +167,15 @@ impl StatModifier for Weapon {
     }
     fn parry_mod(&self) -> i8 {
         self.parry_mod
+    }
+    fn courage_mod(&self) -> i8 {
+        self.courage_mod
+    }
+    fn dexterity_mod(&self) -> i8 {
+        0
+    }
+    fn strength_mod(&self) -> i8 {
+        0
     }
 }
 

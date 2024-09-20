@@ -34,6 +34,7 @@ pub mod assault {
     }
     pub mod clumsiness;
     pub mod parry_attempt;
+    pub mod assault_order_comparable;
     pub mod parry_clumsiness;
     pub mod critical_parry {
         mod critical_parry;

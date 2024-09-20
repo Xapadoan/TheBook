@@ -1,6 +1,8 @@
 use serde::{Deserialize, Serialize};
+use shared::assault::assault_order_comparable::AssaultOrderComparable;
 use shared::assault::parry_not_possible::CanParry;
 use shared::assault::end_turn_consequences::EndTurnConsequencesBuilder;
+use shared::random::Random;
 use uuid::Uuid;
 
 use shared::assault::assailant::Assailant;
@@ -20,7 +22,7 @@ use shared::equipment::weapon::{OptionalMutableWeapon, Weapon};
 use shared::health::{Health, IsDead, IsUnconscious, MutableHealth};
 use shared::knock_out::KnockOut;
 use shared::name::Name;
-use shared::stats::{Stat, StatModifier, Stats, StatsManager};
+use shared::stats::{StatModifier, Stats, StatsManager};
 use shared::temporary_handicap::{
     OptionalAssaultMisses,
     OptionalMutableAssaultMisses,
@@ -60,7 +62,7 @@ impl TestAssailant {
             parry_misses: None,
             body: Body::new(),
             duration_damages: vec![],
-            stats: StatsManager::new(),
+            stats: StatsManager::random(),
             is_unconscious: false,
         }
     }
@@ -182,29 +184,37 @@ impl Stats for TestAssailant {
 
 impl AttackThreshold for TestAssailant {
     fn attack_threshold(&self) -> u8 {
-        let mut attack = self.stats().attack().value();
+        let mut modifiers: Vec<Box<&dyn StatModifier>> = vec![Box::new(&self.body)];
         if let Some(weapon) = self.weapon() {
-            attack = weapon.modify_stat(Stat::Attack(attack)).value();
+            modifiers.push(Box::new(weapon));
         }
-        attack = self.body.modify_stat(Stat::Attack(attack)).value();
-        attack
+        self.stats.attack(&modifiers).value()
     }
 }
 
 impl ParryThreshold for TestAssailant {
     fn parry_threshold(&self) -> u8 {
-        let mut parry = self.stats().parry().value();
+        let mut modifiers: Vec<Box<&dyn StatModifier>> = vec![Box::new(&self.body)];
         if let Some(weapon) = self.weapon() {
-            parry = weapon.modify_stat(Stat::Parry(parry)).value();
+            modifiers.push(Box::new(weapon));
         }
-        parry = self.body.modify_stat(Stat::Parry(parry)).value();
-        parry
+        self.stats.parry(&modifiers).value()
     }
 }
 
 impl KnockOut for TestAssailant {
     fn knock_out(&mut self) {
         self.is_unconscious = true;
+    }
+}
+
+impl AssaultOrderComparable for TestAssailant {
+    fn assault_order_comparable(&self) -> u8 {
+        let mut modifiers: Vec<Box<&dyn StatModifier>> = vec![Box::new(&self.body)];
+        if let Some(weapon) = &self.weapon {
+            modifiers.push(Box::new(weapon))
+        }
+        self.stats.courage(&modifiers).value()
     }
 }
 

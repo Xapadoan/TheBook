@@ -6,6 +6,7 @@ use crate::temporary_handicap::OptionalMutableParryMisses;
 use crate::unique_entity::UniqueEntity;
 use crate::warrior::body::HasMutableBody;
 
+use super::assault_order_comparable::AssaultOrderComparable;
 use super::attack_attempt::AttackAttempt;
 use super::attack_clumsiness::ResolveAttackClumsiness;
 use super::attack_success::ResolveAttackSuccess;
@@ -50,5 +51,6 @@ pub trait Assailant:
     AttackAttempt +
     ParryAttempt +
     KnockOut +
-    EndTurnConsequencesBuilder
+    EndTurnConsequencesBuilder +
+    AssaultOrderComparable
 {}

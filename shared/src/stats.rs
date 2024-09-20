@@ -1,9 +1,14 @@
 use serde::{Deserialize, Serialize};
 
+use crate::{dice::Dice, random::Random};
+
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub enum Stat {
     Attack(u8),
     Parry(u8),
+    Strength(u8),
+    Dexterity(u8),
+    Courage(u8),
 }
 
 impl Stat {
@@ -11,6 +16,9 @@ impl Stat {
         match self {
             Self::Attack(value) => *value,
             Self::Parry(value) => *value,
+            Self::Strength(value) => *value,
+            Self::Dexterity(value) => *value,
+            Self::Courage(value) => *value,
         }
     }
 
@@ -26,6 +34,9 @@ impl Stat {
         match self {
             Self::Attack(_) => Self::Attack(new_value),
             Self::Parry(_) => Self::Parry(new_value),
+            Self::Strength(_) => Self::Strength(new_value),
+            Self::Dexterity(_) => Self::Dexterity(new_value),
+            Self::Courage(_) => Self::Courage(new_value),
         }
     }
 }
@@ -33,10 +44,16 @@ impl Stat {
 pub trait StatModifier {
     fn attack_mod(&self) -> i8;
     fn parry_mod(&self) -> i8;
+    fn strength_mod(&self) -> i8;
+    fn dexterity_mod(&self) -> i8;
+    fn courage_mod(&self) -> i8;
     fn modify_stat(&self, base: Stat) -> Stat {
         match base {
             Stat::Attack(_) => base.modify(self.attack_mod()),
             Stat::Parry(_) => base.modify(self.parry_mod()),
+            Stat::Strength(_) => base.modify(self.strength_mod()),
+            Stat::Dexterity(_) => base.modify(self.dexterity_mod()),
+            Stat::Courage(_) => base.modify(self.courage_mod()),
         }
     }
 }
@@ -49,21 +66,69 @@ pub trait Stats {
 pub struct StatsManager {
     nat_attack: Stat,
     nat_parry: Stat,
+    nat_strength: Stat,
+    nat_dexterity: Stat,
+    nat_courage: Stat,
 }
 
 impl StatsManager {
-    pub fn new() -> Self {
-        Self {
-            nat_attack: Stat::Attack(8),
-            nat_parry: Stat::Parry(10),
+    pub fn attack(&self, modifiers: &[Box<&dyn StatModifier>]) -> Stat {
+        let mut attack = self.nat_attack.clone();
+        let mut dexterity = self.nat_dexterity.clone();
+        for modifier in modifiers {
+            attack = modifier.modify_stat(attack);
+            dexterity = modifier.modify_stat(dexterity);
+        }
+        if dexterity.value() < 9 {
+            attack.modify(-1)
+        } else if dexterity.value() > 12 {
+            attack.modify(1)
+        }else {
+            attack
         }
     }
 
-    pub fn attack(&self) -> &Stat {
-        &self.nat_attack
+    pub fn parry(&self, modifiers: &[Box<&dyn StatModifier>]) -> Stat {
+        let mut parry = self.nat_parry.clone();
+        for modifier in modifiers {
+            parry = modifier.modify_stat(parry);
+        }
+        parry
     }
 
-    pub fn parry(&self) -> &Stat {
-        &self.nat_parry
+    pub fn strength(&self, modifiers: &[Box<&dyn StatModifier>]) -> Stat {
+        let mut str = self.nat_strength.clone();
+        for modifier in modifiers {
+            str = modifier.modify_stat(str);
+        }
+        str
+    }
+
+    pub fn dexterity(&self, modifiers: &[Box<&dyn StatModifier>]) -> Stat {
+        let mut dex = self.nat_dexterity.clone();
+        for modifier in modifiers {
+            dex = modifier.modify_stat(dex);
+        }
+        dex
+    }
+
+    pub fn courage(&self, modifiers: &[Box<&dyn StatModifier>]) -> Stat {
+        let mut cou = self.nat_courage.clone();
+        for modifier in modifiers {
+            cou = modifier.modify_stat(cou);
+        }
+        cou
+    }
+}
+
+impl Random for StatsManager {
+    fn random() -> Self {
+        Self {
+            nat_attack: Stat::Attack(8),
+            nat_parry: Stat::Parry(10),
+            nat_strength: Stat::Strength(Dice::D6.roll() + 7),
+            nat_dexterity: Stat::Dexterity(Dice::D6.roll() + 7),
+            nat_courage: Stat::Courage(Dice::D6.roll() + 7),
+        }
     }
 }

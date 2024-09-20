@@ -21,12 +21,12 @@ pub enum CriticalParry {
 impl Random for CriticalParry {
     fn random() -> Self {
         match Dice::D20.roll() {
-            1 | 2 => CriticalParry::RegularParry,
-            3..=5 => CriticalParry::AssailantRepelled,
-            6 | 7 => CriticalParry::AssailantTrips,
-            8 | 9 => CriticalParry::AssailantFalls,
-            10..=12 => CriticalParry::AssailantDropsWeapon,
-            13..=15 => CriticalParry::AssailantBreaksWeapon,
+            1..=3 => CriticalParry::RegularParry,
+            4..=6 => CriticalParry::AssailantRepelled,
+            7..=9 => CriticalParry::AssailantTrips,
+            10 | 11 => CriticalParry::AssailantFalls,
+            12..=13 => CriticalParry::AssailantDropsWeapon,
+            14 | 15 => CriticalParry::AssailantBreaksWeapon,
             16..=18 => CriticalParry::AssailantHit,
             19 => CriticalParry::AssailantCriticalHit,
             20 => CriticalParry::AssailantSelfCriticalHit,

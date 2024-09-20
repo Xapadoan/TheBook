@@ -3,6 +3,7 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use crate::assault::assailant::Assailant;
+use crate::assault::assault_order_comparable::AssaultOrderComparable;
 use crate::assault::attack_attempt::{AttackAttempt, AttackThreshold};
 use crate::assault::attack_clumsiness::ResolveAttackClumsiness;
 use crate::assault::attack_success::ResolveAttackSuccess;
@@ -23,7 +24,7 @@ use crate::health::{Health, IsDead, IsUnconscious, MutableHealth, MutablePassive
 use crate::knock_out::KnockOut;
 use crate::name::Name;
 use crate::random::{Random, RandomDictionary};
-use crate::stats::{Stat, StatModifier, Stats, StatsManager};
+use crate::stats::{StatModifier, Stats, StatsManager};
 use crate::temporary_handicap::{
     OptionalAssaultMisses,
     OptionalMutableAssaultMisses,
@@ -87,7 +88,7 @@ impl Random for Warrior {
             parry_misses: None,
             body: Body::new(),
             duration_damages: vec![],
-            stats: StatsManager::new(),
+            stats: StatsManager::random(),
             is_unconscious: false,
             last_passive_heal: Utc::now().timestamp(),
             experience: 0,
@@ -174,7 +175,12 @@ impl ReduceDamages for Warrior {
 impl DealDamages for Warrior {
     fn deal_damages(&self) -> u8 {
         if let Some(weapon) = self.weapon() {
-            weapon.deal_damages()
+            let mut damages = weapon.deal_damages();
+            let str = self.stats.strength(&[Box::new(weapon), Box::new(&self.body)]);
+            if str.value() < 8 {
+                damages -= 1;
+            }
+            damages
         } else {
             0
         }
@@ -189,23 +195,21 @@ impl Stats for Warrior {
 
 impl AttackThreshold for Warrior {
     fn attack_threshold(&self) -> u8 {
-        let mut attack = self.stats().attack().value();
+        let mut modifiers: Vec<Box<&dyn StatModifier>> = vec![Box::new(&self.body)];
         if let Some(weapon) = self.weapon() {
-            attack = weapon.modify_stat(Stat::Attack(attack)).value();
+            modifiers.push(Box::new(weapon));
         }
-        attack = self.body.modify_stat(Stat::Attack(attack)).value();
-        attack
+        self.stats.attack(&modifiers).value()
     }
 }
 
 impl ParryThreshold for Warrior {
     fn parry_threshold(&self) -> u8 {
-        let mut parry = self.stats().parry().value();
+        let mut modifiers: Vec<Box<&dyn StatModifier>> = vec![Box::new(&self.body)];
         if let Some(weapon) = self.weapon() {
-            parry = weapon.modify_stat(Stat::Parry(parry)).value();
+            modifiers.push(Box::new(weapon));
         }
-        parry = self.body.modify_stat(Stat::Parry(parry)).value();
-        parry
+        self.stats.parry(&modifiers).value()
     }
 }
 
@@ -236,6 +240,16 @@ impl Experience for Warrior {
 impl GainExperience for Warrior {
     fn gain_xp(&mut self, xp: u64) {
         self.experience += xp;
+    }
+}
+
+impl AssaultOrderComparable for Warrior {
+    fn assault_order_comparable(&self) -> u8 {
+        let mut modifiers: Vec<Box<&dyn StatModifier>> = vec![Box::new(&self.body)];
+        if let Some(weapon) = &self.weapon {
+            modifiers.push(Box::new(weapon))
+        }
+        self.stats.courage(&modifiers).value()
     }
 }
 

@@ -185,9 +185,90 @@ impl StatModifier for Injury {
             Self::RightArmBroken |
             Self::RightArmSevered => -6,
             Self::RightElbowDislocated |
-            Self::RightShoulderDislocated => -2,
+            Self::RightShoulderDislocated => -3,
             Self::RightHandBroken |
             Self::RightHandSevered => -6,
+        }
+    }
+    fn courage_mod(&self) -> i8 {
+        match self {
+            Self::BothEyesGouged => -6,
+            Self::BothLegsBroken |
+            Self::BothLegsSevered => -5,
+            Self::FingerSevered(_, _) => 0,
+            Self::FootSevered(_) |
+            Self::FootSmashed(_) => 0,
+            Self::GenitalsCrushed => -5,
+            Self::KneeDislocated(_) => 0,
+            Self::LeftArmBroken => -1,
+            Self::LeftArmSevered => -2,
+            Self::LeftElbowDislocated |
+            Self::LeftShoulderDislocated => 0,
+            Self::LeftHandBroken |
+            Self::LeftHandSevered => -1,
+            Self::OneEyeGouged(_) => 0,
+            Self::OneLegBroken(_) |
+            Self::OneLegSevered(_) => -3,
+            Self::RightArmBroken => -2,
+            Self::RightArmSevered => -4,
+            Self::RightElbowDislocated |
+            Self::RightShoulderDislocated => 0,
+            Self::RightHandBroken |
+            Self::RightHandSevered => -1,
+        }
+    }
+    fn dexterity_mod(&self) -> i8 {
+        match self {
+            Self::BothEyesGouged => -6,
+            Self::BothLegsBroken |
+            Self::BothLegsSevered => -6,
+            Self::FingerSevered(_, _) => -1,
+            Self::FootSevered(_) |
+            Self::FootSmashed(_) => -2,
+            Self::GenitalsCrushed => -2,
+            Self::KneeDislocated(_) => -2,
+            Self::LeftArmBroken => -2,
+            Self::LeftArmSevered => -2,
+            Self::LeftElbowDislocated |
+            Self::LeftShoulderDislocated => -1,
+            Self::LeftHandBroken |
+            Self::LeftHandSevered => -2,
+            Self::OneEyeGouged(_) => 1,
+            Self::OneLegBroken(_) |
+            Self::OneLegSevered(_) => -6,
+            Self::RightArmBroken => -4,
+            Self::RightArmSevered => -2,
+            Self::RightElbowDislocated |
+            Self::RightShoulderDislocated => -2,
+            Self::RightHandBroken |
+            Self::RightHandSevered => -4,
+        }
+    }
+    fn strength_mod(&self) -> i8 {
+        match self {
+            Self::BothEyesGouged => 0,
+            Self::BothLegsBroken |
+            Self::BothLegsSevered => -5,
+            Self::FingerSevered(_, _) => 0,
+            Self::FootSevered(_) |
+            Self::FootSmashed(_) => 0,
+            Self::GenitalsCrushed => 0,
+            Self::KneeDislocated(_) => 0,
+            Self::LeftArmBroken |
+            Self::LeftArmSevered => -2,
+            Self::LeftElbowDislocated |
+            Self::LeftShoulderDislocated => -1,
+            Self::LeftHandBroken |
+            Self::LeftHandSevered => -1,
+            Self::OneEyeGouged(_) => 0,
+            Self::OneLegBroken(_) |
+            Self::OneLegSevered(_) => -3,
+            Self::RightArmBroken |
+            Self::RightArmSevered => -4,
+            Self::RightElbowDislocated |
+            Self::RightShoulderDislocated => -2,
+            Self::RightHandBroken |
+            Self::RightHandSevered => -2,
         }
     }
 }

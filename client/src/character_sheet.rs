@@ -4,7 +4,7 @@ use shared::equipment::weapon::{OptionalMutableWeapon, Weapon};
 use shared::experience::Experience;
 use shared::health::{Health, MutableHealth};
 use shared::name::Name;
-use shared::stats::{Stat, StatModifier, Stats, StatsManager};
+use shared::stats::{StatModifier, Stats, StatsManager};
 use shared::warrior::body::{Body, HasBody};
 use shared::warrior::Warrior;
 
@@ -55,23 +55,21 @@ impl<'a> ShowSelf for CharacterSheet<'a> {
 
 impl<'a> AttackThreshold for CharacterSheet<'a> {
     fn attack_threshold(&self) -> u8 {
-        let mut attack = Stat::Attack(self.stats.attack().value());
+        let mut modifiers: Vec<Box<&dyn StatModifier>> = vec![Box::new(self.body)];
         if let Some(weapon) = self.weapon {
-            attack = weapon.modify_stat(attack);
+            modifiers.push(Box::new(weapon));
         }
-        attack = self.body.modify_stat(attack);
-        attack.value()
+        self.stats.attack(&modifiers).value()
     }
 }
 
 impl<'a> ParryThreshold for CharacterSheet<'a> {
     fn parry_threshold(&self) -> u8 {
-        let mut parry = Stat::Parry(self.stats.parry().value());
+        let mut modifiers: Vec<Box<&dyn StatModifier>> = vec![Box::new(self.body)];
         if let Some(weapon) = self.weapon {
-            parry = weapon.modify_stat(parry);
+            modifiers.push(Box::new(weapon));
         }
-        parry = self.body.modify_stat(parry);
-        parry.value()
+        self.stats.parry(&modifiers).value()
     }
 }
 
