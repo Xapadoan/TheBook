@@ -2,7 +2,6 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::assault::assailant::Assailant;
 use crate::assault::assault_order_comparable::AssaultOrderComparable;
 use crate::assault::attack_attempt::{AttackAttempt, AttackThreshold};
 use crate::assault::attack_clumsiness::ResolveAttackClumsiness;
@@ -12,10 +11,9 @@ use crate::assault::common_traits::{DealDamages, ReduceDamages, ResolveBreakWeap
 use crate::assault::critical_hit::{DealCriticalHit, ResolveCriticalHit, ResolveCriticalHitSelf};
 use crate::assault::critical_parry::{DealCriticalParry, ResolveCriticalParry};
 use crate::assault::duration_damages::{DurationDamages, TakeDurationDamages};
-use crate::assault::attack_not_possible::{CanAttack, CanBeAttacked};
+use crate::assault::attack_not_possible::CanBeAttacked;
 use crate::assault::parry_attempt::{ParryAttempt, ParryThreshold};
 use crate::assault::parry_clumsiness::ResolveParryClumsiness;
-use crate::assault::parry_not_possible::CanParry;
 use crate::assault::parry_success::ResolveParrySuccess;
 use crate::assault::end_turn_consequences::EndTurnConsequencesBuilder;
 use crate::equipment::weapon::{OptionalMutableWeapon, Weapon};
@@ -25,13 +23,6 @@ use crate::knock_out::KnockOut;
 use crate::name::Name;
 use crate::random::{Random, RandomDictionary};
 use crate::stats::{StatModifier, Stats, StatsManager};
-use crate::temporary_handicap::{
-    OptionalAssaultMisses,
-    OptionalMutableAssaultMisses,
-    OptionalMutableParryMisses,
-    OptionalParryMisses,
-    TemporaryHandicap,
-};
 use crate::tournament::contestant::TournamentContestant;
 use crate::unique_entity::UniqueEntity;
 
@@ -45,8 +36,6 @@ pub struct Warrior {
     health: Health,
     weapon: Option<Weapon>,
     current_tournament: Option<Uuid>,
-    assault_misses: Option<TemporaryHandicap>,
-    parry_misses: Option<TemporaryHandicap>,
     body: Body,
     duration_damages: Vec<DurationDamages>,
     stats: StatsManager,
@@ -84,8 +73,6 @@ impl Random for Warrior {
             health: Health::new(30, 30),
             weapon: Some(Weapon::random()),
             current_tournament: None,
-            assault_misses: None,
-            parry_misses: None,
             body: Body::new(),
             duration_damages: vec![],
             stats: StatsManager::random(),
@@ -119,30 +106,6 @@ impl TournamentContestant for Warrior {
 
     fn set_current_tournament(&mut self, tournament_uuid: Option<Uuid>) {
         self.current_tournament = tournament_uuid
-    }
-}
-
-impl OptionalAssaultMisses for Warrior {
-    fn assault_misses(&self) -> &Option<TemporaryHandicap> {
-        &self.assault_misses
-    }
-}
-
-impl OptionalMutableAssaultMisses for Warrior {
-    fn assault_misses_mut(&mut self) -> &mut Option<TemporaryHandicap> {
-        &mut self.assault_misses
-    }
-}
-
-impl OptionalParryMisses for Warrior {
-    fn parry_misses(&self) -> &Option<TemporaryHandicap> {
-        &self.parry_misses
-    }
-}
-
-impl OptionalMutableParryMisses for Warrior {
-    fn parry_misses_mut(&mut self) -> &mut Option<TemporaryHandicap> {
-        &mut self.parry_misses
     }
 }
 
@@ -270,10 +233,6 @@ impl ResolveCriticalParry for Warrior {}
 impl ResolveParryClumsiness for Warrior {}
 impl TakeDamage for Warrior {}
 impl ResolveParrySuccess for Warrior {}
-impl CanAttack for Warrior {}
 impl CanBeAttacked for Warrior {}
 impl AttackAttempt for Warrior {}
 impl ParryAttempt for Warrior {}
-impl CanParry for Warrior {}
-
-impl Assailant for Warrior {}

@@ -1,6 +1,7 @@
 use rand::Rng;
+use shared::experience::GainExperience;
 use shared::inventory::Inventory;
-use shared::tournament::{Tournament, TournamentError};
+use shared::tournament::{Fighter, Tournament, TournamentError};
 use shared::unique_entity::UniqueEntity;
 use shared::warrior::Warrior;
 use uuid::Uuid;
@@ -57,8 +58,6 @@ pub trait AutoTournament {
 
 impl AutoTournament for Tournament {
     fn gen_random_pairs(&mut self, remaining_contestants_ids: &mut Vec<Uuid>) -> Vec<(Uuid, Uuid)> {
-        // let mut contestants_count = self.number_of_contestants();
-        // let mut contestants_ids = self.contestants_ids();
         let mut count = remaining_contestants_ids.len();
         let nb_fights = count / 2;
 
@@ -92,28 +91,32 @@ impl AutoTournament for Tournament {
             for pair in pairs {
                 let mut fight_replay_builder = FightReplayBuilder::build(self.uuid())?;
                 let mut warrior1 = repo.get_by_uuid(&pair.0)?;
-                let mut warrior1_inventory = Inventory::new();
                 let mut warrior2 = repo.get_by_uuid(&pair.1)?;
-                let mut warrior2_inventory = Inventory::new();
                 fight_replay_builder.record_warriors_init_state(&warrior1, &warrior2)?;
+                let mut fighter1 = Fighter::from(&warrior1);
+                let mut fighter2 = Fighter::from(&warrior2);
                 let result = Fight::auto(
                     &mut fight_replay_builder,
-                    &mut warrior1,
-                    &mut warrior1_inventory,
-                    &mut warrior2,
-                    &mut warrior2_inventory,
+                    &mut fighter1,
+                    &mut fighter2,
                 )?;
                 fight_replay_builder.write_turn_summaries()?;
-                if let Some(winner) = result.winner() {
-                    if warrior1.uuid() == winner {
-                        warrior1_inventory.add_gold(self.fight_reward(round_index as usize));
+                let inventory1 = fighter1.consume(&mut warrior1);
+                let inventory2 = fighter2.consume(&mut warrior2);
+                if let Some(winner_uuid) = result.winner() {
+                    let mut fight_rewards = Inventory::new();
+                    fight_rewards.add_gold(self.fight_reward(round_index as usize));
+                    if warrior1.uuid() == winner_uuid {
+                        warrior1.gain_xp(20);
+                        self.add_to_contestant_inventory(warrior1.uuid(), fight_rewards);
                     } else {
-                        warrior2_inventory.add_gold(self.fight_reward(round_index as usize));
+                        warrior2.gain_xp(20);
+                        self.add_to_contestant_inventory(warrior2.uuid(), fight_rewards);
                     }
-                    remaining_contestants_ids.push(winner.clone())
+                    remaining_contestants_ids.push(winner_uuid.clone())
                 }
-                self.add_to_contestant_inventory(warrior1.uuid(), warrior1_inventory);
-                self.add_to_contestant_inventory(warrior2.uuid(), warrior2_inventory);
+                self.add_to_contestant_inventory(warrior1.uuid(), inventory1);
+                self.add_to_contestant_inventory(warrior2.uuid(), inventory2);
                 repo.update(warrior1.uuid(), &warrior1)?;
                 repo.update(warrior2.uuid(), &warrior2)?;
                 round_replay_builder.push_summary(result);

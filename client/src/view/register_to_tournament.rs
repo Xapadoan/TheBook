@@ -5,9 +5,8 @@ use shared::tournament::contestant::TournamentContestant;
 use shared::unique_entity::UniqueEntity;
 use shared::warrior::{Warrior, WarriorCollection};
 
-use crate::character_sheet::CharacterSheet;
 use crate::prompt::{prompt_bool, swap_select_with_arrows};
-use crate::show::ShowSelf;
+use crate::show::{ShowSelf, CharacterSheet};
 
 use super::ViewError;
 

@@ -62,7 +62,7 @@ pub trait Stats {
     fn stats(&self) -> &StatsManager;
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct StatsManager {
     nat_attack: Stat,
     nat_parry: Stat,
@@ -82,7 +82,7 @@ impl StatsManager {
         if dexterity.value() < 9 {
             attack.modify(-1)
         } else if dexterity.value() > 12 {
-            attack.modify(1)
+            attack.modify(dexterity.value() as i8 - 12)
         }else {
             attack
         }

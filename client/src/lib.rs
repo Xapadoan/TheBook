@@ -38,6 +38,7 @@ mod show {
         mod show_temporary_handicap;
         mod show_warrior;
         mod show_weapon;
+        mod show_fighter;
         mod show_item;
     
         pub use main::ShowSelf;
@@ -57,13 +58,15 @@ mod show {
 
         pub use main::ShowReplay;
     }
-    pub  use show_replay::ShowReplay;
+    pub use show_replay::ShowReplay;
     mod show_assault;
     mod show_resolution;
     mod show_self_critical_hit;
     mod show_fight_replay;
     pub use show_fight_replay::ShowWarriorFightReplay;
     mod show_turn_summary;
+    mod character_sheet;
+    pub use character_sheet::CharacterSheet;
 
     pub use main::*;
 }
@@ -72,8 +75,6 @@ mod auth {
     mod session;
     pub use session::{read_session, store_session, SessionError};
 }
-
-mod character_sheet;
 
 pub fn run() -> Result<(), view::ViewError> {
     let mut player = view::authenticate_player()?;

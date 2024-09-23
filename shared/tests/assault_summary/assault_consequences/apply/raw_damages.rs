@@ -1,4 +1,5 @@
-use shared::{assault::assault_consequence::{AssaultConsequences, IndividualConsequences}, health::MutableHealth, inventory::Inventory};
+use shared::assault::assault_consequence::{AssaultConsequences, IndividualConsequences};
+use shared::health::MutableHealth;
 
 use crate::common::TestAssailant;
 
@@ -6,8 +7,6 @@ use crate::common::TestAssailant;
 pub fn raw_damages_are_applied() {
     let mut assailant = TestAssailant::new();
     let mut victim = TestAssailant::new();
-    let mut assailant_dropped_items = Inventory::new();
-    let mut victim_dropped_items = Inventory::new();
     let consequences = AssaultConsequences::new(
         IndividualConsequences::only_raw_damages(5),
         IndividualConsequences::no_consequences(),
@@ -16,9 +15,7 @@ pub fn raw_damages_are_applied() {
 
     consequences.apply(
         &mut assailant,
-        &mut assailant_dropped_items,
         &mut victim,
-        &mut victim_dropped_items,
     );
     assert_eq!(assailant.health().current(), assailant.health().max() - 5);
 }

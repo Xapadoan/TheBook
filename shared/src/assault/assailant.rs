@@ -1,5 +1,6 @@
 use crate::health::IsDead;
 use crate::health::IsUnconscious;
+use crate::inventory::HasMutableInventory;
 use crate::knock_out::KnockOut;
 use crate::temporary_handicap::OptionalMutableAssaultMisses;
 use crate::temporary_handicap::OptionalMutableParryMisses;
@@ -52,5 +53,6 @@ pub trait Assailant:
     ParryAttempt +
     KnockOut +
     EndTurnConsequencesBuilder +
-    AssaultOrderComparable
+    AssaultOrderComparable +
+    HasMutableInventory
 {}

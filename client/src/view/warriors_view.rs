@@ -14,9 +14,8 @@ use shared::warrior::body::HasBody;
 use shared::warrior::{Warrior, WarriorCollection};
 use uuid::Uuid;
 
-use crate::character_sheet::CharacterSheet;
 use crate::prompt::{select_with_arrows, select_with_keys};
-use crate::show::ShowSelf;
+use crate::show::{CharacterSheet, ShowSelf};
 
 use super::ViewError;
 

@@ -2,11 +2,10 @@ use std::error::Error;
 use std::fmt::Display;
 
 use shared::equipment::weapon::OptionalMutableWeapon;
-use shared::experience::GainExperience;
 use shared::health::{IsDead, IsUnconscious};
-use shared::inventory::Inventory;
 use shared::replay::turn_summary::TurnSummary;
 use shared::replay::FightReplaySummary;
+use shared::tournament::Fighter;
 use shared::unique_entity::UniqueEntity;
 use shared::warrior::Warrior;
 
@@ -19,20 +18,15 @@ pub struct Fight {}
 impl Fight {
     pub fn auto<T: Repository<Warrior>>(
         replay_builder: &mut FightReplayBuilder<T>,
-        blue_corner: &mut Warrior,
-        blue_corner_inventory: &mut Inventory,
-        red_corner: &mut Warrior,
-        red_corner_inventory: &mut Inventory,
+        blue_corner: &mut Fighter,
+        red_corner: &mut Fighter,
     ) -> Result<FightReplaySummary, FightError> {
-        replay_builder.record_warriors_init_state(blue_corner, red_corner)?;
         let mut turn: u8 = 0;
 
         while turn < u8::MAX {
             let turn_summary = TurnSummary::new(
                 blue_corner,
-                blue_corner_inventory,
                 red_corner,
-                red_corner_inventory,
             );
             replay_builder.push_turn_summary(turn_summary);
             turn += 1;
@@ -40,7 +34,6 @@ impl Fight {
                 || blue_corner.is_unconscious()
                 || blue_corner.weapon().is_none()
             {
-                red_corner.gain_xp(20);
                 let result = FightReplaySummary::new(
                     replay_builder.replay_uuid().clone(),
                     Some(red_corner.uuid().clone()),
@@ -54,7 +47,6 @@ impl Fight {
                 || red_corner.is_unconscious()
                 || red_corner.weapon().is_none()
             {
-                blue_corner.gain_xp(20);
                 let result = FightReplaySummary::new(
                     replay_builder.replay_uuid().clone(),
                     Some(blue_corner.uuid().clone()),

@@ -8,7 +8,7 @@ use shared::stats::{StatModifier, Stats, StatsManager};
 use shared::warrior::body::{Body, HasBody};
 use shared::warrior::Warrior;
 
-use super::show::ShowSelf;
+use super::ShowSelf;
 
 pub struct CharacterSheet<'a> {
     name: &'a str,

@@ -23,7 +23,7 @@ pub trait HasMutableBody: HasBody {
     fn body_mut(&mut self) -> &mut Body;
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Body {
     left_eye: Option<BodyPart>,
     right_eye: Option<BodyPart>,

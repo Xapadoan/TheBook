@@ -96,6 +96,8 @@ pub mod tournament {
     pub use main::{Tournament, TournamentError};
     mod names;
     pub use names::TournamentNameDictionary;
+    mod fighter;
+    pub use fighter::Fighter;
 }
 
 pub mod temporary_handicap {

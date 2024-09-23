@@ -2,6 +2,7 @@ use serde::{Deserialize, Serialize};
 use shared::assault::assault_order_comparable::AssaultOrderComparable;
 use shared::assault::parry_not_possible::CanParry;
 use shared::assault::end_turn_consequences::EndTurnConsequencesBuilder;
+use shared::inventory::{HasInventory, HasMutableInventory, Inventory};
 use shared::random::Random;
 use uuid::Uuid;
 
@@ -48,6 +49,7 @@ pub struct TestAssailant {
     duration_damages: Vec<DurationDamages>,
     stats: StatsManager,
     is_unconscious: bool,
+    inventory: Inventory,
 }
 
 impl TestAssailant {
@@ -64,6 +66,7 @@ impl TestAssailant {
             duration_damages: vec![],
             stats: StatsManager::random(),
             is_unconscious: false,
+            inventory: Inventory::new(),
         }
     }
 }
@@ -215,6 +218,16 @@ impl AssaultOrderComparable for TestAssailant {
             modifiers.push(Box::new(weapon))
         }
         self.stats.courage(&modifiers).value()
+    }
+}
+impl HasInventory for TestAssailant {
+    fn inventory(&self) -> &Inventory {
+        &self.inventory
+    }
+}
+impl HasMutableInventory for TestAssailant {
+    fn inventory_mut(&mut self) -> &mut Inventory {
+        &mut self.inventory
     }
 }
 

@@ -60,7 +60,7 @@ pub trait OptionalMutableBodyPart: OptionalBodyPart {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct BodyPart {
     kind: BodyPartKind,
     protection: Option<Protection>,
