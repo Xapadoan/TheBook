@@ -7,11 +7,11 @@ use crate::assault::end_turn_consequences::EndTurnConsequences;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct TurnSummary {
-    blue_corner_uuid: Uuid,
-    red_corner_uuid: Uuid,
+    first_assailant_uuid: Uuid,
+    second_assailant_uuid: Uuid,
     assaults: [AssaultSummary; 2],
-    blue_turn_end: EndTurnConsequences,
-    red_turn_end: EndTurnConsequences,
+    first_assailant_turn_end: EndTurnConsequences,
+    second_assailant_turn_end: EndTurnConsequences,
 }
 
 impl TurnSummary {
@@ -19,41 +19,35 @@ impl TurnSummary {
         &self.assaults
     }
 
-    pub fn blue_turn_end(&self) -> &EndTurnConsequences {
-        &self.blue_turn_end
+    pub fn first_assailant_turn_end(&self) -> &EndTurnConsequences {
+        &self.first_assailant_turn_end
     }
 
-    pub fn red_turn_end(&self) -> &EndTurnConsequences {
-        &self.red_turn_end
+    pub fn second_assailant_turn_end(&self) -> &EndTurnConsequences {
+        &self.second_assailant_turn_end
     }
 
     // server only
     pub fn new(
-        blue_corner: &mut dyn Assailant,
-        // blue_corner_inventory: &mut Inventory,
-        red_corner: &mut dyn Assailant,
-        // red_corner_inventory: &mut Inventory,
+        first_assailant: &mut dyn Assailant,
+        second_assailant: &mut dyn Assailant,
     ) -> Self {
-        let blue_assault = AssaultSummary::new(blue_corner, red_corner);
+        let blue_assault = AssaultSummary::new(first_assailant, second_assailant);
         blue_assault.consequences().apply(
-            blue_corner,
-            // blue_corner_inventory,
-            red_corner,
-            // red_corner_inventory,
+            first_assailant,
+            second_assailant,
         );
-        let red_assault = AssaultSummary::new(red_corner, blue_corner);
+        let red_assault = AssaultSummary::new(second_assailant, first_assailant);
         red_assault.consequences().apply(
-            red_corner,
-            // red_corner_inventory,
-            blue_corner,
-            // blue_corner_inventory,
+            second_assailant,
+            first_assailant,
         );
         Self {
-            blue_corner_uuid: blue_corner.uuid().clone(),
-            red_corner_uuid: red_corner.uuid().clone(),
+            first_assailant_uuid: first_assailant.uuid().clone(),
+            second_assailant_uuid: second_assailant.uuid().clone(),
             assaults: [blue_assault, red_assault],
-            blue_turn_end: blue_corner.end_turn(),
-            red_turn_end: red_corner.end_turn(),
+            first_assailant_turn_end: first_assailant.end_turn(),
+            second_assailant_turn_end: second_assailant.end_turn(),
         }
     }
 }

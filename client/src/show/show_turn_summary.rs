@@ -55,17 +55,17 @@ impl ShowTurnSummary for TurnSummary {
             victim,
         );
 
-        let blue_turn_end_str = show_end_turn(self.blue_turn_end(), blue_corner);
-        if !blue_turn_end_str.is_empty() {
-            str = format!("{}\n{}", str, blue_turn_end_str);
+        let first_assailant_turn_end_str = show_end_turn(self.first_assailant_turn_end(), blue_corner);
+        if !first_assailant_turn_end_str.is_empty() {
+            str = format!("{}\n{}", str, first_assailant_turn_end_str);
         }
-        blue_corner.take_damage(self.blue_turn_end().duration_damages());
+        blue_corner.take_damage(self.first_assailant_turn_end().duration_damages());
 
-        let red_turn_end_str = show_end_turn(self.red_turn_end(), red_corner);
-        if !red_turn_end_str.is_empty() {
-            str = format!("{}\n{}", str, red_turn_end_str);
+        let second_assailant_turn_end_str = show_end_turn(self.second_assailant_turn_end(), red_corner);
+        if !second_assailant_turn_end_str.is_empty() {
+            str = format!("{}\n{}", str, second_assailant_turn_end_str);
         }
-        red_corner.take_damage(self.red_turn_end().duration_damages());
+        red_corner.take_damage(self.second_assailant_turn_end().duration_damages());
 
         str += "\n\n";
         str += display_fighters(blue_corner, red_corner).as_str();
