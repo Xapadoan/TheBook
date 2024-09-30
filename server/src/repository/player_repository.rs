@@ -9,6 +9,7 @@ use uuid::Uuid;
 
 use crate::repository::main::{Repository, RepositoryError};
 use crate::repository::file_repository::FileRepository;
+use crate::warrior::{WarriorManager, WarriorManagerError};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct PlayerDTOFile {
@@ -66,6 +67,8 @@ impl<'a, T: Repository<Warrior>> PlayerBuilder for PlayerBuilderFromRepo<'a, T> 
         Ok(())
     }
     fn build_warriors(&mut self) -> Result<(), PlayerBuildError> {
+        let warrior_manager = WarriorManager::build()?;
+        warrior_manager.apply_passive_healing(&self.dto.warrior_ids)?;
         for warrior_uuid in &self.dto.warrior_ids {
             let warrior: Warrior = self.warriors_repo.get_by_uuid(&warrior_uuid)?;
             self.warriors.push(warrior);
@@ -150,5 +153,11 @@ impl From<PlayerBuildError> for RepositoryError {
 impl From<RepositoryError> for PlayerBuildError {
     fn from(value: RepositoryError) -> Self {
         Self::new(format!("RepositoryError:\n{}", value))
+    }
+}
+
+impl From<WarriorManagerError> for PlayerBuildError {
+    fn from(value: WarriorManagerError) -> Self {
+        Self::new(format!("Warrior Manager Error:\n{}", value))
     }
 }
