@@ -16,7 +16,7 @@ impl ShowReplay for AttackClumsiness {
         consequences: &AssaultConsequences,
     ) -> String {
         match self.kind() {
-            Clumsiness::RegularFail => String::from(""),
+            Clumsiness::RegularFail => format!("{} misses and almost losses balance", assailant.show_self()),
             Clumsiness::Fall => format!("{} mixes his feet, trips and fall down", assailant.show_self()),
             Clumsiness::DropWeapon => format!(
                 "{}'s {} hits {}'s {} and slips from his hands.",
