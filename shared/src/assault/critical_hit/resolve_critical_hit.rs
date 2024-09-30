@@ -46,8 +46,8 @@ pub trait ResolveCriticalHit:
             CriticalHit::SeveredLeg => self.resolve_sever_random_leg(damages),
             CriticalHit::WoundedGenitals => self.resolve_wound_genitals(damages),
             CriticalHit::VitalOrganDamage => self.resolve_duration_damage(damages + 9),
-            CriticalHit::HeartInjury => self.resolve_death(),
-            CriticalHit::SeriousHeadWound => self.resolve_death(),
+            CriticalHit::HeartInjury => self.resolve_lethal_injury(&BodyPartKind::Torso),
+            CriticalHit::SeriousHeadWound => self.resolve_lethal_injury(&BodyPartKind::Head),
             CriticalHit::ImpressiveBruise => self.resolve_raw_damages(damages + 1),
             CriticalHit::ImpressiveBruiseAndLimbDislocation => self.resolve_raw_damages(damages + 2),
             CriticalHit::RibFacture => self.resolve_raw_damages(damages + 2),
@@ -58,8 +58,8 @@ pub trait ResolveCriticalHit:
             CriticalHit::BrokenLeg => self.resolve_break_random_leg(damages),
             CriticalHit::CrushedGenitals => self.resolve_crush_genitals(damages),
             CriticalHit::KnockedOut => self.resolve_knock_out(damages),
-            CriticalHit::OpenSkullFacture => self.resolve_death(),
-            CriticalHit::VitalOrganCrushed => self.resolve_death(),
+            CriticalHit::OpenSkullFacture => self.resolve_lethal_injury(&BodyPartKind::Head),
+            CriticalHit::VitalOrganCrushed => self.resolve_lethal_injury(&BodyPartKind::Torso),
         }
     }
     fn resolve_damage_random_armor_piece(&self, damages: u8, rupture_damages: u8) -> IndividualConsequences {
@@ -288,11 +288,29 @@ pub trait ResolveCriticalHit:
     fn resolve_duration_damage(&self, damages: u8) -> IndividualConsequences {
         IndividualConsequences::damage_on_duration(damages, DurationDamages::new())
     }
-    fn resolve_death(&self) -> IndividualConsequences {
-        IndividualConsequences::only_raw_damages(u8::MAX)
-    }
     fn resolve_knock_out(&self, damages: u8) -> IndividualConsequences {
         IndividualConsequences::knock_out(damages)
+    }
+    fn resolve_lethal_injury(&self, body_part_kind: &BodyPartKind) -> IndividualConsequences {
+        match self.body().body_part(body_part_kind) {
+            None => {
+                eprintln!("[WARN] Lethal injury happened on {:?}", body_part_kind);
+                IndividualConsequences::no_consequences()
+            },
+            Some(body_part) => match body_part.protection() {
+                None => IndividualConsequences::only_damages(u8::MAX),
+                Some(protection) => match protection.rupture_test() {
+                    RuptureTestResult::Fail => IndividualConsequences::damage_armor(
+                        u8::MAX,
+                        ArmorDamages::new(u8::MAX, body_part_kind.clone()),
+                    ),
+                    RuptureTestResult::Success => IndividualConsequences::damage_armor(
+                        0,
+                        ArmorDamages::new(u8::MAX, body_part_kind.clone()),
+                    ),
+                }
+            }
+        }
     }
 }
 
