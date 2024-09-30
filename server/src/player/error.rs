@@ -5,6 +5,7 @@ use crate::auth::SessionManagerError;
 use crate::repository::RepositoryError;
 use crate::shop::ShopManagerError;
 use crate::tournament::manager::TournamentManagerError;
+use crate::warrior::WarriorManagerError;
 
 #[derive(Debug)]
 pub struct PlayerAPIError {
@@ -46,5 +47,11 @@ impl From<TournamentManagerError> for PlayerAPIError {
 impl From<ShopManagerError> for PlayerAPIError {
     fn from(value: ShopManagerError) -> Self {
         Self::new(&format!("Shop Manager Error:\n{value}"))
+    }
+}
+
+impl From<WarriorManagerError> for PlayerAPIError {
+    fn from(value: WarriorManagerError) -> Self {
+        Self::new(&format!("Warrior Manager Error:\n{value}"))
     }
 }

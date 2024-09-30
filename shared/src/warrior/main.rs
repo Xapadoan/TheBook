@@ -16,13 +16,14 @@ use crate::assault::parry_attempt::{ParryAttempt, ParryThreshold};
 use crate::assault::parry_clumsiness::ResolveParryClumsiness;
 use crate::assault::parry_success::ResolveParrySuccess;
 use crate::assault::end_turn_consequences::EndTurnConsequencesBuilder;
+use crate::dice::Dice;
 use crate::equipment::weapon::{OptionalMutableWeapon, Weapon};
-use crate::experience::{Experience, GainExperience};
+use crate::experience::{Experience, ExperienceError, ExperienceErrorKind, GainExperience};
 use crate::health::{Health, IsDead, IsUnconscious, MutableHealth, MutablePassiveHealing, PassiveHealing};
 use crate::knock_out::KnockOut;
 use crate::name::Name;
 use crate::random::{Random, RandomDictionary};
-use crate::stats::{StatModifier, Stats, StatsManager};
+use crate::stats::{Stat, StatModifier, Stats, StatsManager};
 use crate::tournament::contestant::TournamentContestant;
 use crate::unique_entity::UniqueEntity;
 
@@ -42,6 +43,7 @@ pub struct Warrior {
     is_unconscious: bool,
     last_passive_heal: i64,
     experience: u64,
+    level: u8,
 }
 
 impl UniqueEntity for Warrior {
@@ -79,6 +81,7 @@ impl Random for Warrior {
             is_unconscious: false,
             last_passive_heal: Utc::now().timestamp(),
             experience: 0,
+            level: 1,
         }
     }
 }
@@ -199,10 +202,39 @@ impl Experience for Warrior {
     fn xp(&self) -> u64 {
         self.experience
     }
+    fn level(&self) -> u8 {
+        self.level
+    }
 }
 impl GainExperience for Warrior {
     fn gain_xp(&mut self, xp: u64) {
         self.experience += xp;
+    }
+    fn level_up(&mut self, stat: &Stat) -> Result<(), ExperienceError> {
+        let stat_is_incrementable = if (self.level + 1) % 2 == 0 {
+            match stat {
+                Stat::Courage(_) | Stat::Dexterity(_) | Stat::Strength(_) => true,
+                _ => false,
+            }
+        } else {
+            match stat {
+                Stat::Attack(_) | Stat::Parry(_) => true,
+                _ => false,
+            }
+        };
+        if !stat_is_incrementable {
+            return Err(ExperienceError::new(
+                &ExperienceErrorKind::InvalidStatIncrement(self.level + 1, stat.clone()),
+            ));
+        }
+        let health_gain = Dice::D6.roll();
+        let current = self.health.current();
+        let max = self.health.max();
+        self.health.set_max(max + health_gain);
+        self.health.set(current + health_gain);
+        self.stats.increment_nat_stat(stat);
+        self.level += 1;
+        Ok(())
     }
 }
 

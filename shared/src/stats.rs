@@ -119,6 +119,16 @@ impl StatsManager {
         }
         cou
     }
+
+    pub fn increment_nat_stat(&mut self, stat: &Stat) {
+        match stat {
+            &Stat::Attack(_) => self.nat_attack = self.nat_attack.modify(1),
+            &Stat::Parry(_) => self.nat_parry = self.nat_parry.modify(1),
+            &Stat::Courage(_) => self.nat_courage = self.nat_courage.modify(1),
+            &Stat::Dexterity(_) => self.nat_dexterity = self.nat_dexterity.modify(1),
+            &Stat::Strength(_) => self.nat_strength = self.nat_strength.modify(1),
+        }
+    }
 }
 
 impl Random for StatsManager {

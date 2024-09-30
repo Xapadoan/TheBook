@@ -4,9 +4,11 @@ use server::api;
 use shared::auth::Session;
 use shared::equipment::protection::{CanWearProtection, OptionalMutableProtection, Protection};
 use shared::equipment::weapon::Weapon;
+use shared::experience::{Experience, GainExperience};
 use shared::inventory::{HasInventory, Item};
 use shared::name::Name;
 use shared::player::Player;
+use shared::stats::Stat;
 use shared::tournament::contestant::TournamentContestant;
 use shared::unique_entity::UniqueEntity;
 use shared::warrior::body::body_part::{BodyPart, OptionalBodyPart, PROTECTABLE_BODY_PARTS};
@@ -22,6 +24,7 @@ use super::ViewError;
 enum WarriorManagementChoice {
     ReplaceWeapon,
     EquipProtection,
+    LevelUp,
 }
 
 const CHOICES: [&'static WarriorManagementChoice; 2] = [
@@ -34,6 +37,7 @@ impl fmt::Display for WarriorManagementChoice {
         match self {
             WarriorManagementChoice::ReplaceWeapon => write!(f, "Replace weapon"),
             WarriorManagementChoice::EquipProtection => write!(f, "Equip protection"),
+            WarriorManagementChoice::LevelUp => write!(f, "Level Up"),
         }
     }
 }
@@ -52,10 +56,14 @@ pub fn warriors_view(session: &Session) -> Result<(), ViewError> {
         )? {
             None => { return Ok(()) },
             Some(warrior) => {
+                let mut choices = CHOICES.to_vec();
+                if warrior.can_level_up() {
+                    choices.push(&WarriorManagementChoice::LevelUp);
+                }
                 'action_selection: loop {
                     match select_with_keys(
                         &format!("What do you want to do to {}", warrior.name()),
-                        &CHOICES,
+                        &choices,
                         |option| { format!("{option}") }
                     )? {
                         None => { break 'action_selection; },
@@ -63,6 +71,7 @@ pub fn warriors_view(session: &Session) -> Result<(), ViewError> {
                             match choice {
                                 WarriorManagementChoice::ReplaceWeapon => replace_weapon_view(&player, warrior)?,
                                 WarriorManagementChoice::EquipProtection => equip_protection_view(&player, warrior)?,
+                                WarriorManagementChoice::LevelUp => level_up_view(&player, warrior)?,
                             }
                         },
                     }
@@ -150,6 +159,38 @@ fn equip_protection_view(player: &Player, warrior: &Warrior) -> Result<(), ViewE
         warrior.uuid(),
         body_part.kind(),
         &inventory_slot_uuid,
+    )?;
+    Ok(())
+}
+
+fn level_up_view(player: &Player, warrior: &Warrior) -> Result<(), ViewError> {
+    let sheet = CharacterSheet::new(warrior);
+    let possible_stats = if (warrior.level() + 1) % 2 == 0 {
+        [&Stat::Courage(0), &Stat::Dexterity(0), &Stat::Strength(0)].to_vec()
+    } else {
+        [&Stat::Attack(0), &Stat::Parry(0)].to_vec()
+    };
+    let prompt_str = format!("{}\nWhat stat do you want to update ?", sheet.show_self());
+    let stat_to_increment = match select_with_keys(
+        &prompt_str,
+        &possible_stats,
+        |stat| {
+            match stat {
+                &Stat::Attack(_) => "Attack".to_string(),
+                &Stat::Parry(_) => "Parry".to_string(),
+                &Stat::Courage(_) => "Courage".to_string(),
+                &Stat::Dexterity(_) => "Dexterity".to_string(),
+                &Stat::Strength(_) => "Strength".to_string(),
+            }
+        }
+    )? {
+        Some(stat) => stat,
+        None => return Ok(()),
+    };
+    api::players::warriors::level_up(
+        player.uuid(),
+        warrior.uuid(),
+        stat_to_increment,
     )?;
     Ok(())
 }

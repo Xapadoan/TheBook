@@ -17,6 +17,7 @@ pub struct CharacterSheet<'a> {
     stats: &'a StatsManager,
     weapon: &'a Option<Weapon>,
     experience: u64,
+    level: u8,
 }
 
 impl<'a> CharacterSheet<'a> {
@@ -28,25 +29,34 @@ impl<'a> CharacterSheet<'a> {
             stats: warrior.stats(),
             weapon: warrior.weapon(),
             experience: warrior.xp(),
+            level: warrior.level(),
         }
     }
 }
 
 impl<'a> ShowSelf for CharacterSheet<'a> {
     fn show_self(&self) -> String {
+        let mut stat_modifiers: Vec<Box<&dyn StatModifier>> = vec![Box::new(self.body)];
         let weapon_str = if let Some(weapon) = self.weapon {
+            stat_modifiers.push(Box::new(weapon));
             weapon.show_self()
         } else {
             String::from("None")
         };
         format!(
-            "{}\n{}/{}\nAT: {} PRD: {}\n{}\nLevel: {} ({}xp)",
+            "{}\nHP: {}/{}\nWeapon: {}\nAT: {}\tPRD: {}\nCOU: {} ({})\tDEX: {} ({})\tSTR: {} ({})\nLevel: {} ({}xp)",
             self.name,
             self.health.current(),
             self.health.max(),
+            weapon_str,
             self.attack_threshold(),
             self.parry_threshold(),
-            weapon_str,
+            self.stats.courage(&[]).value(),
+            self.stats.courage(&stat_modifiers).value(),
+            self.stats.dexterity(&[]).value(),
+            self.stats.dexterity(&stat_modifiers).value(),
+            self.stats.strength(&[]).value(),
+            self.stats.strength(&stat_modifiers).value(),
             self.level(),
             self.xp(),
         )
@@ -76,5 +86,8 @@ impl<'a> ParryThreshold for CharacterSheet<'a> {
 impl<'a> Experience for CharacterSheet<'a> {
     fn xp(&self) -> u64 {
         self.experience
+    }
+    fn level(&self) -> u8 {
+        self.level
     }
 }

@@ -26,6 +26,13 @@ impl Health {
             self.current = new_value;
         }
     }
+
+    pub fn set_max(&mut self, new_value: u8) {
+        self.max = new_value;
+        if self.current > self.max {
+            self.current = self.max;
+        }
+    }
 }
 
 pub trait MutableHealth {
