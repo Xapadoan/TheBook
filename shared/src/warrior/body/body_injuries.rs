@@ -174,13 +174,13 @@ impl Injuries for Body {
                 &BodyPartKind::Arm(BodySide::Left),
                 &mut severed_parts,
             ),
-            Injury::LeftElbowDislocated => { eprintln!("[WARN] {:?} have no corresponding BodyPartKind", self) },
+            Injury::LeftElbowDislocated => { eprintln!("[WARN] {:?} have no corresponding BodyPartKind", injury) },
             Injury::LeftHandBroken => self.break_part(&BodyPartKind::Hand(BodySide::Left)),
             Injury::LeftHandSevered => self.remove_part(
                 &BodyPartKind::Hand(BodySide::Left),
                 &mut severed_parts,
             ),
-            Injury::LeftShoulderDislocated => { eprintln!("[WARN] {:?} have no corresponding BodyPartKind", self)},
+            Injury::LeftShoulderDislocated => { eprintln!("[WARN] {:?} have no corresponding BodyPartKind", injury)},
             Injury::OneEyeGouged(side) => self.remove_part(
                 &BodyPartKind::Eye(side.clone()),
                 &mut severed_parts,
@@ -195,14 +195,14 @@ impl Injuries for Body {
                 &BodyPartKind::Arm(BodySide::Right),
                 &mut severed_parts,
             ),
-            Injury::RightElbowDislocated => { eprintln!("[WARN] {:?} have no corresponding BodyPartKind", self) },
+            Injury::RightElbowDislocated => { eprintln!("[WARN] {:?} have no corresponding BodyPartKind", injury) },
             Injury::RightHandBroken => self.break_part(&BodyPartKind::Hand(BodySide::Right)),
             Injury::RightHandSevered => self.remove_part(
                 &BodyPartKind::Hand(BodySide::Right),
                 &mut severed_parts,
             ),
-            Injury::RightShoulderDislocated => { eprintln!("[WARN] {:?} have no corresponding BodyPartKind", self)},
-            _ => { eprintln!("[WARN] {:?} should not be passed to add_injury", self) },
+            Injury::RightShoulderDislocated => { eprintln!("[WARN] {:?} have no corresponding BodyPartKind", injury)},
+            _ => { eprintln!("[WARN] {:?} should not be passed to add_injury", injury) },
         }
         severed_parts
     }
