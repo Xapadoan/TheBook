@@ -6,7 +6,7 @@ use crate::assault::assault_consequence::{ArmorDamages, IndividualConsequences};
 use crate::assault::duration_damages::DurationDamages;
 use crate::assault::common_traits::{DealDamages, ResolveGougeRandomEye};
 use crate::equipment::protection::OptionalMutableProtection;
-use crate::equipment::rupture::{Rupture, RuptureTestResult};
+use crate::equipment::rupture::{Rupture, RuptureTestResult, RUPTURE_MAX};
 use crate::random::Random;
 use crate::warrior::body::body_part::{BodyPartKind, BodySide, OptionalBodyPart, PROTECTABLE_BODY_PARTS};
 use crate::warrior::body::injury::Injury;
@@ -106,7 +106,11 @@ pub trait ResolveCriticalHit:
                             total_damages,
                             ArmorDamages::new(1, body_part.kind().clone()),
                         ),
-                        RuptureTestResult::Fail => IndividualConsequences::injures(total_damages, injury)
+                        RuptureTestResult::Fail => IndividualConsequences::injures_and_damages_armor(
+                            total_damages,
+                            injury,
+                            ArmorDamages::new(RUPTURE_MAX, body_part.kind().clone()),
+                        ),
                     }
                 }
             }
@@ -129,7 +133,11 @@ pub trait ResolveCriticalHit:
                             total_damages,
                             ArmorDamages::new(1, body_part.kind().clone())
                         ),
-                        RuptureTestResult::Fail => IndividualConsequences::injures(total_damages, injury)
+                        RuptureTestResult::Fail => IndividualConsequences::injures_and_damages_armor(
+                            total_damages,
+                            injury,
+                            ArmorDamages::new(RUPTURE_MAX, body_part.kind().clone())
+                        ),
                     }
                 }
             }
@@ -152,7 +160,11 @@ pub trait ResolveCriticalHit:
                             total_damages,
                             ArmorDamages::new(1, body_part.kind().clone()),
                         ),
-                        RuptureTestResult::Fail => IndividualConsequences::injures(total_damages, injury)
+                        RuptureTestResult::Fail => IndividualConsequences::injures_and_damages_armor(
+                            total_damages,
+                            injury,
+                            ArmorDamages::new(RUPTURE_MAX, body_part.kind().clone()),
+                        ),
                     }
                 }
             }
@@ -172,7 +184,11 @@ pub trait ResolveCriticalHit:
                             total_damages,
                             ArmorDamages::new(1, body_part.kind().clone()),
                         ),
-                        RuptureTestResult::Fail => IndividualConsequences::injures(total_damages, injury)
+                        RuptureTestResult::Fail => IndividualConsequences::injures_and_damages_armor(
+                            total_damages,
+                            injury,
+                            ArmorDamages::new(RUPTURE_MAX, body_part.kind().clone()),
+                        ),
                     }
                 }
             }

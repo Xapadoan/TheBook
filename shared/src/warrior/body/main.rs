@@ -67,7 +67,7 @@ impl Body {
             right_foot: Some(BodyPart::new(BodyPartKind::Foot(BodySide::Right))),
             left_knee: Some(BodyPart::new(BodyPartKind::Knee(BodySide::Left))),
             right_knee: Some(BodyPart::new(BodyPartKind::Knee(BodySide::Right))),
-            left_leg: Some(BodyPart::new(BodyPartKind::Arm(BodySide::Left))),
+            left_leg: Some(BodyPart::new(BodyPartKind::Leg(BodySide::Left))),
             right_leg: Some(BodyPart::new(BodyPartKind::Leg(BodySide::Right))),
             genitals: Some(BodyPart::new(BodyPartKind::Genitals)),
             left_thumb: Some(BodyPart::new(BodyPartKind::Finger(BodySide::Left, FingerName::Thumb))),

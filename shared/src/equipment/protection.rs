@@ -49,7 +49,7 @@ impl Protection {
                 kind,
                 amount: 0,
                 rupture: Some(5),
-                dexterity_mod: -1,
+                dexterity_mod: 0,
                 courage_mod: 0,
                 name: "Shabby leather boots".to_string(),
             },
