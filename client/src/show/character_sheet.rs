@@ -4,7 +4,7 @@ use shared::equipment::weapon::{OptionalMutableWeapon, Weapon};
 use shared::experience::Experience;
 use shared::health::{Health, MutableHealth};
 use shared::name::Name;
-use shared::stats::{StatModifier, Stats, StatsManager};
+use shared::stats::{Stat, StatModifier, Stats, StatsManager};
 use shared::warrior::body::{Body, HasBody};
 use shared::warrior::Warrior;
 
@@ -51,12 +51,13 @@ impl<'a> ShowSelf for CharacterSheet<'a> {
             weapon_str,
             self.attack_threshold(),
             self.parry_threshold(),
-            self.stats.courage(&[]).value(),
-            self.stats.courage(&stat_modifiers).value(),
-            self.stats.dexterity(&[]).value(),
-            self.stats.dexterity(&stat_modifiers).value(),
-            self.stats.strength(&[]).value(),
-            self.stats.strength(&stat_modifiers).value(),
+            self.stats.stat(&[], &Stat::Courage(0)).value(),
+            self.stats.stat(&stat_modifiers, &Stat::Courage(0)).value(),
+            self.stats.stat(&[], &Stat::Dexterity(0)).value(),
+            self.stats.stat(&stat_modifiers, &Stat::Dexterity(0)).value(),
+            self.stats.stat(&[], &Stat::Strength(0)).value(),
+            self.stats.stat(&stat_modifiers, &Stat::Strength(0)).value(),
+        ).as_str();
             self.level(),
             self.xp(),
         )
@@ -69,7 +70,7 @@ impl<'a> AttackThreshold for CharacterSheet<'a> {
         if let Some(weapon) = self.weapon {
             modifiers.push(Box::new(weapon));
         }
-        self.stats.attack(&modifiers).value()
+        self.stats.stat(&modifiers, &Stat::Attack(0)).value()
     }
 }
 
@@ -79,7 +80,7 @@ impl<'a> ParryThreshold for CharacterSheet<'a> {
         if let Some(weapon) = self.weapon {
             modifiers.push(Box::new(weapon));
         }
-        self.stats.parry(&modifiers).value()
+        self.stats.stat(&modifiers, &Stat::Parry(0)).value()
     }
 }
 

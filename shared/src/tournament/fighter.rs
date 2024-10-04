@@ -24,7 +24,7 @@ use crate::health::{Health, IsDead, IsUnconscious, MutableHealth};
 use crate::inventory::{HasInventory, HasMutableInventory, Inventory};
 use crate::knock_out::KnockOut;
 use crate::name::Name;
-use crate::stats::{StatModifier, Stats, StatsManager};
+use crate::stats::{Stat, StatModifier, Stats, StatsManager};
 use crate::temporary_handicap::{OptionalAssaultMisses, OptionalMutableAssaultMisses, OptionalMutableParryMisses, OptionalParryMisses, TemporaryHandicap};
 use crate::unique_entity::UniqueEntity;
 use crate::warrior::body::{Body, HasBody, HasMutableBody};
@@ -99,7 +99,7 @@ impl AssaultOrderComparable for Fighter {
         if let Some(weapon) = &self.weapon {
             modifiers.push(Box::new(weapon))
         }
-        self.stats.courage(&modifiers).value()
+        self.stats.stat(&modifiers, &Stat::Courage(0)).value()
     }
 }
 
@@ -131,7 +131,7 @@ impl AttackThreshold for Fighter {
         if let Some(weapon) = self.weapon() {
             modifiers.push(Box::new(weapon));
         }
-        self.stats.attack(&modifiers).value()
+        self.stats.stat(&modifiers, &Stat::Attack(0)).value()
     }
 }
 impl ParryThreshold for Fighter {
@@ -140,7 +140,7 @@ impl ParryThreshold for Fighter {
         if let Some(weapon) = self.weapon() {
             modifiers.push(Box::new(weapon));
         }
-        self.stats.parry(&modifiers).value()
+        self.stats.stat(&modifiers, &Stat::Parry(0)).value()
     }
 }
 impl ReduceDamages for Fighter {
@@ -152,7 +152,10 @@ impl DealDamages for Fighter {
     fn deal_damages(&self) -> u8 {
         if let Some(weapon) = self.weapon() {
             let mut damages = weapon.deal_damages();
-            let str = self.stats.strength(&[Box::new(weapon), Box::new(&self.body)]);
+            let str = self.stats.stat(
+                &[Box::new(weapon), Box::new(&self.body)],
+                &Stat::Strength(0),
+            );
             if str.value() < 8 {
                 damages -= 1;
             }

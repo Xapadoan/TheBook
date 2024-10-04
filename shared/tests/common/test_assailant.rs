@@ -23,7 +23,7 @@ use shared::equipment::weapon::{OptionalMutableWeapon, Weapon};
 use shared::health::{Health, IsDead, IsUnconscious, MutableHealth};
 use shared::knock_out::KnockOut;
 use shared::name::Name;
-use shared::stats::{StatModifier, Stats, StatsManager};
+use shared::stats::{Stat, StatModifier, Stats, StatsManager};
 use shared::temporary_handicap::{
     OptionalAssaultMisses,
     OptionalMutableAssaultMisses,
@@ -191,7 +191,7 @@ impl AttackThreshold for TestAssailant {
         if let Some(weapon) = self.weapon() {
             modifiers.push(Box::new(weapon));
         }
-        self.stats.attack(&modifiers).value()
+        self.stats.stat(&modifiers, &Stat::Attack(0)).value()
     }
 }
 
@@ -201,7 +201,7 @@ impl ParryThreshold for TestAssailant {
         if let Some(weapon) = self.weapon() {
             modifiers.push(Box::new(weapon));
         }
-        self.stats.parry(&modifiers).value()
+        self.stats.stat(&modifiers, &Stat::Parry(0)).value()
     }
 }
 
@@ -217,7 +217,7 @@ impl AssaultOrderComparable for TestAssailant {
         if let Some(weapon) = &self.weapon {
             modifiers.push(Box::new(weapon))
         }
-        self.stats.courage(&modifiers).value()
+        self.stats.stat(&modifiers, &Stat::Courage(0)).value()
     }
 }
 impl HasInventory for TestAssailant {
