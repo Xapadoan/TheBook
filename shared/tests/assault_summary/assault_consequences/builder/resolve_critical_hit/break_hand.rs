@@ -1,5 +1,4 @@
 use shared::assault::critical_hit::{CriticalHit, ResolveCriticalHit};
-use shared::health::MutableHealth;
 use shared::warrior::body::injury::Injuries;
 use shared::warrior::body::HasBody;
 
@@ -13,14 +12,4 @@ fn break_hand_on_intact_body() {
 
     let consequences = victim.resolve_critical_hit(0, &critical_hit);
     assert!(consequences.injury().is_some(), "No injury")
-}
-
-#[test]
-fn impressive_bruise() {
-    let critical_hit = CriticalHit::ImpressiveBruise;
-    let victim = TestAssailant::new();
-    assert_eq!(victim.health().current(), victim.health().max());
-
-    let consequences = victim.resolve_critical_hit(0, &critical_hit);
-    assert_ne!(consequences.raw_damages(), 0);
 }
