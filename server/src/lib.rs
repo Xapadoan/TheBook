@@ -22,6 +22,8 @@ mod player {
         mod replace_protection;
         mod level_up;
         pub use level_up::level_up;
+        mod read;
+        pub use read::read;
     }
     mod error;
     pub use error::PlayerAPIError;
@@ -126,6 +128,7 @@ pub mod api {
                 remove_warrior as remove,
                 equip_protection,
                 level_up,
+                read,
             };
         }
         pub mod shop {

@@ -49,36 +49,35 @@ pub fn warriors_view(session: &Session) -> Result<(), ViewError> {
             .iter()
             .filter(|w| w.current_tournament().is_none())
             .collect();
-        match select_with_arrows(
+        let warrior_uuid = match select_with_arrows(
             "Select a warrior to manage:",
             &warriors,
             |warrior| { CharacterSheet::new(warrior).show_self_extended() },
         )? {
-            None => { return Ok(()) },
-            Some(warrior) => {
-                let mut choices = CHOICES.to_vec();
-                if warrior.can_level_up() {
-                    choices.push(&WarriorManagementChoice::LevelUp);
-                }
-                'action_selection: loop {
-                    match select_with_keys(
-                        &format!("What do you want to do to {}", warrior.name()),
-                        &choices,
-                        |option| { format!("{option}") }
-                    )? {
-                        None => { break 'action_selection; },
-                        Some(choice) => {
-                            match choice {
-                                WarriorManagementChoice::ReplaceWeapon => replace_weapon_view(&player, warrior)?,
-                                WarriorManagementChoice::EquipProtection => equip_protection_view(&player, warrior)?,
-                                WarriorManagementChoice::LevelUp => level_up_view(&player, warrior)?,
-                            }
-                        },
+            None => return Ok(()),
+            Some(warrior) => warrior.uuid(),
+        };
+        'action_selection: loop {
+            let warrior = api::players::warriors::read(player.uuid(), warrior_uuid)?;
+            let mut choices = CHOICES.to_vec();
+            if warrior.can_level_up() {
+                choices.push(&WarriorManagementChoice::LevelUp);
+            }
+            match select_with_keys(
+                &format!("What do you want to do to {}", warrior.name()),
+                &choices,
+                |option| { format!("{option}") }
+            )? {
+                None => { break 'action_selection; },
+                Some(choice) => {
+                    match choice {
+                        WarriorManagementChoice::ReplaceWeapon => replace_weapon_view(&player, &warrior)?,
+                        WarriorManagementChoice::EquipProtection => equip_protection_view(&player, &warrior)?,
+                        WarriorManagementChoice::LevelUp => level_up_view(&player, &warrior)?,
                     }
-                }
+                },
             }
         }
-
     }
 }
 
