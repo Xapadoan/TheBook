@@ -56,6 +56,15 @@ pub trait StatModifier {
             Stat::Courage(_) => base.modify(self.courage_mod()),
         }
     }
+    fn value(&self, stat: &Stat) -> i8 {
+        match stat {
+            Stat::Attack(_) => self.attack_mod(),
+            Stat::Parry(_) => self.parry_mod(),
+            Stat::Courage(_) => self.courage_mod(),
+            Stat::Dexterity(_) => self.dexterity_mod(),
+            Stat::Strength(_) => self.strength_mod(),
+        }
+    }
 }
 
 pub trait Stats {
@@ -72,52 +81,34 @@ pub struct StatsManager {
 }
 
 impl StatsManager {
-    pub fn attack(&self, modifiers: &[Box<&dyn StatModifier>]) -> Stat {
-        let mut attack = self.nat_attack.clone();
-        let mut dexterity = self.nat_dexterity.clone();
-        for modifier in modifiers {
-            attack = modifier.modify_stat(attack);
-            dexterity = modifier.modify_stat(dexterity);
-        }
-        if dexterity.value() < 9 {
-            attack.modify(-1)
-        } else if dexterity.value() > 12 {
-            attack.modify(dexterity.value() as i8 - 12)
-        }else {
-            attack
+    pub fn nat_stat(&self, stat: &Stat) -> &Stat {
+        match stat {
+            Stat::Attack(_) => &self.nat_attack,
+            Stat::Parry(_) => &self.nat_parry,
+            Stat::Courage(_) => &self.nat_courage,
+            Stat::Dexterity(_) => &self.nat_dexterity,
+            Stat::Strength(_) => &self.nat_strength,
         }
     }
 
-    pub fn parry(&self, modifiers: &[Box<&dyn StatModifier>]) -> Stat {
-        let mut parry = self.nat_parry.clone();
+    pub fn stat(&self, modifiers: &[Box<&dyn StatModifier>], stat: &Stat) -> Stat {
+        let mut real = self.nat_stat(stat).clone();
         for modifier in modifiers {
-            parry = modifier.modify_stat(parry);
+            real = real.modify(modifier.value(stat));
         }
-        parry
-    }
+        match stat {
+            Stat::Attack(_) => {
+                let dexterity = self.stat(modifiers, &Stat::Dexterity(0)).value();
+                if dexterity > 12 {
+                    real = real.modify(dexterity as i8 - 12);
+                } else if dexterity < 9 {
+                    real = real.modify(-1);
+                }
+            },
+            _ => {},
+        }
 
-    pub fn strength(&self, modifiers: &[Box<&dyn StatModifier>]) -> Stat {
-        let mut str = self.nat_strength.clone();
-        for modifier in modifiers {
-            str = modifier.modify_stat(str);
-        }
-        str
-    }
-
-    pub fn dexterity(&self, modifiers: &[Box<&dyn StatModifier>]) -> Stat {
-        let mut dex = self.nat_dexterity.clone();
-        for modifier in modifiers {
-            dex = modifier.modify_stat(dex);
-        }
-        dex
-    }
-
-    pub fn courage(&self, modifiers: &[Box<&dyn StatModifier>]) -> Stat {
-        let mut cou = self.nat_courage.clone();
-        for modifier in modifiers {
-            cou = modifier.modify_stat(cou);
-        }
-        cou
+        real
     }
 
     pub fn increment_nat_stat(&mut self, stat: &Stat) {

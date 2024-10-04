@@ -136,11 +136,35 @@ impl IndividualConsequences {
         }
     }
 
-    pub fn injures(raw_damages: u8, injury: Injury) -> Self {
+    pub fn injures(
+        raw_damages: u8,
+        injury: Injury,
+    ) -> Self {
         Self {
             damages: 0,
             raw_damages,
             armor_damages: None,
+            injury: Some(injury),
+            duration_damages: None,
+            knock_out: false,
+            assault_misses: None,
+            parry_misses: None,
+            drop_weapon: false,
+            weapon_damages: None,
+            counter_critical_hit: None,
+            self_critical_hit: None,
+        }
+    }
+
+    pub fn injures_and_damages_armor(
+        raw_damages: u8,
+        injury: Injury,
+        armor_damages: ArmorDamages,
+    ) -> Self {
+        Self {
+            damages: 0,
+            raw_damages,
+            armor_damages: Some(armor_damages),
             injury: Some(injury),
             duration_damages: None,
             knock_out: false,
@@ -263,11 +287,21 @@ impl IndividualConsequences {
         }
         if let Some(injury) = &self.injury {
             match &injury {
-                Injury::RightArmSevered => {
+                Injury::RightArmSevered |
+                Injury::RightHandSevered => {
                     if let Some(weapon) = victim.weapon_mut().take() {
                         victim.inventory_mut().add_item(Item::Weapon(weapon));
                     }
                 },
+                Injury::LeftArmSevered |
+                Injury::LeftHandSevered => {
+                    if let Some(weapon) = victim.weapon() {
+                        if weapon.is_two_handed() {
+                            let lost_weapon = victim.weapon_mut().take().unwrap();
+                            victim.inventory_mut().add_item(Item::Weapon(lost_weapon));
+                        }
+                    }
+                }
                 _ => {},
             }
             let severed_parts = victim.body_mut().add_injury(injury.clone());
@@ -389,6 +423,11 @@ impl ArmorDamages {
         let body_part = victim.body_mut().body_part_mut(&self.body_part_kind).as_mut().unwrap();
         let protection = body_part.protection_mut().as_mut().unwrap();
         protection.damage_rupture(self.damages);
+        if let Some(rupture) = protection.rupture() {
+            if !(*rupture < RUPTURE_MAX) {
+                body_part.protection_mut().take();
+            }
+        }
     }
 
     pub fn body_part_kind(&self) -> &BodyPartKind {

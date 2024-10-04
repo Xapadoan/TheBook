@@ -40,10 +40,12 @@ mod show {
         mod show_weapon;
         mod show_fighter;
         mod show_item;
+        mod show_body_part;
+        mod show_body;
     
-        pub use main::ShowSelf;
+        pub use main::{ShowSelf, ShowSelfExtended};
     }
-    pub use show_self::ShowSelf;
+    pub use show_self::{ShowSelf, ShowSelfExtended};
 
     mod show_replay {
         mod main;

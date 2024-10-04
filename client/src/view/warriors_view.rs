@@ -17,7 +17,7 @@ use shared::warrior::{Warrior, WarriorCollection};
 use uuid::Uuid;
 
 use crate::prompt::{select_with_arrows, select_with_keys};
-use crate::show::{CharacterSheet, ShowSelf};
+use crate::show::{CharacterSheet, ShowSelf, ShowSelfExtended};
 
 use super::ViewError;
 
@@ -52,7 +52,7 @@ pub fn warriors_view(session: &Session) -> Result<(), ViewError> {
         match select_with_arrows(
             "Select a warrior to manage:",
             &warriors,
-            |warrior| { CharacterSheet::new(warrior).show_self() },
+            |warrior| { CharacterSheet::new(warrior).show_self_extended() },
         )? {
             None => { return Ok(()) },
             Some(warrior) => {

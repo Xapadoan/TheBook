@@ -233,7 +233,7 @@ impl StatModifier for Injury {
             Self::LeftShoulderDislocated => -1,
             Self::LeftHandBroken |
             Self::LeftHandSevered => -2,
-            Self::OneEyeGouged(_) => 1,
+            Self::OneEyeGouged(_) => -1,
             Self::OneLegBroken(_) |
             Self::OneLegSevered(_) => -6,
             Self::RightArmBroken => -4,

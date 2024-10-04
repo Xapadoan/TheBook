@@ -142,7 +142,10 @@ impl DealDamages for Warrior {
     fn deal_damages(&self) -> u8 {
         if let Some(weapon) = self.weapon() {
             let mut damages = weapon.deal_damages();
-            let str = self.stats.strength(&[Box::new(weapon), Box::new(&self.body)]);
+            let str = self.stats.stat(
+                &[Box::new(weapon), Box::new(&self.body)],
+                &Stat::Strength(0),
+            );
             if str.value() < 8 {
                 damages -= 1;
             }
@@ -165,7 +168,7 @@ impl AttackThreshold for Warrior {
         if let Some(weapon) = self.weapon() {
             modifiers.push(Box::new(weapon));
         }
-        self.stats.attack(&modifiers).value()
+        self.stats().stat(&modifiers, &Stat::Attack(0)).value()
     }
 }
 
@@ -175,7 +178,7 @@ impl ParryThreshold for Warrior {
         if let Some(weapon) = self.weapon() {
             modifiers.push(Box::new(weapon));
         }
-        self.stats.parry(&modifiers).value()
+        self.stats.stat(&modifiers, &Stat::Parry(0)).value()
     }
 }
 
@@ -244,7 +247,7 @@ impl AssaultOrderComparable for Warrior {
         if let Some(weapon) = &self.weapon {
             modifiers.push(Box::new(weapon))
         }
-        self.stats.courage(&modifiers).value()
+        self.stats.stat(&modifiers, &Stat::Courage(0)).value()
     }
 }
 

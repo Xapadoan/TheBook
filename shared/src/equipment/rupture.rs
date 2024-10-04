@@ -1,7 +1,8 @@
 use rand::Rng;
 
-pub const RUPTURE_MAX: u8 = 5;
+pub const RUPTURE_MAX: u8 = 6;
 
+#[derive(Debug)]
 pub enum RuptureTestResult {
     Success,
     Fail,
@@ -55,5 +56,20 @@ mod tests {
         let mut equipment = TestEquipment { rup: Some(4) };
         equipment.damage_rupture(u8::MAX);
         assert_eq!(RUPTURE_MAX, equipment.rupture().unwrap());
+    }
+}
+
+impl PartialEq for RuptureTestResult {
+    fn eq(&self, other: &Self) -> bool {
+        match self {
+            RuptureTestResult::Fail => match other {
+                RuptureTestResult::Fail => true,
+                _ => false,
+            },
+            RuptureTestResult::Success => match other {
+                RuptureTestResult::Success => true,
+                _ => false,
+            },
+        }
     }
 }
