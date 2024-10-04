@@ -12,7 +12,7 @@ impl ShowSelfExtended for BodyPart {
             str += " (broken)";
         }
         if let Some(protection) = self.protection() {
-            str += protection.show_self_extended().as_str();
+            str += format!(" {}", protection.show_self_extended()).as_str();
         }
 
         str
