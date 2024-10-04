@@ -37,18 +37,22 @@ impl<'a> CharacterSheet<'a> {
 impl<'a> ShowSelf for CharacterSheet<'a> {
     fn show_self(&self) -> String {
         let mut stat_modifiers: Vec<Box<&dyn StatModifier>> = vec![Box::new(self.body)];
-        let weapon_str = if let Some(weapon) = self.weapon {
+        if let Some(weapon) = self.weapon {
             stat_modifiers.push(Box::new(weapon));
-            weapon.show_self()
-        } else {
-            String::from("None")
-        };
-        format!(
-            "{}\nHP: {}/{}\nWeapon: {}\nAT: {}\tPRD: {}\nCOU: {} ({})\tDEX: {} ({})\tSTR: {} ({})\nLevel: {} ({}xp)",
+        }
+        let mut str = String::new();
+        str += format!(
+            "{}\nHP: {}/{}",
             self.name,
             self.health.current(),
             self.health.max(),
-            weapon_str,
+        ).as_str();
+        str += format!(
+            "\nWeapon: {}",
+            self.weapon.show_self(),
+        ).as_str();
+        str += format!(
+            "\nAT: {}\tPRD: {}\nCOU: {} ({})\tDEX: {} ({})\tSTR: {} ({})",
             self.attack_threshold(),
             self.parry_threshold(),
             self.stats.stat(&[], &Stat::Courage(0)).value(),
@@ -58,9 +62,13 @@ impl<'a> ShowSelf for CharacterSheet<'a> {
             self.stats.stat(&[], &Stat::Strength(0)).value(),
             self.stats.stat(&stat_modifiers, &Stat::Strength(0)).value(),
         ).as_str();
+        str += format!(
+            "\nLevel: {} ({}xp)",
             self.level(),
             self.xp(),
-        )
+        ).as_str();
+
+        str
     }
 }
 
