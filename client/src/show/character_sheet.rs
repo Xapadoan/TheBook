@@ -8,7 +8,7 @@ use shared::stats::{Stat, StatModifier, Stats, StatsManager};
 use shared::warrior::body::{Body, HasBody};
 use shared::warrior::Warrior;
 
-use super::ShowSelf;
+use super::{ShowSelf, ShowSelfExtended};
 
 pub struct CharacterSheet<'a> {
     name: &'a str,
@@ -99,4 +99,56 @@ impl<'a> Experience for CharacterSheet<'a> {
     fn level(&self) -> u8 {
         self.level
     }
+}
+
+impl<'a> ShowSelfExtended for CharacterSheet<'a> {
+    fn show_self_extended(&self) -> String {
+        let mut str = String::new();
+        str += self.name;
+        str += format!(
+            "\nHP: {}/{}",
+            self.health.current(),
+            self.health.max(),
+        ).as_str();
+        str += format!("\nWeapon: {}", self.weapon.show_self_extended()).as_str();
+        let mut modifiers: Vec<Box<&dyn StatModifier>> = vec![Box::new(self.body)];
+        if let Some(weapon) = self.weapon {
+            modifiers.push(Box::new(weapon));
+        }
+        str += format!("\n\n{}", show_stats_with_modifiers(self.stats, &modifiers, &Stat::Attack(0))).as_str();
+        str += format!("\n{}", show_stats_with_modifiers(self.stats, &modifiers, &Stat::Parry(0))).as_str();
+        str += format!("\n{}", show_stats_with_modifiers(self.stats, &modifiers, &Stat::Courage(0))).as_str();
+        str += format!("\n{}", show_stats_with_modifiers(self.stats, &modifiers, &Stat::Dexterity(0))).as_str();
+        str += format!("\n{}", show_stats_with_modifiers(self.stats, &modifiers, &Stat::Strength(0))).as_str();
+        
+        str += format!("\n\n{}", self.body.show_self_extended()).as_str();
+
+        str += format!(
+            "\n\nLevel: {} ({}xp)",
+            self.level(),
+            self.xp(),
+        ).as_str();
+
+        str
+    }
+}
+
+fn show_stats_with_modifiers(manager: &StatsManager, modifiers: &[Box<&dyn StatModifier>], stat: &Stat) -> String {
+    let mut str = match stat {
+        Stat::Attack(_) => "AT",
+        Stat::Parry(_) => "PRD",
+        Stat::Courage(_) => "COU",
+        Stat::Dexterity(_) => "DEX",
+        Stat::Strength(_) => "STR",
+    }.to_string();
+    str += format!(": {}", manager.stat(modifiers, stat).value()).as_str();
+    str += format!(" ({}", manager.nat_stat(stat).value()).as_str();
+    for modifier in modifiers {
+        let value = modifier.value(stat);
+        let sign = if value < 0 { "-" } else { "+" };
+        str += format!(" {sign} {}", value.abs()).as_str();
+    }
+    str += ")";
+
+    str
 }

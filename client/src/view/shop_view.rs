@@ -8,7 +8,7 @@ use shared::{
 };
 use uuid::Uuid;
 
-use crate::{prompt::select_with_keys, show::ShowSelf};
+use crate::{prompt::select_with_keys, show::ShowSelfExtended};
 
 use super::ViewError;
 
@@ -60,7 +60,7 @@ fn buy_items_view(session: &Session) -> Result<(), ViewError> {
     while let Some((id, _)) = select_with_keys(
         &format!("You have {} gold\nSelect an item:", player.inventory().gold()),
         &options_as_reference,
-        |(_, item)| { format!("{} ({} gold)", item.show_self(), item.gold_value()) },
+        |(_, item)| { format!("{} ({} gold)", item.show_self_extended(), item.gold_value()) },
     )? {
         api::players::shop::buy_item(player.uuid(), id)?;
         player = api::players::read(session.uuid())?;
@@ -76,11 +76,11 @@ fn sell_items_view(session: &Session) -> Result<(), ViewError> {
             .collect();
         let options_as_reference: Vec<&(&Uuid, &Item)> = options.iter().collect();
         match select_with_keys(
-            "Select an item to sell:",
+            &format!("You have {} gold\nSelect an item to sell:", player.inventory().gold()),
             &options_as_reference,
             |(_, item)| {
                 let value = item.gold_value() * 2 / 3;
-                format!("{} ({} gold)", item.show_self(), value)
+                format!("{} ({} gold)", item.show_self_extended(), value)
             },
         )? {
             Some((id, _)) => { api::players::shop::sell_item(player.uuid(), id)?; },
