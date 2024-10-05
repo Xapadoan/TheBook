@@ -83,13 +83,13 @@ fn equipment_rupture_value(rupture: &Option<u8>) -> u32 {
 
 fn stat_modifier_value(mut modifier: i8, threshold: i8, mut low_value: i32, mut hight_value: i32) -> i32 {
     if modifier < threshold {
-        while modifier < threshold {
+        while (modifier + 1) < threshold {
             low_value *= 2;
             modifier += 1;
         }
         low_value
     } else if modifier > threshold {
-        while modifier > threshold {
+        while (modifier - 1) > threshold {
             hight_value *= 2;
             modifier -= 1;
         }
@@ -138,4 +138,63 @@ fn modify_gold_value<T: StatModifier + StatsValueThresholds>(item: &T, base: u32
     }
 
     new_value
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    struct TestStatsModifier {
+        at: i8,
+        prd: i8,
+        cou: i8,
+        dex: i8,
+        str: i8,
+    }
+    impl StatModifier for TestStatsModifier {
+        fn value(&self, stat: &StatKind) -> i8 {
+            match stat {
+                &StatKind::Attack => self.at,
+                &StatKind::Courage => self.cou,
+                &StatKind::Dexterity => self.dex,
+                &StatKind::Parry => self.prd,
+                &StatKind::Strength => self.str,
+            }
+        }
+    }
+    impl StatsValueThresholds for TestStatsModifier {
+        fn base_value_thresholds(&self) -> (i8, i8) {
+            (0, 0)
+        }
+    }
+
+    #[test]
+    fn modify_gold_value_is_coherent() {
+        let modifier = TestStatsModifier { at: 0, prd: 0, cou: 0, dex: 0, str: 0 };
+        assert_eq!(0, modify_gold_value(&modifier, 0));
+        let modifier = TestStatsModifier { at: 1, prd: 0, cou: 0, dex: 0, str: 0 };
+        assert_eq!(40, modify_gold_value(&modifier, 0));
+    }
+
+    #[test]
+    fn stat_modifier_value_scales_correctly() {
+        let test_values = [
+            (0, 0),
+            (10, 1),
+            (-10, -1),
+            (20, 2),
+            (40, 3),
+            (80, 4),
+            (-20, -2),
+            (-40, -3),
+            (-80, -4),
+        ];
+        for (expected, modifier) in test_values {
+            assert_eq!(
+                expected,
+                stat_modifier_value(modifier, 0, -10, 10),
+                "Found incoherent scaling for stat_modifier_value",
+            );
+        }
+    }
 }
