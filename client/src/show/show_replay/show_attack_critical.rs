@@ -43,18 +43,6 @@ impl ShowReplay for CriticalHit {
                 assailant.show_self(),
                 victim.show_self(),
             ),
-            CriticalHit::HeartInjury => format!(
-                "{}'s {} landed in {}'s heart",
-                assailant.show_self(),
-                assailant.weapon().as_ref().unwrap().show_self(),
-                victim.show_self(),
-            ),
-            CriticalHit::SeriousHeadWound => format!(
-                "{} slices through {}'s {}",
-                assailant.show_self(),
-                victim.show_self(),
-                BodyPartKind::Head.show_self(),
-            ),
             CriticalHit::ImpressiveBruise |
             CriticalHit::ImpressiveBruiseAndLimbDislocation => format!(
                 "{} strikes {} heavily",
@@ -87,18 +75,15 @@ impl ShowReplay for CriticalHit {
                 assailant.show_self(),
                 victim.show_self(),
             ),
-            CriticalHit::OpenSkullFacture => format!(
-                "{} swings his {} straight into {}'s {} and cracks it open",
-                assailant.show_self(),
-                assailant.weapon().as_ref().unwrap().show_self(),
-                victim.show_self(),
-                BodyPartKind::Head.show_self(),
+            CriticalHit::HeartInjury |
+            CriticalHit::SeriousHeadWound |
+            CriticalHit::OpenSkullFacture |
+            CriticalHit::VitalOrganCrushed => show_lethal_injury_resolution(
+                self, 
+                assailant,
+                victim,
+                consequences,
             ),
-            CriticalHit::VitalOrganCrushed => format!(
-                "{} crushes {}'s liver flat",
-                assailant.show_self(),
-                victim.show_self()
-            )
         }
     }
 }
@@ -109,7 +94,7 @@ fn show_break_limb(
     victim: &dyn ReplayActor,
     consequences: &AssaultConsequences,
 ) -> String {
-    if consequences.for_victim().damages() == 0 {
+    if consequences.for_victim().raw_damages() == 0 {
         let missing_limb = match critical_hit {
             CriticalHit::BrokenArm => "missing arm",
             CriticalHit::BrokenHand => "missing hand",
@@ -232,4 +217,53 @@ fn show_armor_damage_resolution(
     } else {
         format!("{} hits {} violently", assailant.show_self(), victim.show_self())
     }
+}
+
+fn show_lethal_injury_resolution(
+    critical_hit: &CriticalHit,
+    assailant: &dyn ReplayActor,
+    victim: &dyn ReplayActor,
+    consequences: &AssaultConsequences,
+) -> String {
+    let mut str = format!(
+        "{}'s {} flies right towards {}'s ",
+        assailant.show_self(),
+        assailant.weapon().show_self(),
+        victim.show_self(),
+    );
+    match critical_hit {
+        CriticalHit::HeartInjury => { str += "heart" },
+        CriticalHit::SeriousHeadWound => { str += "head" },
+        CriticalHit::OpenSkullFacture => { str += "head" },
+        CriticalHit::VitalOrganCrushed => { str += "liver" },
+        _ => panic!("Impossible match"),
+    }
+    let instant_death_description = match critical_hit {
+        CriticalHit::HeartInjury |
+        CriticalHit::SeriousHeadWound => " and slices through it".to_string(),
+        CriticalHit::OpenSkullFacture => format!(
+            ", spreading {}'s brain on the floor.",
+            victim.show_self(),
+        ),
+        CriticalHit::VitalOrganCrushed => " crushing it flat".to_string(),
+        _ => panic!("Impossible match")
+    };
+    match consequences.for_victim().armor_damages() {
+        Some(armor_damages) => {
+            let body_part_kind = armor_damages.body_part_kind();
+            let body_part = victim.body().body_part(body_part_kind).as_ref().unwrap();
+            let protection = body_part.protection().as_ref().unwrap();
+            if armor_damages.damages() > 1 {
+                str += format!(", breaks his {}", protection.show_self()).as_str();
+                str += instant_death_description.as_str();
+            } else {
+                str += format!(" and damages his {}", protection.show_self()).as_str();
+            }
+        },
+        None => {
+            str += instant_death_description.as_str();
+        }
+    }
+
+    str
 }
