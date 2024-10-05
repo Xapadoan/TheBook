@@ -23,7 +23,7 @@ use crate::health::{Health, IsDead, IsUnconscious, MutableHealth, MutablePassive
 use crate::knock_out::KnockOut;
 use crate::name::Name;
 use crate::random::{Random, RandomDictionary};
-use crate::stats::{Stat, StatModifier, Stats, StatsManager};
+use crate::stats::{StatKind, StatModifier, Stats, StatsManager};
 use crate::tournament::contestant::TournamentContestant;
 use crate::unique_entity::UniqueEntity;
 
@@ -144,7 +144,7 @@ impl DealDamages for Warrior {
             let mut damages = weapon.deal_damages();
             let str = self.stats.stat(
                 &[Box::new(weapon), Box::new(&self.body)],
-                &Stat::Strength(0),
+                &StatKind::Strength,
             );
             if str.value() < 8 {
                 damages -= 1;
@@ -168,7 +168,7 @@ impl AttackThreshold for Warrior {
         if let Some(weapon) = self.weapon() {
             modifiers.push(Box::new(weapon));
         }
-        self.stats().stat(&modifiers, &Stat::Attack(0)).value()
+        self.stats().stat(&modifiers, &&StatKind::Attack).value()
     }
 }
 
@@ -178,7 +178,7 @@ impl ParryThreshold for Warrior {
         if let Some(weapon) = self.weapon() {
             modifiers.push(Box::new(weapon));
         }
-        self.stats.stat(&modifiers, &Stat::Parry(0)).value()
+        self.stats.stat(&modifiers, &&StatKind::Parry).value()
     }
 }
 
@@ -213,15 +213,15 @@ impl GainExperience for Warrior {
     fn gain_xp(&mut self, xp: u64) {
         self.experience += xp;
     }
-    fn level_up(&mut self, stat: &Stat) -> Result<(), ExperienceError> {
+    fn level_up(&mut self, stat: &StatKind) -> Result<(), ExperienceError> {
         let stat_is_incrementable = if (self.level + 1) % 2 == 0 {
             match stat {
-                Stat::Courage(_) | Stat::Dexterity(_) | Stat::Strength(_) => true,
+                &StatKind::Courage | &StatKind::Dexterity | &StatKind::Strength => true,
                 _ => false,
             }
         } else {
             match stat {
-                Stat::Attack(_) | Stat::Parry(_) => true,
+                &StatKind::Attack | &StatKind::Parry => true,
                 _ => false,
             }
         };
@@ -247,7 +247,7 @@ impl AssaultOrderComparable for Warrior {
         if let Some(weapon) = &self.weapon {
             modifiers.push(Box::new(weapon))
         }
-        self.stats.stat(&modifiers, &Stat::Courage(0)).value()
+        self.stats.stat(&modifiers, &&StatKind::Courage).value()
     }
 }
 

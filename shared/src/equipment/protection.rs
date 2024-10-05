@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::{assault::common_traits::ReduceDamages, name::Name, stats::StatModifier};
+use crate::{assault::common_traits::ReduceDamages, name::Name, stats::{StatKind, StatModifier}};
 
 use super::rupture::Rupture;
 
@@ -142,19 +142,10 @@ impl Name for Protection {
 }
 
 impl StatModifier for Protection {
-    fn attack_mod(&self) -> i8 {
-        0
-    }
-    fn parry_mod(&self) -> i8 {
-        0
-    }
-    fn courage_mod(&self) -> i8 {
-        self.courage_mod
-    }
-    fn dexterity_mod(&self) -> i8 {
-        self.dexterity_mod
-    }
-    fn strength_mod(&self) -> i8 {
-        0
+    fn value(&self, stat: &StatKind) -> i8 {
+        match stat {
+            &StatKind::Dexterity => self.dexterity_mod,
+            _ => 0,
+        }
     }
 }

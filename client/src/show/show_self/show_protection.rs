@@ -1,6 +1,6 @@
 use shared::equipment::{protection::Protection, rupture::Rupture};
 use shared::name::Name;
-use shared::stats::StatModifier;
+use shared::stats::{StatKind, StatModifier};
 
 use super::{ShowSelf, ShowSelfExtended};
 
@@ -16,8 +16,8 @@ impl ShowSelfExtended for Protection {
             self.show_self().as_str(),
             self.amount(),
             match self.rupture() { Some(rup) => rup.to_string(), None => "None".to_string() },
-            self.courage_mod(),
-            self.dexterity_mod(),
+            self.value(&StatKind::Courage),
+            self.value(&StatKind::Dexterity),
         )
     }
 }

@@ -2,7 +2,7 @@ use crate::{
     equipment::{
         protection::{Protection, ProtectionKind}, rupture::{Rupture, RUPTURE_MAX}, weapon::Weapon
     },
-    stats::StatModifier,
+    stats::{StatKind, StatModifier},
 };
 
 use super::Item;
@@ -31,6 +31,8 @@ impl GoldValue for Protection {
             pr_value *= 3;
             i -= 1;
         }
+
+        value = modify_gold_value(self, value);
 
         value
     }
@@ -119,27 +121,21 @@ impl StatsValueThresholds for Protection {
 
 fn modify_gold_value<T: StatModifier + StatsValueThresholds>(item: &T, base: u32) -> u32 {
     let mut new_value = base;
-    let (at, pr) = item.base_value_thresholds();
-    let at_value = stat_modifier_value(
-        item.attack_mod(),
-        at,
-        -10,
-        40,
-    );
-    let pr_value = stat_modifier_value(
-        item.parry_mod(),
-        pr,
-        -10,
-        30,
-    );
-    new_value = match new_value.checked_add_signed(at_value) {
-        Some(v) => v,
-        None => if at_value < 0 { 0 } else { u32::MAX },
-    };
-    new_value = match new_value.checked_add_signed(pr_value) {
-        Some(v) => v,
-        None => if pr_value < 0 { 0 } else { u32::MAX },
-    };
+    let (at, prd) = item.base_value_thresholds();
+    let stats_values = [
+        (&StatKind::Attack, at, -15, 40),
+        (&StatKind::Parry, prd, -15, 40),
+        (&StatKind::Courage, 0, -10, 20),
+        (&StatKind::Dexterity, 0, -10, 20),
+        (&StatKind::Strength, 0, -10, 20),
+    ];
+    for (stat, threshold, low_value, hight_value) in stats_values {
+        let tmp_value = stat_modifier_value(item.value(stat), threshold, low_value, hight_value);
+        new_value = match new_value.checked_add_signed(tmp_value) {
+            Some(v) => v,
+            None => if tmp_value < 0 { 0 } else { u32::MAX },
+        };
+    }
 
     new_value
 }

@@ -8,7 +8,7 @@ use shared::experience::{Experience, GainExperience};
 use shared::inventory::{HasInventory, Item};
 use shared::name::Name;
 use shared::player::Player;
-use shared::stats::Stat;
+use shared::stats::StatKind;
 use shared::tournament::contestant::TournamentContestant;
 use shared::unique_entity::UniqueEntity;
 use shared::warrior::body::body_part::{BodyPart, OptionalBodyPart, PROTECTABLE_BODY_PARTS};
@@ -165,9 +165,9 @@ fn equip_protection_view(player: &Player, warrior: &Warrior) -> Result<(), ViewE
 fn level_up_view(player: &Player, warrior: &Warrior) -> Result<(), ViewError> {
     let sheet = CharacterSheet::new(warrior);
     let possible_stats = if (warrior.level() + 1) % 2 == 0 {
-        [&Stat::Courage(0), &Stat::Dexterity(0), &Stat::Strength(0)].to_vec()
+        [&StatKind::Courage, &StatKind::Dexterity, &StatKind::Strength].to_vec()
     } else {
-        [&Stat::Attack(0), &Stat::Parry(0)].to_vec()
+        [&StatKind::Attack, &StatKind::Parry].to_vec()
     };
     let prompt_str = format!("{}\nWhat stat do you want to update ?", sheet.show_self());
     let stat_to_increment = match select_with_keys(
@@ -175,11 +175,11 @@ fn level_up_view(player: &Player, warrior: &Warrior) -> Result<(), ViewError> {
         &possible_stats,
         |stat| {
             match stat {
-                &Stat::Attack(_) => "Attack".to_string(),
-                &Stat::Parry(_) => "Parry".to_string(),
-                &Stat::Courage(_) => "Courage".to_string(),
-                &Stat::Dexterity(_) => "Dexterity".to_string(),
-                &Stat::Strength(_) => "Strength".to_string(),
+                &StatKind::Attack => "Attack".to_string(),
+                &StatKind::Parry => "Parry".to_string(),
+                &StatKind::Courage => "Courage".to_string(),
+                &StatKind::Dexterity => "Dexterity".to_string(),
+                &StatKind::Strength => "Strength".to_string(),
             }
         }
     )? {

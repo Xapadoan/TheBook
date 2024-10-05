@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::equipment::protection::{CanWearProtection, OptionalMutableProtection, Protection, ProtectionKind};
 use crate::random::Random;
-use crate::stats::StatModifier;
+use crate::stats::{StatKind, StatModifier};
 
 pub trait OptionalBodyPart {
     fn body_part(&self, body_part_kind: &BodyPartKind) -> &Option<BodyPart>;
@@ -248,33 +248,9 @@ impl Random for BodySide {
 }
 
 impl StatModifier for BodyPart {
-    fn attack_mod(&self) -> i8 {
+    fn value(&self, stat: &StatKind) -> i8 {
         match &self.protection {
-            Some(protection) => protection.attack_mod(),
-            None => 0,
-        }
-    }
-    fn parry_mod(&self) -> i8 {
-        match &self.protection {
-            Some(protection) => protection.parry_mod(),
-            None => 0,
-        }
-    }
-    fn courage_mod(&self) -> i8 {
-        match &self.protection {
-            Some(protection) => protection.courage_mod(),
-            None => 0,
-        }
-    }
-    fn dexterity_mod(&self) -> i8 {
-        match &self.protection {
-            Some(protection) => protection.dexterity_mod(),
-            None => 0,
-        }
-    }
-    fn strength_mod(&self) -> i8 {
-        match &self.protection {
-            Some(protection) => protection.strength_mod(),
+            Some(protection) => protection.value(stat),
             None => 0,
         }
     }

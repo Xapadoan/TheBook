@@ -1,6 +1,6 @@
 use std::{error::Error, fmt::Display};
 
-use crate::stats::Stat;
+use crate::stats::StatKind;
 
 pub trait Experience {
     fn xp(&self) -> u64;
@@ -12,7 +12,7 @@ pub trait GainExperience: Experience {
     fn can_level_up(&self) -> bool {
         self.xp() > level_xp_threshold(self.level() + 1)
     }
-    fn level_up(&mut self, stat: &Stat) -> Result<(), ExperienceError>;
+    fn level_up(&mut self, stat: &StatKind) -> Result<(), ExperienceError>;
 }
 
 fn level_xp_threshold(level_to_reach: u8) -> u64 {
@@ -35,7 +35,7 @@ fn level_xp_threshold(level_to_reach: u8) -> u64 {
 
 #[derive(Debug)]
 pub enum ExperienceErrorKind {
-    InvalidStatIncrement(u8, Stat),
+    InvalidStatIncrement(u8, StatKind),
 }
 
 #[derive(Debug)]

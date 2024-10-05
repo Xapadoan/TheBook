@@ -1,9 +1,13 @@
-use shared::{experience::{ExperienceError, GainExperience}, stats::Stat, unique_entity::UniqueEntity, warrior::MutableWarriorCollection};
+use shared::{
+    experience::{ExperienceError, GainExperience},
+    stats::StatKind,
+    unique_entity::UniqueEntity, warrior::MutableWarriorCollection,
+};
 use uuid::Uuid;
 
 use crate::{player::PlayerAPIError, repository::{PlayerRepository, Repository}};
 
-pub fn level_up(player_uuid: &Uuid, warrior_uuid: &Uuid, stat: &Stat) -> Result<(), PlayerAPIError> {
+pub fn level_up(player_uuid: &Uuid, warrior_uuid: &Uuid, stat: &StatKind) -> Result<(), PlayerAPIError> {
     let player_repo = PlayerRepository::build()?;
     let mut player = player_repo.get_by_uuid(&player_uuid)?;
     let warrior = player.warriors_mut().iter_mut().find(

@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::stats::StatModifier;
+use crate::stats::{StatKind, StatModifier};
 
 use super::body_part::{BodyPart, BodySide, FingerName, OptionalMutableBodyPart};
 
@@ -136,139 +136,133 @@ pub trait Injuries: OptionalMutableBodyPart {
 }
 
 impl StatModifier for Injury {
-    fn attack_mod(&self) -> i8 {
-        match self {
-            Self::BothEyesGouged => -5,
-            Self::BothLegsBroken |
-            Self::BothLegsSevered => -8,
-            Self::FingerSevered(_, _) => 0,
-            Self::FootSevered(_) |
-            Self::FootSmashed(_) => -2,
-            Self::GenitalsCrushed => 0,
-            Self::KneeDislocated(_) => -1,
-            Self::LeftArmBroken => -2,
-            Self::LeftArmSevered => -3,
-            Self::LeftElbowDislocated |
-            Self::LeftShoulderDislocated => -1,
-            Self::LeftHandBroken |
-            Self::LeftHandSevered => -2,
-            Self::OneEyeGouged(_) => -1,
-            Self::OneLegBroken(_) |
-            Self::OneLegSevered(_) => -4,
-            Self::RightArmBroken |
-            Self::RightArmSevered => -5,
-            Self::RightElbowDislocated |
-            Self::RightShoulderDislocated => -1,
-            Self::RightHandBroken |
-            Self::RightHandSevered => -5,
-        }
-    }
-    fn parry_mod(&self) -> i8 {
-        match self {
-            Self::BothEyesGouged => -8,
-            Self::BothLegsBroken |
-            Self::BothLegsSevered => -8,
-            Self::FingerSevered(_, _) => 0,
-            Self::FootSevered(_) |
-            Self::FootSmashed(_) => -2,
-            Self::GenitalsCrushed => 0,
-            Self::KneeDislocated(_) => -2,
-            Self::LeftArmBroken => -3,
-            Self::LeftArmSevered => -4,
-            Self::LeftElbowDislocated |
-            Self::LeftShoulderDislocated => -2,
-            Self::LeftHandBroken |
-            Self::LeftHandSevered => -3,
-            Self::OneEyeGouged(_) => -2,
-            Self::OneLegBroken(_) |
-            Self::OneLegSevered(_) => -6,
-            Self::RightArmBroken |
-            Self::RightArmSevered => -6,
-            Self::RightElbowDislocated |
-            Self::RightShoulderDislocated => -3,
-            Self::RightHandBroken |
-            Self::RightHandSevered => -6,
-        }
-    }
-    fn courage_mod(&self) -> i8 {
-        match self {
-            Self::BothEyesGouged => -6,
-            Self::BothLegsBroken |
-            Self::BothLegsSevered => -5,
-            Self::FingerSevered(_, _) => 0,
-            Self::FootSevered(_) |
-            Self::FootSmashed(_) => 0,
-            Self::GenitalsCrushed => -5,
-            Self::KneeDislocated(_) => 0,
-            Self::LeftArmBroken => -1,
-            Self::LeftArmSevered => -2,
-            Self::LeftElbowDislocated |
-            Self::LeftShoulderDislocated => 0,
-            Self::LeftHandBroken |
-            Self::LeftHandSevered => -1,
-            Self::OneEyeGouged(_) => 0,
-            Self::OneLegBroken(_) |
-            Self::OneLegSevered(_) => -3,
-            Self::RightArmBroken => -2,
-            Self::RightArmSevered => -4,
-            Self::RightElbowDislocated |
-            Self::RightShoulderDislocated => 0,
-            Self::RightHandBroken |
-            Self::RightHandSevered => -1,
-        }
-    }
-    fn dexterity_mod(&self) -> i8 {
-        match self {
-            Self::BothEyesGouged => -6,
-            Self::BothLegsBroken |
-            Self::BothLegsSevered => -6,
-            Self::FingerSevered(_, _) => -1,
-            Self::FootSevered(_) |
-            Self::FootSmashed(_) => -2,
-            Self::GenitalsCrushed => -2,
-            Self::KneeDislocated(_) => -2,
-            Self::LeftArmBroken => -2,
-            Self::LeftArmSevered => -2,
-            Self::LeftElbowDislocated |
-            Self::LeftShoulderDislocated => -1,
-            Self::LeftHandBroken |
-            Self::LeftHandSevered => -2,
-            Self::OneEyeGouged(_) => -1,
-            Self::OneLegBroken(_) |
-            Self::OneLegSevered(_) => -6,
-            Self::RightArmBroken => -4,
-            Self::RightArmSevered => -2,
-            Self::RightElbowDislocated |
-            Self::RightShoulderDislocated => -2,
-            Self::RightHandBroken |
-            Self::RightHandSevered => -4,
-        }
-    }
-    fn strength_mod(&self) -> i8 {
-        match self {
-            Self::BothEyesGouged => 0,
-            Self::BothLegsBroken |
-            Self::BothLegsSevered => -5,
-            Self::FingerSevered(_, _) => 0,
-            Self::FootSevered(_) |
-            Self::FootSmashed(_) => 0,
-            Self::GenitalsCrushed => 0,
-            Self::KneeDislocated(_) => 0,
-            Self::LeftArmBroken |
-            Self::LeftArmSevered => -2,
-            Self::LeftElbowDislocated |
-            Self::LeftShoulderDislocated => -1,
-            Self::LeftHandBroken |
-            Self::LeftHandSevered => -1,
-            Self::OneEyeGouged(_) => 0,
-            Self::OneLegBroken(_) |
-            Self::OneLegSevered(_) => -3,
-            Self::RightArmBroken |
-            Self::RightArmSevered => -4,
-            Self::RightElbowDislocated |
-            Self::RightShoulderDislocated => -2,
-            Self::RightHandBroken |
-            Self::RightHandSevered => -2,
+    fn value(&self, stat: &StatKind) -> i8 {
+        match stat {
+            &StatKind::Attack => match self {
+                Self::BothEyesGouged => -5,
+                Self::BothLegsBroken |
+                Self::BothLegsSevered => -8,
+                Self::FingerSevered(_, _) => 0,
+                Self::FootSevered(_) |
+                Self::FootSmashed(_) => -2,
+                Self::GenitalsCrushed => 0,
+                Self::KneeDislocated(_) => -1,
+                Self::LeftArmBroken => -2,
+                Self::LeftArmSevered => -3,
+                Self::LeftElbowDislocated |
+                Self::LeftShoulderDislocated => -1,
+                Self::LeftHandBroken |
+                Self::LeftHandSevered => -2,
+                Self::OneEyeGouged(_) => -1,
+                Self::OneLegBroken(_) |
+                Self::OneLegSevered(_) => -4,
+                Self::RightArmBroken |
+                Self::RightArmSevered => -5,
+                Self::RightElbowDislocated |
+                Self::RightShoulderDislocated => -1,
+                Self::RightHandBroken |
+                Self::RightHandSevered => -5,
+            },
+            &StatKind::Parry => match self {
+                Self::BothEyesGouged => -8,
+                Self::BothLegsBroken |
+                Self::BothLegsSevered => -8,
+                Self::FingerSevered(_, _) => 0,
+                Self::FootSevered(_) |
+                Self::FootSmashed(_) => -2,
+                Self::GenitalsCrushed => 0,
+                Self::KneeDislocated(_) => -2,
+                Self::LeftArmBroken => -3,
+                Self::LeftArmSevered => -4,
+                Self::LeftElbowDislocated |
+                Self::LeftShoulderDislocated => -2,
+                Self::LeftHandBroken |
+                Self::LeftHandSevered => -3,
+                Self::OneEyeGouged(_) => -2,
+                Self::OneLegBroken(_) |
+                Self::OneLegSevered(_) => -6,
+                Self::RightArmBroken |
+                Self::RightArmSevered => -6,
+                Self::RightElbowDislocated |
+                Self::RightShoulderDislocated => -3,
+                Self::RightHandBroken |
+                Self::RightHandSevered => -6,
+            },
+            &StatKind::Courage => match self {
+                Self::BothEyesGouged => -6,
+                Self::BothLegsBroken |
+                Self::BothLegsSevered => -5,
+                Self::FingerSevered(_, _) => 0,
+                Self::FootSevered(_) |
+                Self::FootSmashed(_) => 0,
+                Self::GenitalsCrushed => -5,
+                Self::KneeDislocated(_) => 0,
+                Self::LeftArmBroken => -1,
+                Self::LeftArmSevered => -2,
+                Self::LeftElbowDislocated |
+                Self::LeftShoulderDislocated => 0,
+                Self::LeftHandBroken |
+                Self::LeftHandSevered => -1,
+                Self::OneEyeGouged(_) => 0,
+                Self::OneLegBroken(_) |
+                Self::OneLegSevered(_) => -3,
+                Self::RightArmBroken => -2,
+                Self::RightArmSevered => -4,
+                Self::RightElbowDislocated |
+                Self::RightShoulderDislocated => 0,
+                Self::RightHandBroken |
+                Self::RightHandSevered => -1,
+            },
+            &StatKind::Dexterity => match self {
+                Self::BothEyesGouged => -6,
+                Self::BothLegsBroken |
+                Self::BothLegsSevered => -6,
+                Self::FingerSevered(_, _) => -1,
+                Self::FootSevered(_) |
+                Self::FootSmashed(_) => -2,
+                Self::GenitalsCrushed => -2,
+                Self::KneeDislocated(_) => -2,
+                Self::LeftArmBroken => -2,
+                Self::LeftArmSevered => -2,
+                Self::LeftElbowDislocated |
+                Self::LeftShoulderDislocated => -1,
+                Self::LeftHandBroken |
+                Self::LeftHandSevered => -2,
+                Self::OneEyeGouged(_) => -1,
+                Self::OneLegBroken(_) |
+                Self::OneLegSevered(_) => -6,
+                Self::RightArmBroken => -4,
+                Self::RightArmSevered => -2,
+                Self::RightElbowDislocated |
+                Self::RightShoulderDislocated => -2,
+                Self::RightHandBroken |
+                Self::RightHandSevered => -4,
+            },
+            &StatKind::Strength => match self {
+                Self::BothEyesGouged => 0,
+                Self::BothLegsBroken |
+                Self::BothLegsSevered => -5,
+                Self::FingerSevered(_, _) => 0,
+                Self::FootSevered(_) |
+                Self::FootSmashed(_) => 0,
+                Self::GenitalsCrushed => 0,
+                Self::KneeDislocated(_) => 0,
+                Self::LeftArmBroken |
+                Self::LeftArmSevered => -2,
+                Self::LeftElbowDislocated |
+                Self::LeftShoulderDislocated => -1,
+                Self::LeftHandBroken |
+                Self::LeftHandSevered => -1,
+                Self::OneEyeGouged(_) => 0,
+                Self::OneLegBroken(_) |
+                Self::OneLegSevered(_) => -3,
+                Self::RightArmBroken |
+                Self::RightArmSevered => -4,
+                Self::RightElbowDislocated |
+                Self::RightShoulderDislocated => -2,
+                Self::RightHandBroken |
+                Self::RightHandSevered => -2,
+            },
         }
     }
 }

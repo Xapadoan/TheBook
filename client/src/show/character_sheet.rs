@@ -4,7 +4,7 @@ use shared::equipment::weapon::{OptionalMutableWeapon, Weapon};
 use shared::experience::Experience;
 use shared::health::{Health, MutableHealth};
 use shared::name::Name;
-use shared::stats::{Stat, StatModifier, Stats, StatsManager};
+use shared::stats::{StatKind, StatModifier, Stats, StatsManager};
 use shared::warrior::body::{Body, HasBody};
 use shared::warrior::Warrior;
 
@@ -55,12 +55,12 @@ impl<'a> ShowSelf for CharacterSheet<'a> {
             "\nAT: {}\tPRD: {}\nCOU: {} ({})\tDEX: {} ({})\tSTR: {} ({})",
             self.attack_threshold(),
             self.parry_threshold(),
-            self.stats.stat(&[], &Stat::Courage(0)).value(),
-            self.stats.stat(&stat_modifiers, &Stat::Courage(0)).value(),
-            self.stats.stat(&[], &Stat::Dexterity(0)).value(),
-            self.stats.stat(&stat_modifiers, &Stat::Dexterity(0)).value(),
-            self.stats.stat(&[], &Stat::Strength(0)).value(),
-            self.stats.stat(&stat_modifiers, &Stat::Strength(0)).value(),
+            self.stats.nat_stat(&StatKind::Courage).value(),
+            self.stats.stat(&stat_modifiers, &StatKind::Courage).value(),
+            self.stats.nat_stat(&StatKind::Dexterity).value(),
+            self.stats.stat(&stat_modifiers, &StatKind::Dexterity).value(),
+            self.stats.nat_stat(&StatKind::Strength).value(),
+            self.stats.stat(&stat_modifiers, &StatKind::Strength).value(),
         ).as_str();
         str += format!(
             "\nLevel: {} ({}xp)",
@@ -78,7 +78,7 @@ impl<'a> AttackThreshold for CharacterSheet<'a> {
         if let Some(weapon) = self.weapon {
             modifiers.push(Box::new(weapon));
         }
-        self.stats.stat(&modifiers, &Stat::Attack(0)).value()
+        self.stats.stat(&modifiers, &StatKind::Attack).value()
     }
 }
 
@@ -88,7 +88,7 @@ impl<'a> ParryThreshold for CharacterSheet<'a> {
         if let Some(weapon) = self.weapon {
             modifiers.push(Box::new(weapon));
         }
-        self.stats.stat(&modifiers, &Stat::Parry(0)).value()
+        self.stats.stat(&modifiers, &StatKind::Parry).value()
     }
 }
 
@@ -115,11 +115,11 @@ impl<'a> ShowSelfExtended for CharacterSheet<'a> {
         if let Some(weapon) = self.weapon {
             modifiers.push(Box::new(weapon));
         }
-        str += format!("\n\n{}", show_stats_with_modifiers(self.stats, &modifiers, &Stat::Attack(0))).as_str();
-        str += format!("\n{}", show_stats_with_modifiers(self.stats, &modifiers, &Stat::Parry(0))).as_str();
-        str += format!("\n{}", show_stats_with_modifiers(self.stats, &modifiers, &Stat::Courage(0))).as_str();
-        str += format!("\n{}", show_stats_with_modifiers(self.stats, &modifiers, &Stat::Dexterity(0))).as_str();
-        str += format!("\n{}", show_stats_with_modifiers(self.stats, &modifiers, &Stat::Strength(0))).as_str();
+        str += format!("\n\n{}", show_stats_with_modifiers(self.stats, &modifiers, &StatKind::Attack)).as_str();
+        str += format!("\n{}", show_stats_with_modifiers(self.stats, &modifiers, &StatKind::Parry)).as_str();
+        str += format!("\n{}", show_stats_with_modifiers(self.stats, &modifiers, &StatKind::Courage)).as_str();
+        str += format!("\n{}", show_stats_with_modifiers(self.stats, &modifiers, &StatKind::Dexterity)).as_str();
+        str += format!("\n{}", show_stats_with_modifiers(self.stats, &modifiers, &StatKind::Strength)).as_str();
         
         str += format!("\n\n{}", self.body.show_self_extended()).as_str();
 
@@ -133,13 +133,13 @@ impl<'a> ShowSelfExtended for CharacterSheet<'a> {
     }
 }
 
-fn show_stats_with_modifiers(manager: &StatsManager, modifiers: &[Box<&dyn StatModifier>], stat: &Stat) -> String {
+fn show_stats_with_modifiers(manager: &StatsManager, modifiers: &[Box<&dyn StatModifier>], stat: &StatKind) -> String {
     let mut str = match stat {
-        Stat::Attack(_) => "AT",
-        Stat::Parry(_) => "PRD",
-        Stat::Courage(_) => "COU",
-        Stat::Dexterity(_) => "DEX",
-        Stat::Strength(_) => "STR",
+        StatKind::Attack => "AT",
+        StatKind::Parry => "PRD",
+        StatKind::Courage => "COU",
+        StatKind::Dexterity => "DEX",
+        StatKind::Strength => "STR",
     }.to_string();
     str += format!(": {}", manager.stat(modifiers, stat).value()).as_str();
     str += format!(" ({}", manager.nat_stat(stat).value()).as_str();

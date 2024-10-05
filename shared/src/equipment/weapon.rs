@@ -5,7 +5,7 @@ use crate::assault::common_traits::DealDamages;
 use crate::dice::Dice;
 use crate::name::Name;
 use crate::random::Random;
-use crate::stats::StatModifier;
+use crate::stats::{StatKind, StatModifier};
 
 use super::rupture::Rupture;
 
@@ -162,20 +162,14 @@ impl DealDamages for Weapon {
 }
 
 impl StatModifier for Weapon {
-    fn attack_mod(&self) -> i8 {
-        self.attack_mod
-    }
-    fn parry_mod(&self) -> i8 {
-        self.parry_mod
-    }
-    fn courage_mod(&self) -> i8 {
-        self.courage_mod
-    }
-    fn dexterity_mod(&self) -> i8 {
-        0
-    }
-    fn strength_mod(&self) -> i8 {
-        0
+    fn value(&self, stat: &StatKind) -> i8 {
+        match stat {
+            &StatKind::Attack => self.attack_mod,
+            &StatKind::Parry => self.parry_mod,
+            &StatKind::Courage => self.courage_mod,
+            &StatKind::Dexterity => 0,
+            &StatKind::Strength => 0,
+        }
     }
 }
 

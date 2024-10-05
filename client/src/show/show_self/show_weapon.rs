@@ -1,6 +1,6 @@
 use shared::equipment::{rupture::Rupture, weapon::Weapon};
 use shared::name::Name;
-use shared::stats::StatModifier;
+use shared::stats::{StatKind, StatModifier};
 
 use super::{ShowSelf, ShowSelfExtended};
 
@@ -30,9 +30,9 @@ impl ShowSelfExtended for Weapon {
             " DMG: {} RUP: {} AT: {} PRD: {} COU: {}",
             self.additional_damages(),
             match self.rupture() { Some(rup) => rup.to_string(), None => "None".to_string() },
-            self.attack_mod(),
-            self.parry_mod(),
-            self.courage_mod(),
+            self.value(&StatKind::Attack),
+            self.value(&StatKind::Parry),
+            self.value(&StatKind::Courage),
         ).as_str();
 
         str

@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::assault::common_traits::ReduceDamages;
 use crate::equipment::protection::{CanWearProtection, OptionalMutableProtection, Protection, ProtectionKind};
-use crate::stats::StatModifier;
+use crate::stats::{StatKind, StatModifier};
 
 use super::body_part::{
     BodyPart,
@@ -199,62 +199,14 @@ impl ReduceDamages for Body {
 }
 
 impl StatModifier for Body {
-    fn attack_mod(&self) -> i8 {
+    fn value(&self, stat: &StatKind) -> i8 {        
         let mut modifier = 0;
         for injury in self.injuries() {
-            modifier += injury.attack_mod();
+            modifier += injury.value(stat);
         }
         for body_part_kind in PROTECTABLE_BODY_PARTS {
             if let Some(body_part) = self.body_part(&body_part_kind) {
-                modifier += body_part.attack_mod();
-            }
-        }
-        modifier
-    }
-    fn parry_mod(&self) -> i8 {
-        let mut modifier = 0;
-        for injury in self.injuries() {
-            modifier += injury.parry_mod();
-        }
-        for body_part_kind in PROTECTABLE_BODY_PARTS {
-            if let Some(body_part) = self.body_part(&body_part_kind) {
-                modifier += body_part.parry_mod();
-            }
-        }
-        modifier
-    }
-    fn courage_mod(&self) -> i8 {
-        let mut modifier = 0;
-        for injury in self.injuries() {
-            modifier += injury.courage_mod();
-        }
-        for body_part_kind in PROTECTABLE_BODY_PARTS {
-            if let Some(body_part) = self.body_part(&body_part_kind) {
-                modifier += body_part.courage_mod();
-            }
-        }
-        modifier
-    }
-    fn dexterity_mod(&self) -> i8 {
-        let mut modifier = 0;
-        for injury in self.injuries() {
-            modifier += injury.dexterity_mod();
-        }
-        for body_part_kind in PROTECTABLE_BODY_PARTS {
-            if let Some(body_part) = self.body_part(&body_part_kind) {
-                modifier += body_part.dexterity_mod();
-            }
-        }
-        modifier
-    }
-    fn strength_mod(&self) -> i8 {
-        let mut modifier = 0;
-        for injury in self.injuries() {
-            modifier += injury.strength_mod();
-        }
-        for body_part_kind in PROTECTABLE_BODY_PARTS {
-            if let Some(body_part) = self.body_part(&body_part_kind) {
-                modifier += body_part.strength_mod();
+                modifier += body_part.value(stat);
             }
         }
         modifier

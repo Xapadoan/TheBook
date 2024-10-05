@@ -2,6 +2,15 @@ use serde::{Deserialize, Serialize};
 
 use crate::{dice::Dice, random::Random};
 
+#[derive(Debug, Clone)]
+pub enum StatKind {
+    Attack,
+    Parry,
+    Courage,
+    Dexterity,
+    Strength,
+}
+
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub enum Stat {
     Attack(u8),
@@ -42,29 +51,16 @@ impl Stat {
 }
 
 pub trait StatModifier {
-    fn attack_mod(&self) -> i8;
-    fn parry_mod(&self) -> i8;
-    fn strength_mod(&self) -> i8;
-    fn dexterity_mod(&self) -> i8;
-    fn courage_mod(&self) -> i8;
     fn modify_stat(&self, base: Stat) -> Stat {
         match base {
-            Stat::Attack(_) => base.modify(self.attack_mod()),
-            Stat::Parry(_) => base.modify(self.parry_mod()),
-            Stat::Strength(_) => base.modify(self.strength_mod()),
-            Stat::Dexterity(_) => base.modify(self.dexterity_mod()),
-            Stat::Courage(_) => base.modify(self.courage_mod()),
+            Stat::Attack(_) => base.modify(self.value(&StatKind::Attack)),
+            Stat::Parry(_) => base.modify(self.value(&StatKind::Parry)),
+            Stat::Strength(_) => base.modify(self.value(&StatKind::Strength)),
+            Stat::Dexterity(_) => base.modify(self.value(&StatKind::Dexterity)),
+            Stat::Courage(_) => base.modify(self.value(&StatKind::Courage)),
         }
     }
-    fn value(&self, stat: &Stat) -> i8 {
-        match stat {
-            Stat::Attack(_) => self.attack_mod(),
-            Stat::Parry(_) => self.parry_mod(),
-            Stat::Courage(_) => self.courage_mod(),
-            Stat::Dexterity(_) => self.dexterity_mod(),
-            Stat::Strength(_) => self.strength_mod(),
-        }
-    }
+    fn value(&self, stat: &StatKind) -> i8;
 }
 
 pub trait Stats {
@@ -81,24 +77,24 @@ pub struct StatsManager {
 }
 
 impl StatsManager {
-    pub fn nat_stat(&self, stat: &Stat) -> &Stat {
+    pub fn nat_stat(&self, stat: &StatKind) -> &Stat {
         match stat {
-            Stat::Attack(_) => &self.nat_attack,
-            Stat::Parry(_) => &self.nat_parry,
-            Stat::Courage(_) => &self.nat_courage,
-            Stat::Dexterity(_) => &self.nat_dexterity,
-            Stat::Strength(_) => &self.nat_strength,
+            StatKind::Attack => &self.nat_attack,
+            StatKind::Parry => &self.nat_parry,
+            StatKind::Courage => &self.nat_courage,
+            StatKind::Dexterity => &self.nat_dexterity,
+            StatKind::Strength => &self.nat_strength,
         }
     }
 
-    pub fn stat(&self, modifiers: &[Box<&dyn StatModifier>], stat: &Stat) -> Stat {
+    pub fn stat(&self, modifiers: &[Box<&dyn StatModifier>], stat: &StatKind) -> Stat {
         let mut real = self.nat_stat(stat).clone();
         for modifier in modifiers {
             real = real.modify(modifier.value(stat));
         }
         match stat {
-            Stat::Attack(_) => {
-                let dexterity = self.stat(modifiers, &Stat::Dexterity(0)).value();
+            StatKind::Attack => {
+                let dexterity = self.stat(modifiers, &StatKind::Dexterity).value();
                 if dexterity > 12 {
                     real = real.modify(dexterity as i8 - 12);
                 } else if dexterity < 9 {
@@ -111,13 +107,13 @@ impl StatsManager {
         real
     }
 
-    pub fn increment_nat_stat(&mut self, stat: &Stat) {
+    pub fn increment_nat_stat(&mut self, stat: &StatKind) {
         match stat {
-            &Stat::Attack(_) => self.nat_attack = self.nat_attack.modify(1),
-            &Stat::Parry(_) => self.nat_parry = self.nat_parry.modify(1),
-            &Stat::Courage(_) => self.nat_courage = self.nat_courage.modify(1),
-            &Stat::Dexterity(_) => self.nat_dexterity = self.nat_dexterity.modify(1),
-            &Stat::Strength(_) => self.nat_strength = self.nat_strength.modify(1),
+            &StatKind::Attack => self.nat_attack = self.nat_attack.modify(1),
+            &StatKind::Parry => self.nat_parry = self.nat_parry.modify(1),
+            &StatKind::Courage => self.nat_courage = self.nat_courage.modify(1),
+            &StatKind::Dexterity => self.nat_dexterity = self.nat_dexterity.modify(1),
+            &StatKind::Strength => self.nat_strength = self.nat_strength.modify(1),
         }
     }
 }
