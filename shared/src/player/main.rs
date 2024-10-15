@@ -5,7 +5,7 @@ use crate::inventory::{HasInventory, HasMutableInventory, Inventory};
 use crate::unique_entity::UniqueEntity;
 use crate::warrior::{MutableWarriorCollection, Warrior, WarriorCollection};
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Player {
     uuid: Uuid,
     username: String,

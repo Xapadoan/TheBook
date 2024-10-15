@@ -1,9 +1,8 @@
 use std::fmt;
 
-use server::api;
-use shared::{auth::Session, unique_entity::UniqueEntity};
+use shared::auth::Session;
 
-use crate::prompt::select_with_keys;
+use crate::{fetcher::ApiFetcher, prompt::select_with_keys};
 
 use super::{shop_view, register_to_tournament, returning_warriors, warriors_view::warriors_view, ViewError};
 
@@ -44,7 +43,7 @@ pub fn main_view(session: &Session) -> Result<(), ViewError> {
                 match c {
                     MainViewChoice::ManageTournaments => {
                         returning_warriors(session)?;
-                        let player = api::players::read(session.uuid())?;
+                        let player = ApiFetcher::new(session).get("/player")?;
                         register_to_tournament(player)?;
                     },
                     MainViewChoice::ManageWarriors => {

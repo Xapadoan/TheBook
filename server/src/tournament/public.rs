@@ -1,12 +1,9 @@
-use std::{error::Error, fmt::Display, path::PathBuf};
+use std::{error::Error, fmt::Display};
 
-use shared::tournament::contestant::TournamentContestant;
 use shared::tournament::Tournament;
-use shared::warrior::Warrior;
-use uuid::Uuid;
 
 use crate::auth::AuthAPIError;
-use crate::repository::{FileRepository, Repository, RepositoryError};
+use crate::repository::RepositoryError;
 
 use super::manager::{TournamentManager, TournamentManagerError};
 
@@ -14,14 +11,6 @@ pub fn playable_tournament() -> Result<Tournament, TournamentAPIError> {
     let manager = TournamentManager::build()?;
     let tournament = manager.get_playable_tournament()?;
     Ok(tournament)
-}
-
-pub fn remove_contestant(warrior_uuid: &Uuid) -> Result<(), TournamentAPIError> {
-    let repo = FileRepository::build(PathBuf::from("saves/warriors"))?;
-    let mut warrior: Warrior = repo.get_by_uuid(warrior_uuid)?;
-    warrior.set_current_tournament(None);
-    repo.update(warrior_uuid, &warrior)?;
-    Ok(())
 }
 
 #[derive(Debug)]

@@ -55,10 +55,51 @@ pub mod replay {
     };
 }
 
+mod http {
+    mod app;
+    pub use app::run_server;
+    mod shop {
+        mod routes;
+        mod read;
+        pub use routes::shop_routes;
+    }
+    mod player {
+        mod auth;
+        mod routes;
+        mod read;
+        pub use routes::player_routes;
+        mod shop {
+            mod routes;
+            mod sell;
+            mod buy;
+            pub use routes::player_shop_routes;
+        }
+        mod tournaments {
+            mod routes;
+            mod new_replays;
+            pub use routes::player_tournaments_routes;
+        }
+        mod warriors {
+            mod routes;
+            mod tournaments {
+                mod routes;
+                mod remove_from_replay;
+                pub use routes::player_warrior_tournaments_routes;
+            }
+            mod player_warrior;
+            pub use routes::player_warriors_routes;
+        }
+    }
+    mod tournaments {
+        mod routes;
+        mod replay;
+        pub use routes::tournaments_routes;
+    }
+}
+
 mod tournament {
     pub mod auto_tournament;
     mod fight;
-    // pub use fight::{FightResult, FightResultKind};
     pub mod manager;
     pub mod public;
     mod bot_player_builder;
@@ -85,7 +126,7 @@ mod shop {
     mod error;
     pub use error::{ShopManagerError, ShopManagerErrorKind};
     mod public;
-    pub use public::{read_shop, ShopAPIError};
+    pub use public::read_shop;
 }
 
 pub mod api {
@@ -98,15 +139,12 @@ pub mod api {
     pub mod tournaments {
         pub use crate::tournament::public::{
             playable_tournament,
-            remove_contestant,
             TournamentAPIError,
         };
     }
 
     pub mod replay {
         pub use crate::replay::{
-            available_replays,
-            tournament_replay,
             fight_summary_for_warrior,
             fight_replay,
             fight_warriors,
@@ -116,8 +154,6 @@ pub mod api {
 
     pub mod players {
         pub use crate::player::{
-            warriors::{gen_random_warrior, remove_warrior},
-            read_player as read,
             register_contestant,
             PlayerAPIError,
         };
@@ -131,24 +167,12 @@ pub mod api {
                 read,
             };
         }
-        pub mod shop {
-            pub use crate::player::{
-                buy_item,
-                sell_item,
-            };
-        }
-    }
-
-    pub mod shop {
-        pub use crate::shop::{
-            read_shop,
-            ShopAPIError,
-        };
     }
 }
 
 use std::error::Error;
 
+use http::run_server;
 use shop::ShopManager;
 use tournament::manager::TournamentManager;
 
@@ -158,6 +182,9 @@ pub fn run(config: &Config) -> Result<(), Box<dyn Error>> {
     }
     if config.reset_shop {
         ShopManager::reset_shop()?;
+    }
+    if config.start_server {
+        run_server();
     }
     Ok(())
 }
@@ -172,6 +199,7 @@ fn run_tournaments() -> Result<(), Box<dyn Error>> {
 pub struct Config {
     run_tournaments: bool,
     reset_shop: bool,
+    start_server: bool,
 }
 
 impl Config {
@@ -179,6 +207,7 @@ impl Config {
         let mut config = Self {
             run_tournaments: false,
             reset_shop: false,
+            start_server: false,
         };
 
         for arg in args {
@@ -186,6 +215,8 @@ impl Config {
                 config.run_tournaments = true;
             } else if arg == "--reset-shop" {
                 config.reset_shop = true;
+            } else if arg == "--start-server" {
+                config.start_server = true;
             }
         }
         config

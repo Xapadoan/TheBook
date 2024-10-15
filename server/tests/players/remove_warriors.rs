@@ -1,7 +1,7 @@
 use std::error::Error;
 
 use server::{
-    api::players::remove_warrior,
+    api::players::warriors::remove,
     repository::{PlayerRepository, Repository},
 };
 use shared::{
@@ -22,7 +22,7 @@ fn warrior_items_go_back_to_player_inventory() -> Result<(), Box<dyn Error>> {
     let repo = PlayerRepository::build()?;
     let player = create_player(&repo, vec![warrior])?;
     let player_uuid = player.uuid().clone();
-    remove_warrior(&player_uuid, &warrior_uuid)?;
+    remove(&player_uuid, &warrior_uuid)?;
     let player = repo.get_by_uuid(&player_uuid)?;
 
     assert!(player.inventory().items().len() > 0);

@@ -14,6 +14,7 @@ mod prompt {
         swap_select_with_arrows,
     };
 }
+mod fetcher;
 
 mod view {
     mod view_error;
@@ -79,8 +80,7 @@ mod auth {
 }
 
 pub fn run() -> Result<(), view::ViewError> {
-    let mut player = view::authenticate_player()?;
-    view::main_view(&mut player)?;
-    // view::register_to_tournament(&mut player)?;
+    let mut session = view::authenticate_player()?;
+    view::main_view(&mut session)?;
     Ok(())
 }

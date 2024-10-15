@@ -1,14 +1,14 @@
 use std::fmt;
 
-use server::api;
 use shared::{
     auth::Session,
     inventory::{GoldValue, HasInventory, Item},
-    unique_entity::UniqueEntity,
+    player::Player,
+    shop::Shop,
 };
 use uuid::Uuid;
 
-use crate::{prompt::select_with_keys, show::ShowSelfExtended};
+use crate::{fetcher::ApiFetcher, prompt::select_with_keys, show::ShowSelfExtended};
 
 use super::ViewError;
 
@@ -51,8 +51,9 @@ pub fn shop_view(session: &Session) -> Result<(), ViewError> {
 }
 
 fn buy_items_view(session: &Session) -> Result<(), ViewError> {
-    let mut player = api::players::read(session.uuid())?;
-    let shop = api::shop::read_shop()?;
+    let fetcher = ApiFetcher::new(session);
+    let mut player: Player = fetcher.get("/player")?;
+    let shop: Shop = ApiFetcher::new(session).get("/shop")?;
     let options: Vec<(&Uuid, &Item)> = shop.inventory().items()
         .iter()
         .collect();
@@ -62,15 +63,19 @@ fn buy_items_view(session: &Session) -> Result<(), ViewError> {
         &options_as_reference,
         |(_, item)| { format!("{} ({} gold)", item.show_self_extended(), item.gold_value()) },
     )? {
-        api::players::shop::buy_item(player.uuid(), id)?;
-        player = api::players::read(session.uuid())?;
+        fetcher.patch::<(), Item>(
+            format!("/player/shop/buy/{}", id.to_string()).as_str(),
+            (),
+        )?;
+        player = fetcher.get("/player")?;
     }
     Ok(())
 }
 
 fn sell_items_view(session: &Session) -> Result<(), ViewError> {
     loop {
-        let player = api::players::read(session.uuid())?;
+        let fetcher = ApiFetcher::new(session);
+        let player: Player = fetcher.get("/player")?;
         let options: Vec<(&Uuid, &Item)> = player.inventory().items()
             .iter()
             .collect();
@@ -83,7 +88,12 @@ fn sell_items_view(session: &Session) -> Result<(), ViewError> {
                 format!("{} ({} gold)", item.show_self_extended(), value)
             },
         )? {
-            Some((id, _)) => { api::players::shop::sell_item(player.uuid(), id)?; },
+            Some((id, _)) => {
+                fetcher.patch::<(), Player>(
+                    format!("/player/shop/sell/{}", id.to_string()).as_str(),
+                    (),
+                )?;
+            },
             None => { return Ok(()) },
         }
     }

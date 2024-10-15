@@ -1,8 +1,8 @@
 use std::error::Error;
 use std::fmt::Display;
+use std::io;
 
 use server::api::auth::AuthAPIError;
-use server::api::shop::ShopAPIError;
 use server::api::{
     players::PlayerAPIError,
     replay::ReplayAPIError,
@@ -11,6 +11,7 @@ use server::api::{
 use shared::player::PlayerBuildError;
 
 use crate::auth::SessionError;
+use crate::fetcher::ApiFetcherError;
 use crate::prompt::PromptError;
 
 #[derive(Debug)]
@@ -74,8 +75,14 @@ impl From<AuthAPIError> for ViewError {
     }
 }
 
-impl From<ShopAPIError> for ViewError {
-    fn from(value: ShopAPIError) -> Self {
-        Self::new(format!("Shop API Error:\n{value}"))
+impl From<ApiFetcherError> for ViewError {
+    fn from(value: ApiFetcherError) -> Self {
+        Self::new(format!("ureq Error:\n{value}"))
+    }
+}
+
+impl From<io::Error> for ViewError {
+    fn from(value: io::Error) -> Self {
+        Self::new(format!("io Error:\n{value}"))
     }
 }

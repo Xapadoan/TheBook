@@ -2,16 +2,14 @@ use std::collections::HashMap;
 use std::error::Error;
 use std::fmt::Display;
 
-use shared::{replay::{FightReplay, FightReplaySummary}, tournament::Tournament, warrior::Warrior};
+use shared::{player::Player, replay::{FightReplay, FightReplaySummary}, tournament::Tournament, warrior::Warrior};
 use uuid::Uuid;
 
-use crate::repository::{PlayerRepository, Repository, RepositoryError};
+use crate::repository::RepositoryError;
 
 use super::manager::{ReplayManager, ReplayManagerError};
 
-pub fn available_replays(player_uuid: &Uuid) -> Result<HashMap<Uuid, Vec<Uuid>>, ReplayAPIError> {
-    let player_repo = PlayerRepository::build()?;
-    let player = player_repo.get_by_uuid(player_uuid)?;
+pub fn available_replays(player: &Player) -> Result<HashMap<Uuid, Vec<Uuid>>, ReplayAPIError> {
     let map = ReplayManager::map_warriors_to_replays(&player)?;
     Ok(map)
 }

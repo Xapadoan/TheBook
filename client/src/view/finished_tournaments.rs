@@ -1,25 +1,32 @@
+use std::collections::HashMap;
+
 use shared::auth::Session;
 use shared::health::IsDead;
 use shared::name::Name;
 use shared::player::Player;
+use shared::tournament::Tournament;
 use shared::unique_entity::UniqueEntity;
 use shared::warrior::{Warrior, WarriorCollection};
 use uuid::Uuid;
 
 use server::api;
+use crate::fetcher::ApiFetcher;
 use crate::prompt::{prompt_bool, swap_select_with_keys};
 use crate::show::ShowWarriorFightReplay;
 
 use super::view_error::ViewError;
 
 pub fn returning_warriors(session: &Session) -> Result<(), ViewError> {
-    let player = api::players::read(session.uuid())?;
-    let mut map = api::replay::available_replays(player.uuid())?;
+    let fetcher = ApiFetcher::new(session);
+    let player: Player = fetcher.get("/player")?;
+    let mut map: HashMap<Uuid, Vec<Uuid>> = fetcher.get("/player/tournaments/new-replays")?;
     for (tournament_uuid, warrior_uuids) in map.iter_mut() {
-        let tournament = api::replay::tournament_replay(tournament_uuid)?;
+        let tournament_replay: Tournament = fetcher.get(
+            format!("/tournaments/{}/replay", tournament_uuid.to_string()).as_str()
+        )?;
         let show_replay = prompt_bool(&format!(
             "The {} tournament ended, {} of your warriors were there do you want to see what happened ?",
-            tournament.name(),
+            tournament_replay.name(),
             warrior_uuids.len(),
         ))?;
         if !show_replay {
@@ -40,9 +47,12 @@ pub fn returning_warriors(session: &Session) -> Result<(), ViewError> {
                 break 'show_warrior;
             }
             let warrior = warrior.unwrap();
-            let number_of_rounds = tournament.number_of_rounds();
+            let number_of_rounds = tournament_replay.number_of_rounds();
             show_warrior_tournament(tournament_uuid, warrior, number_of_rounds)?;
-            api::tournaments::remove_contestant(warrior.uuid())?;
+            fetcher.patch::<(), ()>(
+                format!("/player/warriors/{}/tournaments/remove-from-replay", warrior.uuid().to_string()).as_str(),
+                (),
+            )?;
         }
     }
     replace_dead_warriors(player)?;
@@ -101,8 +111,8 @@ fn replace_dead_warriors(player: Player) -> Result<(), ViewError> {
                 "{} died during the last tournament, all his items have been sent to your inventory",
                 warrior.name(),
             );
-            api::players::remove_warrior(player.uuid(), warrior.uuid())?;
-            let new_warrior = api::players::gen_random_warrior(player.uuid())?;
+            api::players::warriors::remove(player.uuid(), warrior.uuid())?;
+            let new_warrior = api::players::warriors::gen_random(player.uuid())?;
             println!("{} will join your team", new_warrior.name());
         }
     }

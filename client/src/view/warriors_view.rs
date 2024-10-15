@@ -16,6 +16,7 @@ use shared::warrior::body::HasBody;
 use shared::warrior::{Warrior, WarriorCollection};
 use uuid::Uuid;
 
+use crate::fetcher::ApiFetcher;
 use crate::prompt::{select_with_arrows, select_with_keys};
 use crate::show::{CharacterSheet, ShowSelf, ShowSelfExtended};
 
@@ -44,7 +45,7 @@ impl fmt::Display for WarriorManagementChoice {
 
 pub fn warriors_view(session: &Session) -> Result<(), ViewError> {
     loop {
-        let player = api::players::read(session.uuid())?;
+        let player: Player = ApiFetcher::new(session).get("/player")?;
         let warriors: Vec<&Warrior> = player.warriors()
             .iter()
             .filter(|w| w.current_tournament().is_none())
