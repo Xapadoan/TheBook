@@ -1,12 +1,21 @@
-use axum::{routing::get, Router};
+use axum::{routing::{get, patch}, Router};
 
-use super::{auth::player_auth, read::read_player, shop::player_shop_routes, tournaments::player_tournaments_routes, warriors::player_warriors_routes};
+use crate::http::middlewares::session_auth;
+
+use super::{
+    read::read_player,
+    tournaments::player_tournaments_routes,
+    warriors::player_warriors_routes,
+    buy_item::buy_item,
+    sell_item::sell_item,
+};
 
 pub fn player_routes() -> Router {
     Router::new()
         .route("/", get(read_player))
-        .nest("/shop", player_shop_routes())
+        .route("/buy-item", patch(buy_item))
+        .route("/sell-item", patch(sell_item))
         .nest("/tournaments", player_tournaments_routes())
         .nest("/warriors", player_warriors_routes())
-        .layer(axum::middleware::from_fn(player_auth))
+        .layer(axum::middleware::from_fn(session_auth))
 }

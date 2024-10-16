@@ -2,7 +2,7 @@ use axum::{extract::{Path, Request}, http::StatusCode, middleware::Next, respons
 use shared::{player::Player, unique_entity::UniqueEntity, warrior::WarriorCollection};
 use uuid::Uuid;
 
-pub async fn player_warrior(
+pub async fn get_player_warrior(
     Extension(player): Extension<Player>,
     Path(warrior_uuid): Path<Uuid>,
     mut req: Request,
@@ -17,5 +17,4 @@ pub async fn player_warrior(
             Ok(next.run(req).await)
         }
     }
-
 }

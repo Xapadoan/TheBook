@@ -1,11 +1,13 @@
-use axum::Router;
+use axum::{routing::patch, Router};
 
-use super::{player_warrior::player_warrior, tournaments::player_warrior_tournaments_routes};
+use crate::http::middlewares::get_player_warrior;
+
+use super::remove_from_replay::remove_warrior_from_replay;
 
 pub fn player_warriors_routes() -> Router {
     let single_warrior_routes = Router::new()
-        .nest("/tournaments", player_warrior_tournaments_routes())
-        .layer(axum::middleware::from_fn(player_warrior));
+        .route("/remove-from-replay", patch(remove_warrior_from_replay))
+        .layer(axum::middleware::from_fn(get_player_warrior));
     Router::new()
         .nest("/:warrior_id", single_warrior_routes)
 }

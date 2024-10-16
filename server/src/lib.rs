@@ -58,22 +58,23 @@ pub mod replay {
 mod http {
     mod app;
     pub use app::run_server;
+    mod middlewares {
+        mod auth;
+        pub use auth::session_auth;
+        mod get_player_warrior;
+        pub use get_player_warrior::get_player_warrior;
+    }
     mod shop {
         mod routes;
         mod read;
         pub use routes::shop_routes;
     }
     mod player {
-        mod auth;
         mod routes;
         mod read;
+        mod buy_item;
+        mod sell_item;
         pub use routes::player_routes;
-        mod shop {
-            mod routes;
-            mod sell;
-            mod buy;
-            pub use routes::player_shop_routes;
-        }
         mod tournaments {
             mod routes;
             mod new_replays;
@@ -81,12 +82,7 @@ mod http {
         }
         mod warriors {
             mod routes;
-            mod tournaments {
-                mod routes;
-                mod remove_from_replay;
-                pub use routes::player_warrior_tournaments_routes;
-            }
-            mod player_warrior;
+            mod remove_from_replay;
             pub use routes::player_warriors_routes;
         }
     }

@@ -3,7 +3,7 @@ use uuid::Uuid;
 
 use crate::player::read_player;
 
-pub async fn player_auth(
+pub async fn session_auth(
     headers: HeaderMap,
     mut req: Request,
     next: Next
