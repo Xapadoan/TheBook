@@ -75,7 +75,7 @@ pub fn warriors_view(session: &Session) -> Result<(), ViewError> {
                 None => { break 'action_selection; },
                 Some(choice) => {
                     match choice {
-                        WarriorManagementChoice::ReplaceWeapon => replace_weapon_view(&player, &warrior)?,
+                        WarriorManagementChoice::ReplaceWeapon => replace_weapon_view(session, &warrior)?,
                         WarriorManagementChoice::EquipProtection => equip_protection_view(&player, &warrior)?,
                         WarriorManagementChoice::LevelUp => level_up_view(session, &warrior)?,
                     }
@@ -85,7 +85,9 @@ pub fn warriors_view(session: &Session) -> Result<(), ViewError> {
     }
 }
 
-fn replace_weapon_view(player: &Player, warrior: &Warrior) -> Result<(), ViewError> {
+fn replace_weapon_view(session: &Session, warrior: &Warrior) -> Result<(), ViewError> {
+    let fetcher = ApiFetcher::new(session);
+    let player: Player = fetcher.get("/player")?;
     let available_weapons: Vec<(&Uuid, &Weapon)> = player.inventory().items()
         .iter()
         .filter_map(|(id, item)| {
@@ -105,10 +107,12 @@ fn replace_weapon_view(player: &Player, warrior: &Warrior) -> Result<(), ViewErr
         None => return Ok(()),
     };
 
-    api::players::warriors::give_weapon(
-        player.uuid(),
-        warrior.uuid(),
-        &inventory_slot_uuid,
+    fetcher.patch::<Uuid, ()>(
+        format!(
+            "/player/warriors/{}/replace-weapon",
+            warrior.uuid(),
+        ).as_str(),
+        inventory_slot_uuid.clone(),
     )?;
     Ok(())
 }

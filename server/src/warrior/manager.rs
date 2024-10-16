@@ -23,6 +23,11 @@ impl WarriorManager {
         }
         Ok(())
     }
+
+    pub fn save(&self, warrior: &Warrior) -> Result<(), WarriorManagerError> {
+        self.repo.update(warrior.uuid(), warrior)?;
+        Ok(())
+    }
 }
 
 #[derive(Debug)]
