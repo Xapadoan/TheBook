@@ -77,7 +77,7 @@ pub fn warriors_view(session: &Session) -> Result<(), ViewError> {
                     match choice {
                         WarriorManagementChoice::ReplaceWeapon => replace_weapon_view(&player, &warrior)?,
                         WarriorManagementChoice::EquipProtection => equip_protection_view(&player, &warrior)?,
-                        WarriorManagementChoice::LevelUp => level_up_view(&player, &warrior)?,
+                        WarriorManagementChoice::LevelUp => level_up_view(session, &warrior)?,
                     }
                 },
             }
@@ -166,7 +166,7 @@ fn equip_protection_view(player: &Player, warrior: &Warrior) -> Result<(), ViewE
     Ok(())
 }
 
-fn level_up_view(player: &Player, warrior: &Warrior) -> Result<(), ViewError> {
+fn level_up_view(session: &Session, warrior: &Warrior) -> Result<(), ViewError> {
     let sheet = CharacterSheet::new(warrior);
     let possible_stats = if (warrior.level() + 1) % 2 == 0 {
         [&StatKind::Courage, &StatKind::Dexterity, &StatKind::Strength].to_vec()
@@ -190,10 +190,9 @@ fn level_up_view(player: &Player, warrior: &Warrior) -> Result<(), ViewError> {
         Some(stat) => stat,
         None => return Ok(()),
     };
-    api::players::warriors::level_up(
-        player.uuid(),
-        warrior.uuid(),
-        stat_to_increment,
+    ApiFetcher::new(session).patch(
+        format!("/player/warriors/{}/level-up", warrior.uuid().to_string()).as_str(),
+        stat_to_increment.clone(),
     )?;
     Ok(())
 }

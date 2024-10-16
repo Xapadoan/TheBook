@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{dice::Dice, random::Random};
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub enum StatKind {
     Attack,
     Parry,

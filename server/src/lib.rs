@@ -20,8 +20,6 @@ mod player {
         mod give_item;
         pub use give_item::{give_weapon, equip_protection};
         mod replace_protection;
-        mod level_up;
-        pub use level_up::level_up;
     }
     mod error;
     pub use error::PlayerAPIError;
@@ -87,6 +85,7 @@ mod http {
             mod routes;
             mod remove_from_replay;
             mod read;
+            mod level_up;
             pub use routes::player_warriors_routes;
         }
     }
@@ -160,7 +159,6 @@ pub mod api {
                 gen_random_warrior as gen_random,
                 remove_warrior as remove,
                 equip_protection,
-                level_up,
             };
         }
     }
