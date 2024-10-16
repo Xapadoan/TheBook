@@ -33,6 +33,8 @@ mod player {
     pub use tournaments::register_contestant;
     mod shop;
     pub use shop::{buy_item, sell_item};
+    mod manager;
+    pub use manager::PlayerManager;
 }
 
 pub mod replay {
@@ -63,6 +65,8 @@ mod http {
         pub use auth::session_auth;
         mod get_player_warrior;
         pub use get_player_warrior::get_player_warrior;
+        mod get_tournament;
+        pub use get_tournament::get_tournament;
     }
     mod shop {
         mod routes;
@@ -78,6 +82,7 @@ mod http {
         mod tournaments {
             mod routes;
             mod new_replays;
+            mod register_warriors;
             pub use routes::player_tournaments_routes;
         }
         mod warriors {
@@ -149,10 +154,7 @@ pub mod api {
     }
 
     pub mod players {
-        pub use crate::player::{
-            register_contestant,
-            PlayerAPIError,
-        };
+        pub use crate::player::PlayerAPIError;
         pub mod warriors {
             pub use crate::player::warriors::{
                 give_weapon,

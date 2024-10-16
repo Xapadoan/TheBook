@@ -29,6 +29,10 @@ impl TournamentManager<FileRepository<Tournament>> {
 }
 
 impl<T: Repository<Tournament>> TournamentManager<T> {
+    pub fn get_tournament(&self, tournament_uuid: &Uuid) -> Result<Tournament, TournamentManagerError> {
+        let tournament = self.repo.get_by_uuid(tournament_uuid)?;
+        Ok(tournament)
+    }
     fn get_available_tournament(&self) -> Result<Option<Tournament>, TournamentManagerError> {
         let all_tournaments_uuids = self.repo.list()?;
         for tournament_uuid in all_tournaments_uuids {
@@ -79,8 +83,12 @@ impl<T: Repository<Tournament>> TournamentManager<T> {
         }
     }
 
-    pub fn register_contestant(&self, player_uuid: &Uuid, tournament_uuid: &Uuid, warrior: &Warrior) -> Result<(), TournamentManagerError> {
-        let mut tournament = self.repo.get_by_uuid(tournament_uuid)?;
+    pub fn register_contestant(
+        &self,
+        player_uuid: &Uuid,
+        tournament: &mut Tournament,
+        warrior: &Warrior,
+    ) -> Result<(), TournamentManagerError> {
         tournament.add_contestant(player_uuid, warrior)?;
         self.repo.update(tournament.uuid(), &tournament)?;
         Ok(())

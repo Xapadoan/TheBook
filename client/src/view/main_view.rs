@@ -2,9 +2,15 @@ use std::fmt;
 
 use shared::auth::Session;
 
-use crate::{fetcher::ApiFetcher, prompt::select_with_keys};
+use crate::prompt::select_with_keys;
 
-use super::{shop_view, register_to_tournament, returning_warriors, warriors_view::warriors_view, ViewError};
+use super::{
+    shop_view,
+    register_to_tournament,
+    returning_warriors,
+    warriors_view::warriors_view,
+    ViewError,
+};
 
 enum MainViewChoice {
     ManageWarriors,
@@ -43,8 +49,7 @@ pub fn main_view(session: &Session) -> Result<(), ViewError> {
                 match c {
                     MainViewChoice::ManageTournaments => {
                         returning_warriors(session)?;
-                        let player = ApiFetcher::new(session).get("/player")?;
-                        register_to_tournament(player)?;
+                        register_to_tournament(session)?;
                     },
                     MainViewChoice::ManageWarriors => {
                         warriors_view(session)?;

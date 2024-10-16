@@ -64,7 +64,7 @@ fn buy_items_view(session: &Session) -> Result<(), ViewError> {
         |(_, item)| { format!("{} ({} gold)", item.show_self_extended(), item.gold_value()) },
     )? {
         fetcher.patch::<(), Item>(
-            format!("/player/shop/buy/{}", id.to_string()).as_str(),
+            format!("/player/buy-item/{}", id.to_string()).as_str(),
             (),
         )?;
         player = fetcher.get("/player")?;
@@ -90,7 +90,7 @@ fn sell_items_view(session: &Session) -> Result<(), ViewError> {
         )? {
             Some((id, _)) => {
                 fetcher.patch::<(), Player>(
-                    format!("/player/shop/sell/{}", id.to_string()).as_str(),
+                    format!("/player/sell-item/{}", id.to_string()).as_str(),
                     (),
                 )?;
             },

@@ -13,8 +13,8 @@ use super::{
 pub fn player_routes() -> Router {
     Router::new()
         .route("/", get(read_player))
-        .route("/buy-item", patch(buy_item))
-        .route("/sell-item", patch(sell_item))
+        .route("/buy-item/:slot_uuid", patch(buy_item))
+        .route("/sell-item/:slot_uuid", patch(sell_item))
         .nest("/tournaments", player_tournaments_routes())
         .nest("/warriors", player_warriors_routes())
         .layer(axum::middleware::from_fn(session_auth))
