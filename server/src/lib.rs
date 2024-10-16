@@ -22,8 +22,6 @@ mod player {
         mod replace_protection;
         mod level_up;
         pub use level_up::level_up;
-        mod read;
-        pub use read::read;
     }
     mod error;
     pub use error::PlayerAPIError;
@@ -88,6 +86,7 @@ mod http {
         mod warriors {
             mod routes;
             mod remove_from_replay;
+            mod read;
             pub use routes::player_warriors_routes;
         }
     }
@@ -162,7 +161,6 @@ pub mod api {
                 remove_warrior as remove,
                 equip_protection,
                 level_up,
-                read,
             };
         }
     }

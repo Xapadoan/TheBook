@@ -44,8 +44,9 @@ impl fmt::Display for WarriorManagementChoice {
 }
 
 pub fn warriors_view(session: &Session) -> Result<(), ViewError> {
+    let fetcher = ApiFetcher::new(session);
     loop {
-        let player: Player = ApiFetcher::new(session).get("/player")?;
+        let player: Player = fetcher.get("/player")?;
         let warriors: Vec<&Warrior> = player.warriors()
             .iter()
             .filter(|w| w.current_tournament().is_none())
@@ -59,7 +60,9 @@ pub fn warriors_view(session: &Session) -> Result<(), ViewError> {
             Some(warrior) => warrior.uuid(),
         };
         'action_selection: loop {
-            let warrior = api::players::warriors::read(player.uuid(), warrior_uuid)?;
+            let warrior: Warrior = fetcher.get(
+                format!("/player/warriors/{}", warrior_uuid.to_string()).as_str()
+            )?;
             let mut choices = CHOICES.to_vec();
             if warrior.can_level_up() {
                 choices.push(&WarriorManagementChoice::LevelUp);
