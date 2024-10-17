@@ -28,6 +28,23 @@ impl<'a> ApiFetcher<'a> {
         Ok(value)
     }
 
+    pub fn post<B: Serialize, T: DeserializeOwned>(&self, path: &str, body: B) -> Result<T, ApiFetcherError> {
+        let value = ureq::post(self.full_path(path).as_str())
+            .set("X-Session-Id", &self.session.uuid().to_string())
+            .set("Content-Type", "application/json")
+            .send_json(body)?
+            .into_json::<T>()?;
+        Ok(value)
+    }
+
+    pub fn delete<T: DeserializeOwned>(&self, path: &str) -> Result<T, ApiFetcherError> {
+        let value = ureq::delete(self.full_path(path).as_str())
+            .set("X-Session-Id", &self.session.uuid().to_string())
+            .call()?
+            .into_json::<T>()?;
+        Ok(value)
+    }
+
     pub fn new(session: &'a Session) -> Self {
         let backend_url = dotenv::var("BACKEND_URL");
         assert!(

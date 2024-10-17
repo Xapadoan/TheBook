@@ -11,10 +11,6 @@ mod auth {
 
 mod player {
     pub mod warriors {
-        mod gen_random_warrior;
-        pub use gen_random_warrior::gen_random_warrior;
-        mod remove_warrior;
-        pub use remove_warrior::remove_warrior;
         mod take_protections;
         pub use take_protections::TakeProtections;
         mod replace_protection;
@@ -87,6 +83,8 @@ mod http {
             mod level_up;
             mod replace_weapon;
             mod replace_protection;
+            mod remove_warrior;
+            mod gen_random_warrior;
             pub use routes::player_warriors_routes;
         }
     }
@@ -154,12 +152,6 @@ pub mod api {
 
     pub mod players {
         pub use crate::player::PlayerAPIError;
-        pub mod warriors {
-            pub use crate::player::warriors::{
-                gen_random_warrior as gen_random,
-                remove_warrior as remove,
-            };
-        }
     }
 }
 

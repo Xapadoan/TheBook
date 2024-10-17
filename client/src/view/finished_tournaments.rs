@@ -50,12 +50,12 @@ pub fn returning_warriors(session: &Session) -> Result<(), ViewError> {
             let number_of_rounds = tournament_replay.number_of_rounds();
             show_warrior_tournament(tournament_uuid, warrior, number_of_rounds)?;
             fetcher.patch::<(), ()>(
-                format!("/player/warriors/{}/tournaments/remove-from-replay", warrior.uuid().to_string()).as_str(),
+                format!("/player/warriors/{}/remove-from-replay", warrior.uuid().to_string()).as_str(),
                 (),
             )?;
         }
     }
-    replace_dead_warriors(player)?;
+    replace_dead_warriors(session)?;
     Ok(())
 }
 
@@ -104,15 +104,19 @@ fn show_warrior_tournament(
     Ok(())
 }
 
-fn replace_dead_warriors(player: Player) -> Result<(), ViewError> {
+fn replace_dead_warriors(session: &Session) -> Result<(), ViewError> {
+    let fetcher = ApiFetcher::new(session);
+    let player: Player = fetcher.get("/player")?;
     for warrior in player.warriors() {
         if warrior.is_dead() {
             println!(
                 "{} died during the last tournament, all his items have been sent to your inventory",
                 warrior.name(),
             );
-            api::players::warriors::remove(player.uuid(), warrior.uuid())?;
-            let new_warrior = api::players::warriors::gen_random(player.uuid())?;
+            fetcher.delete::<()>(
+                format!("/player/warriors/{}", warrior.uuid().to_string()).as_str()
+            )?;
+            let new_warrior: Warrior = fetcher.post("/player/warriors/random", ())?;
             println!("{} will join your team", new_warrior.name());
         }
     }

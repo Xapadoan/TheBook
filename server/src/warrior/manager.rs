@@ -28,6 +28,11 @@ impl WarriorManager {
         self.repo.update(warrior.uuid(), warrior)?;
         Ok(())
     }
+
+    pub fn create(&self, warrior: &Warrior) -> Result<(), WarriorManagerError> {
+        self.repo.create(warrior)?;
+        Ok(())
+    }
 }
 
 #[derive(Debug)]
