@@ -8,7 +8,7 @@ use shared::inventory::{HasMutableInventory, Item, MutableItems};
 use shared::player::Player;
 use shared::unique_entity::UniqueEntity;
 use shared::warrior::body::body_part::PROTECTABLE_BODY_PARTS;
-use shared::warrior::Warrior;
+use shared::warrior::{MutableWarriorCollection, Warrior};
 
 use crate::player::warriors::TakeProtections;
 use crate::repository::{FileRepository, PlayerRepository, Repository};
@@ -24,6 +24,7 @@ pub async fn remove_warrior(
     if let Some(weapon) = warrior.weapon_mut().take() {
         player.inventory_mut().add_item(Item::Weapon(weapon));
     }
+    player.take_warrior(warrior.uuid());
     let warrior_repo = FileRepository::build(PathBuf::from("saves/warriors"));
     if warrior_repo.is_err() { return Err(StatusCode::INTERNAL_SERVER_ERROR); }
     let warrior_repo: FileRepository<Warrior> = warrior_repo.unwrap();
