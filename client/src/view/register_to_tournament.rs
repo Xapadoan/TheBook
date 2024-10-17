@@ -1,8 +1,8 @@
-use server::api;
 use shared::auth::Session;
 use shared::name::Name;
 use shared::player::Player;
 use shared::tournament::contestant::TournamentContestant;
+use shared::tournament::Tournament;
 use shared::unique_entity::UniqueEntity;
 use shared::warrior::{Warrior, WarriorCollection};
 use uuid::Uuid;
@@ -15,8 +15,9 @@ use super::ViewError;
 
 pub fn register_to_tournament(session: &Session) -> Result<(), ViewError> {
     let fetcher = ApiFetcher::new(session);
+    eprintln!("[WARN] Should use try_join! here");
     let player: Player = fetcher.get("/player")?;
-    let tournament = api::tournaments::playable_tournament()?;
+    let tournament: Tournament = fetcher.get("/tournaments/playable")?;
     let send_warriors = prompt_bool(&format!(
         "A tournament, the {} will start soon, do you want to send warriors ?",
         tournament.name(),

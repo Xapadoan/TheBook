@@ -1,17 +1,9 @@
 use std::{error::Error, fmt::Display};
 
-use shared::tournament::Tournament;
-
 use crate::auth::AuthAPIError;
 use crate::repository::RepositoryError;
 
-use super::manager::{TournamentManager, TournamentManagerError};
-
-pub fn playable_tournament() -> Result<Tournament, TournamentAPIError> {
-    let manager = TournamentManager::build()?;
-    let tournament = manager.get_playable_tournament()?;
-    Ok(tournament)
-}
+use super::manager::TournamentManagerError;
 
 #[derive(Debug)]
 pub struct TournamentAPIError {
