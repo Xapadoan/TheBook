@@ -22,7 +22,7 @@ pub fn returning_warriors(session: &Session) -> Result<(), ViewError> {
     let mut map: HashMap<Uuid, Vec<Uuid>> = fetcher.get("/player/tournaments/new-replays")?;
     for (tournament_uuid, warrior_uuids) in map.iter_mut() {
         let tournament_replay: Tournament = fetcher.get(
-            format!("/tournaments/{}/replay", tournament_uuid.to_string()).as_str()
+            format!("/replays/{}", tournament_uuid.to_string()).as_str()
         )?;
         let show_replay = prompt_bool(&format!(
             "The {} tournament ended, {} of your warriors were there do you want to see what happened ?",

@@ -32,6 +32,7 @@ pub mod replay {
     mod fight_replay;
     pub use fight_replay::{FightReplayBuilder, FightReplayBuilderError};
     mod manager;
+    pub use manager::ReplayManager;
     mod tournament_replay;
     pub use tournament_replay::{TournamentReplayBuilder, TournamentReplayBuilderError};
     mod round_replay;
@@ -58,6 +59,8 @@ mod http {
         pub use get_player_warrior::get_player_warrior;
         mod get_tournament;
         pub use get_tournament::get_tournament;
+        mod get_replay;
+        pub use get_replay::get_replay;
     }
     mod shop {
         mod routes;
@@ -90,8 +93,13 @@ mod http {
     }
     mod tournaments {
         mod routes;
-        mod replay;
+        mod playable;
         pub use routes::tournaments_routes;
+    }
+    mod replays {
+        mod routes;
+        mod read;
+        pub use routes::replay_routes;
     }
 }
 
@@ -135,10 +143,7 @@ pub mod api {
         };
     }
     pub mod tournaments {
-        pub use crate::tournament::public::{
-            playable_tournament,
-            TournamentAPIError,
-        };
+        pub use crate::tournament::public::TournamentAPIError;
     }
 
     pub mod replay {
