@@ -1,6 +1,5 @@
 use std::fmt;
 
-use server::api;
 use shared::auth::Session;
 use shared::equipment::protection::{CanWearProtection, OptionalMutableProtection, Protection};
 use shared::equipment::weapon::Weapon;
@@ -11,7 +10,7 @@ use shared::player::Player;
 use shared::stats::StatKind;
 use shared::tournament::contestant::TournamentContestant;
 use shared::unique_entity::UniqueEntity;
-use shared::warrior::body::body_part::{BodyPart, OptionalBodyPart, PROTECTABLE_BODY_PARTS};
+use shared::warrior::body::body_part::{BodyPart, BodyPartKind, OptionalBodyPart, PROTECTABLE_BODY_PARTS};
 use shared::warrior::body::HasBody;
 use shared::warrior::{Warrior, WarriorCollection};
 use uuid::Uuid;
@@ -76,7 +75,7 @@ pub fn warriors_view(session: &Session) -> Result<(), ViewError> {
                 Some(choice) => {
                     match choice {
                         WarriorManagementChoice::ReplaceWeapon => replace_weapon_view(session, &warrior)?,
-                        WarriorManagementChoice::EquipProtection => equip_protection_view(&player, &warrior)?,
+                        WarriorManagementChoice::EquipProtection => equip_protection_view(session, &warrior)?,
                         WarriorManagementChoice::LevelUp => level_up_view(session, &warrior)?,
                     }
                 },
@@ -117,7 +116,7 @@ fn replace_weapon_view(session: &Session, warrior: &Warrior) -> Result<(), ViewE
     Ok(())
 }
 
-fn equip_protection_view(player: &Player, warrior: &Warrior) -> Result<(), ViewError> {
+fn equip_protection_view(session: &Session, warrior: &Warrior) -> Result<(), ViewError> {
     let available_body_parts: Vec<&BodyPart> = PROTECTABLE_BODY_PARTS.iter()
         .filter_map(|kind| {
             match warrior.body().body_part(kind) {
@@ -138,6 +137,8 @@ fn equip_protection_view(player: &Player, warrior: &Warrior) -> Result<(), ViewE
         Some(part) => part,
         None => { return Ok(()) },
     };
+    let fetcher = ApiFetcher::new(session);
+    let player: Player = fetcher.get("/player")?;
     let available_protections: Vec<(&Uuid, &Protection)> = player.inventory().items()
         .iter()
         .filter_map(|(id, item)| {
@@ -161,11 +162,12 @@ fn equip_protection_view(player: &Player, warrior: &Warrior) -> Result<(), ViewE
         None => return Ok(()),
     };
 
-    api::players::warriors::equip_protection(
-        player.uuid(),
-        warrior.uuid(),
-        body_part.kind(),
-        &inventory_slot_uuid,
+    fetcher.patch::<(BodyPartKind, Uuid), ()>(
+        format!(
+            "/player/warriors/{}/replace-protection",
+            warrior.uuid(),
+        ).as_str(),
+        (body_part.kind().clone(), inventory_slot_uuid.clone()),
     )?;
     Ok(())
 }

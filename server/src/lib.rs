@@ -17,9 +17,8 @@ mod player {
         pub use remove_warrior::remove_warrior;
         mod take_protections;
         pub use take_protections::TakeProtections;
-        mod give_item;
-        pub use give_item::equip_protection;
         mod replace_protection;
+        pub use replace_protection::ReplaceProtection;
     }
     mod error;
     pub use error::PlayerAPIError;
@@ -87,6 +86,7 @@ mod http {
             mod read;
             mod level_up;
             mod replace_weapon;
+            mod replace_protection;
             pub use routes::player_warriors_routes;
         }
     }
@@ -158,7 +158,6 @@ pub mod api {
             pub use crate::player::warriors::{
                 gen_random_warrior as gen_random,
                 remove_warrior as remove,
-                equip_protection,
             };
         }
     }
