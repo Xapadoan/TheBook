@@ -52,6 +52,11 @@ mod http {
         mod get_replay;
         pub use get_replay::get_replay;
     }
+    mod auth {
+        mod signup;
+        mod routes;
+        pub use routes::auth_routes;
+    }
     mod shop {
         mod routes;
         mod read;
@@ -124,15 +129,6 @@ mod shop {
     pub use error::{ShopManagerError, ShopManagerErrorKind};
     mod public;
     pub use public::read_shop;
-}
-
-pub mod api {
-    pub mod auth {
-        pub use crate::auth::{
-            signup,
-            AuthAPIError,
-        };
-    }
 }
 
 use std::error::Error;

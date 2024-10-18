@@ -2,7 +2,6 @@ use std::error::Error;
 use std::fmt::Display;
 use std::io;
 
-use server::api::auth::AuthAPIError;
 use shared::player::PlayerBuildError;
 
 use crate::auth::SessionError;
@@ -46,9 +45,9 @@ impl From<PromptError> for ViewError {
     }
 }
 
-impl From<AuthAPIError> for ViewError {
-    fn from(value: AuthAPIError) -> Self {
-        Self::new(format!("Auth API Error:\n{value}"))
+impl From<ureq::Error> for ViewError {
+    fn from(value: ureq::Error) -> Self {
+        Self::new(format!("Raw Request Error:\n{value}"))
     }
 }
 
@@ -61,5 +60,11 @@ impl From<ApiFetcherError> for ViewError {
 impl From<io::Error> for ViewError {
     fn from(value: io::Error) -> Self {
         Self::new(format!("io Error:\n{value}"))
+    }
+}
+
+impl From<dotenv::Error> for ViewError {
+    fn from(value: dotenv::Error) -> Self {
+        Self::new(format!("dotenv Error:\n{value}"))
     }
 }
