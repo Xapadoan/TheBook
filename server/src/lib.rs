@@ -37,16 +37,6 @@ pub mod replay {
     pub use tournament_replay::{TournamentReplayBuilder, TournamentReplayBuilderError};
     mod round_replay;
     pub use round_replay::{RoundReplayBuilder, RoundReplayBuilderError};
-    mod public;
-    pub use public::{
-        available_replays,
-        tournament_replay,
-        fight_summary_for_warrior,
-        fight_replay,
-        // to remove after merge with fight replay
-        fight_warriors,
-        ReplayAPIError,
-    };
 }
 
 mod http {
@@ -142,22 +132,6 @@ pub mod api {
             signup,
             AuthAPIError,
         };
-    }
-    pub mod tournaments {
-        pub use crate::tournament::public::TournamentAPIError;
-    }
-
-    pub mod replay {
-        pub use crate::replay::{
-            fight_summary_for_warrior,
-            fight_replay,
-            fight_warriors,
-            ReplayAPIError,
-        };
-    }
-
-    pub mod players {
-        pub use crate::player::PlayerAPIError;
     }
 }
 

@@ -4,13 +4,12 @@ use shared::auth::Session;
 use shared::health::IsDead;
 use shared::name::Name;
 use shared::player::Player;
-use shared::replay::FightReplay;
+use shared::replay::{FightReplay, FightReplaySummary};
 use shared::tournament::Tournament;
 use shared::unique_entity::UniqueEntity;
 use shared::warrior::{Warrior, WarriorCollection};
 use uuid::Uuid;
 
-use server::api;
 use crate::fetcher::{ApiFetcher, ToQueryString};
 use crate::prompt::{prompt_bool, swap_select_with_keys};
 use crate::show::ShowWarriorFightReplay;
@@ -70,10 +69,9 @@ fn show_warrior_tournament(
     let mut warrior_lost = false;
     while !warrior_lost && usize::from(round_index) < number_of_rounds {
         println!("Showing fight for round {} / {}", round_index + 1, number_of_rounds);
-        let fight_summary = api::replay::fight_summary_for_warrior(
-            tournament_uuid,
-            warrior.uuid(),
-            round_index,
+        let query = format!("warrior={}&round_index={round_index}", warrior.uuid().to_string());
+        let fight_summary: FightReplaySummary = fetcher.get(
+            format!("/replays/{tournament_uuid}/fight-summary-for-warrior?{query}").as_str()
         )?;
         let prompt: String = if fight_summary.winner().is_some_and(|uuid| &uuid == warrior.uuid()) {
             format!(

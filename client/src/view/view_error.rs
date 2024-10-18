@@ -3,11 +3,6 @@ use std::fmt::Display;
 use std::io;
 
 use server::api::auth::AuthAPIError;
-use server::api::{
-    players::PlayerAPIError,
-    replay::ReplayAPIError,
-    tournaments::TournamentAPIError,
-};
 use shared::player::PlayerBuildError;
 
 use crate::auth::SessionError;
@@ -48,24 +43,6 @@ impl From<PlayerBuildError> for ViewError {
 impl From<PromptError> for ViewError {
     fn from(value: PromptError) -> Self {
         Self::new(format!("Prompt Error:\n{value}"))
-    }
-}
-
-impl From<ReplayAPIError> for ViewError {
-    fn from(value: ReplayAPIError) -> Self {
-        Self::new(format!("Replay API Error:\n{value}"))
-    }
-}
-
-impl From<TournamentAPIError> for ViewError {
-    fn from(value: TournamentAPIError) -> Self {
-        Self::new(format!("Tournament API Error:\n{value}"))
-    }
-}
-
-impl From<PlayerAPIError> for ViewError {
-    fn from(value: PlayerAPIError) -> Self {
-        Self::new(format!("Player API Error:\n{value}"))
     }
 }
 
