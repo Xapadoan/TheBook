@@ -99,6 +99,7 @@ mod http {
     mod replays {
         mod routes;
         mod read;
+        mod fight;
         pub use routes::replay_routes;
     }
 }

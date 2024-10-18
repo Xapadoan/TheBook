@@ -4,13 +4,14 @@ use shared::auth::Session;
 use shared::health::IsDead;
 use shared::name::Name;
 use shared::player::Player;
+use shared::replay::FightReplay;
 use shared::tournament::Tournament;
 use shared::unique_entity::UniqueEntity;
 use shared::warrior::{Warrior, WarriorCollection};
 use uuid::Uuid;
 
 use server::api;
-use crate::fetcher::ApiFetcher;
+use crate::fetcher::{ApiFetcher, ToQueryString};
 use crate::prompt::{prompt_bool, swap_select_with_keys};
 use crate::show::ShowWarriorFightReplay;
 
@@ -48,7 +49,7 @@ pub fn returning_warriors(session: &Session) -> Result<(), ViewError> {
             }
             let warrior = warrior.unwrap();
             let number_of_rounds = tournament_replay.number_of_rounds();
-            show_warrior_tournament(tournament_uuid, warrior, number_of_rounds)?;
+            show_warrior_tournament(&fetcher, tournament_uuid, warrior, number_of_rounds)?;
             fetcher.patch::<(), ()>(
                 format!("/player/warriors/{}/remove-from-replay", warrior.uuid().to_string()).as_str(),
                 (),
@@ -60,6 +61,7 @@ pub fn returning_warriors(session: &Session) -> Result<(), ViewError> {
 }
 
 fn show_warrior_tournament(
+    fetcher: &ApiFetcher,
     tournament_uuid: &Uuid,
     warrior: &Warrior,
     number_of_rounds: usize,
@@ -95,8 +97,11 @@ fn show_warrior_tournament(
         };
         let show_fight_replay = prompt_bool(&prompt)?;
         if show_fight_replay {
-            let fight_replay = api::replay::fight_replay(tournament_uuid, &fight_summary)?;
-            let (mut warrior1, mut warrior2) = api::replay::fight_warriors(tournament_uuid, &fight_summary)?;
+            let path = format!("/replays/{tournament_uuid}/fight?{}", fight_summary.to_query_string());
+            let (
+                fight_replay,
+                (mut warrior1, mut warrior2),
+            ): (FightReplay, (Warrior, Warrior)) = fetcher.get(&path)?;
             fight_replay.show_warrior_fight_replay((&mut warrior1, &mut warrior2), warrior.uuid());
         }
         round_index += 1;

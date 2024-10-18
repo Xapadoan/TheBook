@@ -3,7 +3,7 @@ use std::{fmt::Display, io};
 use serde::{de::DeserializeOwned, Serialize};
 
 use dotenv;
-use shared::{auth::Session, unique_entity::UniqueEntity};
+use shared::{auth::Session, replay::FightReplaySummary, unique_entity::UniqueEntity};
 
 pub struct ApiFetcher<'a> {
     hostname: String,
@@ -82,5 +82,24 @@ impl Display for ApiFetcherError {
             Self::UReq(e) => write!(f, "Fetch error:\n {e:#?}"),
             Self::Io(e) => write!(f, "Deserialization Error:\n {e:#?}"),
         }
+    }
+}
+
+pub trait ToQueryString {
+    fn to_query_string(&self) -> String;
+}
+
+impl ToQueryString for FightReplaySummary {
+    fn to_query_string(&self) -> String {
+        let mut str = String::new();
+        str += format!("replay_uuid={}", self.replay_uuid().to_string()).as_str();
+        str += format!("&blue_corner_uuid={}", self.blue_corner_uuid().to_string()).as_str();
+        str += format!("&red_corner_uuid={}", self.red_corner_uuid().to_string()).as_str();
+        str += "&winner=";
+        if let Some(winner) = self.winner() {
+            str += winner.to_string().as_str();
+        }
+
+        str
     }
 }
