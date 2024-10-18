@@ -12,7 +12,7 @@ use crate::unique_entity::UniqueEntity;
 
 use super::{contestant::TournamentContestant, TournamentNameDictionary};
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Tournament {
     uuid: Uuid,
     name: String,

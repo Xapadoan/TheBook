@@ -1,6 +1,5 @@
 use std::fmt;
 
-use server::api;
 use shared::auth::Session;
 use shared::equipment::protection::{CanWearProtection, OptionalMutableProtection, Protection};
 use shared::equipment::weapon::Weapon;
@@ -11,11 +10,12 @@ use shared::player::Player;
 use shared::stats::StatKind;
 use shared::tournament::contestant::TournamentContestant;
 use shared::unique_entity::UniqueEntity;
-use shared::warrior::body::body_part::{BodyPart, OptionalBodyPart, PROTECTABLE_BODY_PARTS};
+use shared::warrior::body::body_part::{BodyPart, BodyPartKind, OptionalBodyPart, PROTECTABLE_BODY_PARTS};
 use shared::warrior::body::HasBody;
 use shared::warrior::{Warrior, WarriorCollection};
 use uuid::Uuid;
 
+use crate::fetcher::ApiFetcher;
 use crate::prompt::{select_with_arrows, select_with_keys};
 use crate::show::{CharacterSheet, ShowSelf, ShowSelfExtended};
 
@@ -43,8 +43,9 @@ impl fmt::Display for WarriorManagementChoice {
 }
 
 pub fn warriors_view(session: &Session) -> Result<(), ViewError> {
+    let fetcher = ApiFetcher::new(session);
     loop {
-        let player = api::players::read(session.uuid())?;
+        let player: Player = fetcher.get("/player")?;
         let warriors: Vec<&Warrior> = player.warriors()
             .iter()
             .filter(|w| w.current_tournament().is_none())
@@ -58,7 +59,9 @@ pub fn warriors_view(session: &Session) -> Result<(), ViewError> {
             Some(warrior) => warrior.uuid(),
         };
         'action_selection: loop {
-            let warrior = api::players::warriors::read(player.uuid(), warrior_uuid)?;
+            let warrior: Warrior = fetcher.get(
+                format!("/player/warriors/{}", warrior_uuid.to_string()).as_str()
+            )?;
             let mut choices = CHOICES.to_vec();
             if warrior.can_level_up() {
                 choices.push(&WarriorManagementChoice::LevelUp);
@@ -71,9 +74,9 @@ pub fn warriors_view(session: &Session) -> Result<(), ViewError> {
                 None => { break 'action_selection; },
                 Some(choice) => {
                     match choice {
-                        WarriorManagementChoice::ReplaceWeapon => replace_weapon_view(&player, &warrior)?,
-                        WarriorManagementChoice::EquipProtection => equip_protection_view(&player, &warrior)?,
-                        WarriorManagementChoice::LevelUp => level_up_view(&player, &warrior)?,
+                        WarriorManagementChoice::ReplaceWeapon => replace_weapon_view(session, &warrior)?,
+                        WarriorManagementChoice::EquipProtection => equip_protection_view(session, &warrior)?,
+                        WarriorManagementChoice::LevelUp => level_up_view(session, &warrior)?,
                     }
                 },
             }
@@ -81,7 +84,9 @@ pub fn warriors_view(session: &Session) -> Result<(), ViewError> {
     }
 }
 
-fn replace_weapon_view(player: &Player, warrior: &Warrior) -> Result<(), ViewError> {
+fn replace_weapon_view(session: &Session, warrior: &Warrior) -> Result<(), ViewError> {
+    let fetcher = ApiFetcher::new(session);
+    let player: Player = fetcher.get("/player")?;
     let available_weapons: Vec<(&Uuid, &Weapon)> = player.inventory().items()
         .iter()
         .filter_map(|(id, item)| {
@@ -101,15 +106,17 @@ fn replace_weapon_view(player: &Player, warrior: &Warrior) -> Result<(), ViewErr
         None => return Ok(()),
     };
 
-    api::players::warriors::give_weapon(
-        player.uuid(),
-        warrior.uuid(),
-        &inventory_slot_uuid,
+    fetcher.patch::<Uuid, ()>(
+        format!(
+            "/player/warriors/{}/replace-weapon",
+            warrior.uuid(),
+        ).as_str(),
+        inventory_slot_uuid.clone(),
     )?;
     Ok(())
 }
 
-fn equip_protection_view(player: &Player, warrior: &Warrior) -> Result<(), ViewError> {
+fn equip_protection_view(session: &Session, warrior: &Warrior) -> Result<(), ViewError> {
     let available_body_parts: Vec<&BodyPart> = PROTECTABLE_BODY_PARTS.iter()
         .filter_map(|kind| {
             match warrior.body().body_part(kind) {
@@ -130,6 +137,8 @@ fn equip_protection_view(player: &Player, warrior: &Warrior) -> Result<(), ViewE
         Some(part) => part,
         None => { return Ok(()) },
     };
+    let fetcher = ApiFetcher::new(session);
+    let player: Player = fetcher.get("/player")?;
     let available_protections: Vec<(&Uuid, &Protection)> = player.inventory().items()
         .iter()
         .filter_map(|(id, item)| {
@@ -153,16 +162,17 @@ fn equip_protection_view(player: &Player, warrior: &Warrior) -> Result<(), ViewE
         None => return Ok(()),
     };
 
-    api::players::warriors::equip_protection(
-        player.uuid(),
-        warrior.uuid(),
-        body_part.kind(),
-        &inventory_slot_uuid,
+    fetcher.patch::<(BodyPartKind, Uuid), ()>(
+        format!(
+            "/player/warriors/{}/replace-protection",
+            warrior.uuid(),
+        ).as_str(),
+        (body_part.kind().clone(), inventory_slot_uuid.clone()),
     )?;
     Ok(())
 }
 
-fn level_up_view(player: &Player, warrior: &Warrior) -> Result<(), ViewError> {
+fn level_up_view(session: &Session, warrior: &Warrior) -> Result<(), ViewError> {
     let sheet = CharacterSheet::new(warrior);
     let possible_stats = if (warrior.level() + 1) % 2 == 0 {
         [&StatKind::Courage, &StatKind::Dexterity, &StatKind::Strength].to_vec()
@@ -186,10 +196,9 @@ fn level_up_view(player: &Player, warrior: &Warrior) -> Result<(), ViewError> {
         Some(stat) => stat,
         None => return Ok(()),
     };
-    api::players::warriors::level_up(
-        player.uuid(),
-        warrior.uuid(),
-        stat_to_increment,
+    ApiFetcher::new(session).patch(
+        format!("/player/warriors/{}/level-up", warrior.uuid().to_string()).as_str(),
+        stat_to_increment.clone(),
     )?;
     Ok(())
 }

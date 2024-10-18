@@ -30,7 +30,7 @@ use crate::unique_entity::UniqueEntity;
 use super::body::{Body, HasBody, HasMutableBody};
 use super::names::WarriorNameDictionary;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Warrior {
     uuid: Uuid,
     name: String,

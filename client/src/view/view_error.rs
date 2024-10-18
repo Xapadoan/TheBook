@@ -1,16 +1,11 @@
 use std::error::Error;
 use std::fmt::Display;
+use std::io;
 
-use server::api::auth::AuthAPIError;
-use server::api::shop::ShopAPIError;
-use server::api::{
-    players::PlayerAPIError,
-    replay::ReplayAPIError,
-    tournaments::TournamentAPIError,
-};
 use shared::player::PlayerBuildError;
 
 use crate::auth::SessionError;
+use crate::fetcher::ApiFetcherError;
 use crate::prompt::PromptError;
 
 #[derive(Debug)]
@@ -50,32 +45,26 @@ impl From<PromptError> for ViewError {
     }
 }
 
-impl From<ReplayAPIError> for ViewError {
-    fn from(value: ReplayAPIError) -> Self {
-        Self::new(format!("Replay API Error:\n{value}"))
+impl From<ureq::Error> for ViewError {
+    fn from(value: ureq::Error) -> Self {
+        Self::new(format!("Raw Request Error:\n{value}"))
     }
 }
 
-impl From<TournamentAPIError> for ViewError {
-    fn from(value: TournamentAPIError) -> Self {
-        Self::new(format!("Tournament API Error:\n{value}"))
+impl From<ApiFetcherError> for ViewError {
+    fn from(value: ApiFetcherError) -> Self {
+        Self::new(format!("ureq Error:\n{value}"))
     }
 }
 
-impl From<PlayerAPIError> for ViewError {
-    fn from(value: PlayerAPIError) -> Self {
-        Self::new(format!("Player API Error:\n{value}"))
+impl From<io::Error> for ViewError {
+    fn from(value: io::Error) -> Self {
+        Self::new(format!("io Error:\n{value}"))
     }
 }
 
-impl From<AuthAPIError> for ViewError {
-    fn from(value: AuthAPIError) -> Self {
-        Self::new(format!("Auth API Error:\n{value}"))
-    }
-}
-
-impl From<ShopAPIError> for ViewError {
-    fn from(value: ShopAPIError) -> Self {
-        Self::new(format!("Shop API Error:\n{value}"))
+impl From<dotenv::Error> for ViewError {
+    fn from(value: dotenv::Error) -> Self {
+        Self::new(format!("dotenv Error:\n{value}"))
     }
 }

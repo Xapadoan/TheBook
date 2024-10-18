@@ -5,3 +5,5 @@ saves
 /data
 /local
 /sessions
+.env*
+!.env*.example

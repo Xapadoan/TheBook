@@ -1,17 +1,23 @@
-use server::api;
+use shared::auth::Session;
 use shared::name::Name;
 use shared::player::Player;
 use shared::tournament::contestant::TournamentContestant;
+use shared::tournament::Tournament;
 use shared::unique_entity::UniqueEntity;
 use shared::warrior::{Warrior, WarriorCollection};
+use uuid::Uuid;
 
+use crate::fetcher::ApiFetcher;
 use crate::prompt::{prompt_bool, swap_select_with_arrows};
 use crate::show::{ShowSelf, CharacterSheet};
 
 use super::ViewError;
 
-pub fn register_to_tournament(player: Player) -> Result<(), ViewError> {
-    let tournament = api::tournaments::playable_tournament()?;
+pub fn register_to_tournament(session: &Session) -> Result<(), ViewError> {
+    let fetcher = ApiFetcher::new(session);
+    eprintln!("[WARN] Should use try_join! here");
+    let player: Player = fetcher.get("/player")?;
+    let tournament: Tournament = fetcher.get("/tournaments/playable")?;
     let send_warriors = prompt_bool(&format!(
         "A tournament, the {} will start soon, do you want to send warriors ?",
         tournament.name(),
@@ -34,7 +40,10 @@ pub fn register_to_tournament(player: Player) -> Result<(), ViewError> {
         return Ok(())
     }
     let warrior = warrior.unwrap();
-    api::players::register_contestant(player.uuid(), tournament.uuid(), warrior.uuid())?;
+    fetcher.patch::<Vec<Uuid>, ()>(
+        format!("/player/tournaments/{}/register", tournament.uuid().to_string()).as_str(),
+        vec![warrior.uuid().clone()],
+    )?;
 
     println!("{} registers for {}", warrior.name(), tournament.name());
 

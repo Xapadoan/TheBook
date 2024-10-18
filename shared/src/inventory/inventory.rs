@@ -7,7 +7,7 @@ use super::item::{Item, MutableItems};
 
 const INVENTORY_MAX_SLOTS: usize = 32;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Inventory {
     gold: u32,
     items: HashMap<Uuid, Item>
