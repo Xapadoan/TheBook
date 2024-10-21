@@ -1,0 +1,12 @@
+services:
+  service:
+    container_name: server
+    build:
+      context: ..
+      dockerfile: ./server/Dockerfile
+    ports:
+      - 7878:7878
+    volumes:
+      - ./the_book_data:/the_book/data
+    environment:
+      - PORT=7878
