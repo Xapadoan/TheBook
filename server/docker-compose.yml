@@ -10,3 +10,4 @@ services:
       - ./the_book_data:/the_book/data
     environment:
       - PORT=7878
+    restart: always
