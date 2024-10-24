@@ -2,7 +2,7 @@ FROM rust:bullseye
 
 RUN apt update && apt upgrade -y
 RUN apt install cron -y
-RUN crontab -l | { cat; echo "0 0 * * * * ./server/target/release/server --run-tournaments"; } | crontab -
+RUN echo "15 * * * * ./server/target/release/server --run-tournaments" | crontab -
 
 WORKDIR /the_book
 
