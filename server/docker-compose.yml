@@ -1,0 +1,15 @@
+services:
+  service:
+    container_name: server
+    build:
+      context: ..
+      dockerfile: ./server/Dockerfile
+    ports:
+      - 7878:7878
+    volumes:
+      - ./data:/the_book/server/data
+      - ./sessions:/the_book/server/sessions
+      - ./saves:/the_book/server/saves
+    environment:
+      - PORT=7878
+    restart: always
