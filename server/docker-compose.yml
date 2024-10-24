@@ -7,9 +7,9 @@ services:
     ports:
       - 7878:7878
     volumes:
-      - ./data:/the_book/data
-      - ./sessions:/the_book/sessions
-      - ./saves:/the_book/saves
+      - ./data:/the_book/server/data
+      - ./sessions:/the_book/server/sessions
+      - ./saves:/the_book/server/saves
     environment:
       - PORT=7878
     restart: always
