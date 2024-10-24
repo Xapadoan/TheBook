@@ -15,7 +15,7 @@ build_client() {
     cp target/$TARGET/release/$FILENAME $TARGET/
     cp client/.env.client.example $TARGET/.env.client
 
-    tar -cf $TARGET.tar $TARGET/$FILENAME
+    tar -cf $TARGET.tar $TARGET/$FILENAME $TARGET/.env.client
     rm -rf $TARGET
 }
 
