@@ -7,7 +7,7 @@ services:
     ports:
       - 7878:7878
     volumes:
-      - ./the_book_data:/the_book/data
+      - ./data:/the_book/data
     environment:
       - PORT=7878
     restart: always

@@ -3,6 +3,7 @@ use std::fmt::Display;
 use std::path::PathBuf;
 
 use shared::inventory::HasMutableInventory;
+use shared::name::Name;
 use shared::player::{PlayerBuildError, PlayerBuilder};
 use shared::tournament::TournamentError;
 use shared::{random::Random, tournament::Tournament};
@@ -99,6 +100,7 @@ impl<T: Repository<Tournament>> TournamentManager<T> {
         let warriors_manager = WarriorManager::build()?;
         for uuid in tournaments_uuids {
             let mut tournament = self.repo.get_by_uuid(&uuid)?;
+            eprintln!("[DEBUG] Running tournament {} ({})", tournament.name(), &uuid);
             warriors_manager.apply_passive_healing(&tournament.contestants_ids())?;
             let bot_player_uuid = self.gen_bot_player(&mut tournament)?;
             tournament.auto()?;
