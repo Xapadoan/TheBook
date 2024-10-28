@@ -47,7 +47,30 @@ pub struct Weapon {
 }
 
 impl Weapon {
-    pub fn new(kind: WeaponKind) -> Self {
+    pub fn new(
+        name: String,
+        kind: WeaponKind,
+        is_sharp: bool,
+        is_two_handed: bool,
+        add_dmg: u8,
+        attack_mod: i8,
+        parry_mod: i8,
+        courage_mod: i8,
+        rupture: Option<u8>,
+    ) -> Self {
+        Self {
+            name,
+            kind,
+            is_sharp,
+            is_two_handed,
+            add_dmg,
+            attack_mod,
+            parry_mod,
+            courage_mod,
+            rupture,
+        }
+    }
+    pub fn from_kind(kind: WeaponKind) -> Self {
         match kind {
             WeaponKind::Sword => Self {
                 name: String::from("Shitty Sword"),
@@ -151,7 +174,7 @@ impl Rupture for Weapon {
 
 impl Random for Weapon {
     fn random() -> Self {
-       Self::new(WeaponKind::random()) 
+       Self::from_kind(WeaponKind::random()) 
     }
 }
 

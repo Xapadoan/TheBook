@@ -1,7 +1,7 @@
 use shared::equipment::{protection::{Protection, ProtectionKind}, rupture::{Rupture, RuptureTestResult, RUPTURE_MAX}};
 
 pub fn unbreakable_protection(kind: ProtectionKind) -> Protection {
-    let mut protection = Protection::new(kind);
+    let mut protection = Protection::from_kind(kind);
     protection.set_rupture(None);
     protection
 }
@@ -17,7 +17,7 @@ fn unbreakable_protection_never_fails_rupture_test() {
 }
 
 pub fn unreliable_protection(kind: ProtectionKind) -> Protection {
-    let mut protection = Protection::new(kind);
+    let mut protection = Protection::from_kind(kind);
     protection.set_rupture(Some(RUPTURE_MAX));
     protection
 }

@@ -35,7 +35,25 @@ impl Protection {
         self.amount
     }
 
-    pub fn new(kind: ProtectionKind) -> Self {
+    pub fn new(
+        name: String,
+        kind: ProtectionKind,
+        amount: u8,
+        rupture: Option<u8>,
+        dexterity_mod: i8,
+        courage_mod: i8,
+    ) -> Self {
+        Self {
+            name,
+            kind,
+            amount,
+            rupture,
+            dexterity_mod,
+            courage_mod,
+        }
+    }
+
+    pub fn from_kind(kind: ProtectionKind) -> Self {
         match kind {
             ProtectionKind::Armlets => Self {
                 kind,

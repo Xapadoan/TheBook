@@ -1,8 +1,10 @@
+use std::sync::Arc;
+
 use axum::{
     routing::{get, patch, post}, Router
 };
 
-use crate::http::middlewares::get_player_warrior;
+use crate::http::{app::AppState, middlewares::get_player_warrior};
 
 use super::{
     gen_random_warrior::gen_random_warrior,
@@ -14,7 +16,7 @@ use super::{
     replace_weapon::replace_weapon,
 };
 
-pub fn player_warriors_routes() -> Router {
+pub fn player_warriors_routes() -> Router<Arc<AppState>> {
     let single_warrior_routes = Router::new()
         .route("/", get(read_warrior).delete(remove_warrior))
         .route("/level-up", patch(level_up))

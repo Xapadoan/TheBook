@@ -1,13 +1,9 @@
 use std::{error::Error, fmt::{Debug, Display}};
 
-use shared::shop::Shop;
 
-use super::{ShopManager, ShopManagerError};
+use super::ShopManagerError;
 
-pub fn read_shop() -> Result<Shop, ShopAPIError> {
-    let shop = ShopManager::read_shop()?;
-    Ok(shop)
-}
+
 
 #[derive(Debug)]
 pub struct ShopAPIError {

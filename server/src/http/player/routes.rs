@@ -1,6 +1,8 @@
+use std::sync::Arc;
+
 use axum::{routing::{get, patch}, Router};
 
-use crate::http::middlewares::session_auth;
+use crate::http::{app::AppState, middlewares::session_auth};
 
 use super::{
     read::read_player,
@@ -10,7 +12,7 @@ use super::{
     sell_item::sell_item,
 };
 
-pub fn player_routes() -> Router {
+pub fn player_routes() -> Router<Arc<AppState>> {
     Router::new()
         .route("/", get(read_player))
         .route("/buy-item/:slot_uuid", patch(buy_item))

@@ -1,6 +1,6 @@
 services:
-  service:
-    container_name: server
+  the_book_server:
+    container_name: the_book_server
     build:
       context: ..
       dockerfile: ./server/Dockerfile
@@ -12,4 +12,22 @@ services:
       - ./saves:/the_book/server/saves
     environment:
       - PORT=7878
+      - DB_NAME=${DB_NAME}
+      - DB_HOST=the_book_db
+      - DB_USER=${DB_USER}
+      - DB_PASS=${DB_PASS}
+      - DATABASE_URL=mysql://${DB_USER}:${DB_PASS}@the_book_db:3306/${DB_NAME}
+    restart: always
+    depends_on:
+      - the_book_db
+  the_book_db:
+    container_name: the_book_db
+    image: mysql:8
+    environment:
+      - MYSQL_DATABASE=${DB_NAME}
+      - MYSQL_USER=${DB_USER}
+      - MYSQL_PASSWORD=${DB_PASS}
+      - MYSQL_RANDOM_ROOT_PASSWORD=yes
+    volumes:
+      - ./mysql-data:/var/lib/mysql
     restart: always

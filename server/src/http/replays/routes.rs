@@ -1,10 +1,12 @@
+use std::sync::Arc;
+
 use axum::{middleware, routing::get, Router};
 
-use crate::http::middlewares::get_replay;
+use crate::http::{app::AppState, middlewares::get_replay};
 
 use super::{fight::{read_fight_replay, read_fight_summary_for_warrior}, read::read_replay};
 
-pub fn replay_routes() -> Router {
+pub fn replay_routes() -> Router<Arc<AppState>> {
     let single_replay_router = Router::new()
         .route("/", get(read_replay))
         .route("/fight", get(read_fight_replay))

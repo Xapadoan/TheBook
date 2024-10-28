@@ -8,7 +8,7 @@ use crate::common::TestAssailant;
 fn victim_drops_protection_when_broken() {
     let mut assailant = TestAssailant::new();
     let mut victim = TestAssailant::new();
-    let protection = Protection::new(ProtectionKind::Gloves);
+    let protection = Protection::from_kind(ProtectionKind::Gloves);
     let body_part_kind = BodyPartKind::Hand(BodySide::Left);
     victim
         .body_mut()

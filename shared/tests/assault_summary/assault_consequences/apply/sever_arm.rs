@@ -10,7 +10,7 @@ fn gloves_should_be_transferred_to_inventory() {
     let affected_side = BodySide::Left;
     let protected_hand = BodyPartKind::Hand(affected_side.clone());
 
-    let glove = Protection::new(ProtectionKind::Gloves);
+    let glove = Protection::from_kind(ProtectionKind::Gloves);
     let glove_name = glove.name().to_string();
     victim.body_mut()
         .body_part_mut(&protected_hand)

@@ -1,5 +1,10 @@
 #!/bin/sh
 
-./server/target/release/server --reset-shop
+cd server
+
+cargo sqlx migrate run
+cargo build --release
+
+./target/release/server --reset-shop
 cron
-./server/target/release/server --start-server
+./target/release/server --start-server

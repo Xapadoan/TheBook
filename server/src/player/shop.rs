@@ -7,8 +7,8 @@ use crate::{repository::{PlayerRepository, Repository}, shop::ShopManager};
 
 use super::PlayerAPIError;
 
-pub fn buy_item(player: &mut Player, slot_uuid: &Uuid) -> Result<Option<Item>, PlayerAPIError> {
-    let mut shop = ShopManager::read_shop()?;
+pub async fn buy_item(shop_manager: &ShopManager<'_>, player: &mut Player, slot_uuid: &Uuid) -> Result<Option<Item>, PlayerAPIError> {
+    let mut shop = shop_manager.read_shop().await?;
     match shop.inventory_mut().remove_item(slot_uuid) {
         None => Ok(None),
         Some(item) => if player.inventory().gold() < item.gold_value() {

@@ -120,6 +120,21 @@ pub mod repository {
     pub use file_repository::FileRepository;
     mod player_repository;
     pub use player_repository::{PlayerRepository, PlayerDTOFile};
+    pub mod sql_repository {
+        pub mod models {
+            mod weapon_model;
+            pub use weapon_model::{NewWeaponModel, WeaponModel};
+            mod protection_model;
+            pub use protection_model::{NewProtectionModel, ProtectionModel};
+            mod model;
+            pub use model::Model;
+        }
+        mod schemas {
+            mod weapon_schemas;
+        }
+        mod pool;
+        pub use pool::gen_pool;
+    }
 }
 
 mod shop {
@@ -128,7 +143,7 @@ mod shop {
     mod error;
     pub use error::{ShopManagerError, ShopManagerErrorKind};
     mod public;
-    pub use public::read_shop;
+    // pub use public::read_shop;
 }
 
 use std::error::Error;
