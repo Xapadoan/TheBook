@@ -142,22 +142,16 @@ mod shop {
     pub use manager::ShopManager;
     mod error;
     pub use error::{ShopManagerError, ShopManagerErrorKind};
-    mod public;
-    // pub use public::read_shop;
 }
 
 use std::error::Error;
 
 use http::run_server;
-use shop::ShopManager;
 use tournament::manager::TournamentManager;
 
 pub fn run(config: &Config) -> Result<(), Box<dyn Error>> {
     if config.run_tournaments {
         run_tournaments()?;
-    }
-    if config.reset_shop {
-        ShopManager::reset_shop()?;
     }
     if config.start_server {
         run_server();
@@ -174,7 +168,6 @@ fn run_tournaments() -> Result<(), Box<dyn Error>> {
 
 pub struct Config {
     run_tournaments: bool,
-    reset_shop: bool,
     start_server: bool,
 }
 
@@ -182,15 +175,12 @@ impl Config {
     pub fn new(args: &[String]) -> Self {
         let mut config = Self {
             run_tournaments: false,
-            reset_shop: false,
             start_server: false,
         };
 
         for arg in args {
             if arg == "--run-tournaments" {
                 config.run_tournaments = true;
-            } else if arg == "--reset-shop" {
-                config.reset_shop = true;
             } else if arg == "--start-server" {
                 config.start_server = true;
             }
