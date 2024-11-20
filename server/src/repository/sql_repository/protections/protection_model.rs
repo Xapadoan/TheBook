@@ -3,10 +3,13 @@ use shared::equipment::protection::{Protection, ProtectionKind};
 use sqlx::prelude::FromRow;
 use uuid::Uuid;
 
-use super::Model;
-
 #[derive(Debug, Serialize, Deserialize, FromRow)]
-pub struct ProtectionKindColumnData(ProtectionKind);
+pub struct ProtectionKindColumnData(pub ProtectionKind);
+impl ProtectionKindColumnData {
+    pub fn as_str(&self) -> &'static str {
+        self.0.as_str()
+    }
+}
 impl From<String> for ProtectionKindColumnData {
     fn from(value: String) -> Self {
         if value == "Armlets" {
@@ -41,14 +44,10 @@ pub struct NewProtectionModel {
     pub courage_stat_modifier: i8,
     pub dexterity_stat_modifier: i8,
 }
-impl Model for NewProtectionModel {
-    fn table_name() -> &'static str {
-        "new_protections"
-    }
-}
 impl From<NewProtectionModel> for Protection {
     fn from(protection: NewProtectionModel) -> Self {
         Self::new(
+            Uuid::new_v4(),
             protection.name,
             protection.kind.0,
             protection.damage_reduction,
@@ -61,7 +60,7 @@ impl From<NewProtectionModel> for Protection {
 
 #[derive(Debug, Serialize, Deserialize,  FromRow)]
 pub struct ProtectionModel {
-    pub uuid: Uuid,
+    pub uuid: String,
     pub name: String,
     pub kind: ProtectionKindColumnData,
     pub rupture: Option<u8>,
@@ -69,8 +68,20 @@ pub struct ProtectionModel {
     pub courage_stat_modifier: i8,
     pub dexterity_stat_modifier: i8,
 }
-impl Model for ProtectionModel {
-    fn table_name() -> &'static str {
-        "protections"
+impl TryFrom<ProtectionModel> for Protection {
+    type Error = uuid::Error;
+
+    fn try_from(value: ProtectionModel) -> Result<Self, Self::Error> {
+        let protection = Self::new(
+            Uuid::parse_str(&value.uuid)?,
+            value.name,
+            value.kind.0,
+            value.damage_reduction,
+            value.rupture,
+            value.dexterity_stat_modifier,
+            value.courage_stat_modifier,
+        );
+
+        Ok(protection)
     }
 }

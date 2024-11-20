@@ -82,6 +82,56 @@ impl Body {
             right_pinky_finger: Some(BodyPart::new(BodyPartKind::Finger(BodySide::Right, FingerName::PinkyFinger))),
         }
     }
+    pub fn from_body_parts(parts: Vec<BodyPart>) -> Self {
+        let mut body = Self {
+            head: None,
+            left_eye: None, right_eye: None,
+            torso: None,
+            left_arm: None, right_arm: None,
+            left_hand: None, right_hand: None,
+            left_middle_finger: None, right_middle_finger: None,
+            left_pinky_finger: None, right_pinky_finger: None,
+            left_pointer_finger: None, right_pointer_finger: None,
+            left_ring_finger: None, right_ring_finger: None,
+            left_thumb: None, right_thumb: None,
+            genitals: None,
+            left_leg: None, right_leg: None,
+            left_knee: None, right_knee: None,
+            left_foot: None, right_foot: None,
+        };
+
+        for body_part in parts {
+            match body_part.kind() {
+                BodyPartKind::Head => body.head = Some(body_part),
+                BodyPartKind::Eye(BodySide::Left) => body.left_eye = Some(body_part),
+                BodyPartKind::Eye(BodySide::Right) => body.right_eye = Some(body_part),
+                BodyPartKind::Torso => body.torso = Some(body_part),
+                BodyPartKind::Arm(BodySide::Left) => body.left_arm = Some(body_part),
+                BodyPartKind::Arm(BodySide::Right) => body.right_arm = Some(body_part),
+                BodyPartKind::Hand(BodySide::Left) => body.left_hand = Some(body_part),
+                BodyPartKind::Hand(BodySide::Right) => body.right_hand = Some(body_part),
+                BodyPartKind::Finger(BodySide::Left, FingerName::MiddleFinger) => body.left_middle_finger = Some(body_part),
+                BodyPartKind::Finger(BodySide::Right, FingerName::MiddleFinger) => body.right_middle_finger = Some(body_part),
+                BodyPartKind::Finger(BodySide::Left, FingerName::PinkyFinger) => body.left_pinky_finger = Some(body_part),
+                BodyPartKind::Finger(BodySide::Right, FingerName::PinkyFinger) => body.right_pinky_finger = Some(body_part),
+                BodyPartKind::Finger(BodySide::Left, FingerName::PointerFinger) => body.left_pointer_finger = Some(body_part),
+                BodyPartKind::Finger(BodySide::Right, FingerName::PointerFinger) => body.right_pointer_finger = Some(body_part),
+                BodyPartKind::Finger(BodySide::Left, FingerName::RingFinger) => body.left_ring_finger = Some(body_part),
+                BodyPartKind::Finger(BodySide::Right, FingerName::RingFinger) => body.right_ring_finger = Some(body_part),
+                BodyPartKind::Finger(BodySide::Left, FingerName::Thumb) => body.left_thumb = Some(body_part),
+                BodyPartKind::Finger(BodySide::Right, FingerName::Thumb) => body.right_thumb = Some(body_part),
+                BodyPartKind::Genitals => body.genitals = Some(body_part),
+                BodyPartKind::Leg(BodySide::Left) => body.left_leg = Some(body_part),
+                BodyPartKind::Leg(BodySide::Right) => body.right_leg = Some(body_part),
+                BodyPartKind::Knee(BodySide::Left) => body.left_knee = Some(body_part),
+                BodyPartKind::Knee(BodySide::Right) => body.right_knee = Some(body_part),
+                BodyPartKind::Foot(BodySide::Left) => body.left_foot = Some(body_part),
+                BodyPartKind::Foot(BodySide::Right) => body.right_foot = Some(body_part),
+            }
+        }
+
+        body
+    }
 }
 
 impl OptionalMutableBodyPart for Body {

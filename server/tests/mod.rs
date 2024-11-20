@@ -1,2 +1,1 @@
-mod players;
-mod repository;
+mod public_api;

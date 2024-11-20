@@ -1,0 +1,2 @@
+FROM mysql:8
+COPY ./server/migrations/*.up.sql /docker-entrypoint-initdb.d/

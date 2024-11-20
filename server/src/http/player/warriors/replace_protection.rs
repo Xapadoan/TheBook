@@ -11,7 +11,7 @@ use uuid::Uuid;
 
 use crate::{
     player::warriors::ReplaceProtection,
-    repository::{PlayerRepository, Repository}, warrior::WarriorManager,
+    repository::{Repository}, warrior::WarriorManager,
 };
 
 pub async fn replace_protection(
@@ -19,28 +19,29 @@ pub async fn replace_protection(
     Extension(mut warrior): Extension<Warrior>,
     Json((body_part_kind, inventory_slot)): Json<(BodyPartKind, Uuid)>,
 ) -> Result<Json<Value>, StatusCode> {
-    let new_protection = take_protection_from_player(&mut player, &inventory_slot);
-    if let None = new_protection { return Err(StatusCode::NOT_FOUND); }
-    let new_protection = new_protection.unwrap();
-    let protection_to_store = warrior.replace_protection(&body_part_kind, new_protection);
-    if let Some(protection) = protection_to_store {
-        player.inventory_mut().add_item(Item::Protection(protection));
-    }
-    let player_repo = PlayerRepository::build();
-    if player_repo.is_err() { return Err(StatusCode::INTERNAL_SERVER_ERROR); }
-    let player_repo = player_repo.unwrap();
-    if player_repo.update(player.uuid(), &player).is_err() {
-        return Err(StatusCode::INTERNAL_SERVER_ERROR)
-    }
-    let warrior_manager = WarriorManager::build();
-    if warrior_manager.is_err() {
-        return Err(StatusCode::INTERNAL_SERVER_ERROR);
-    }
-    let warrior_manager = warrior_manager.unwrap();
-    if warrior_manager.save(&warrior).is_err() {
-        return Err(StatusCode::INTERNAL_SERVER_ERROR);
-    }
-    Ok(Json(json!(())))
+    panic!("Not implemented")
+    // let new_protection = take_protection_from_player(&mut player, &inventory_slot);
+    // if let None = new_protection { return Err(StatusCode::NOT_FOUND); }
+    // let new_protection = new_protection.unwrap();
+    // let protection_to_store = warrior.replace_protection(&body_part_kind, new_protection);
+    // if let Some(protection) = protection_to_store {
+    //     player.inventory_mut().add_item(Item::Protection(protection));
+    // }
+    // let player_repo = PlayersRepository::build();
+    // if player_repo.is_err() { return Err(StatusCode::INTERNAL_SERVER_ERROR); }
+    // let player_repo = player_repo.unwrap();
+    // if player_repo.update(player.uuid(), &player).is_err() {
+    //     return Err(StatusCode::INTERNAL_SERVER_ERROR)
+    // }
+    // let warrior_manager = WarriorManager::build();
+    // if warrior_manager.is_err() {
+    //     return Err(StatusCode::INTERNAL_SERVER_ERROR);
+    // }
+    // let warrior_manager = warrior_manager.unwrap();
+    // if warrior_manager.save(&warrior).await.is_err() {
+    //     return Err(StatusCode::INTERNAL_SERVER_ERROR);
+    // }
+    // Ok(Json(json!(())))
 }
 
 fn take_protection_from_player(player: &mut Player, inventory_slot: &Uuid) -> Option<Protection> {

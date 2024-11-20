@@ -1,11 +1,13 @@
 use rand::Rng;
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
 use crate::assault::common_traits::DealDamages;
 use crate::dice::Dice;
 use crate::name::Name;
 use crate::random::Random;
 use crate::stats::{StatKind, StatModifier};
+use crate::unique_entity::UniqueEntity;
 
 use super::rupture::Rupture;
 
@@ -17,6 +19,19 @@ pub enum WeaponKind {
     BattleAxe,
     Hammer,
     WarHammer,
+}
+
+impl WeaponKind {
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            WeaponKind::Axe => "Axe",
+            WeaponKind::BattleAxe => "BattleAxe",
+            WeaponKind::GreatSword => "GreatSword",
+            WeaponKind::Hammer => "Hammer",
+            WeaponKind::Sword => "Sword",
+            WeaponKind::WarHammer => "WarHammer",
+        }
+    }
 }
 
 impl Random for WeaponKind {
@@ -35,6 +50,7 @@ impl Random for WeaponKind {
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Weapon {
+    uuid: Uuid,
     name: String,
     kind: WeaponKind,
     is_sharp: bool,
@@ -48,6 +64,7 @@ pub struct Weapon {
 
 impl Weapon {
     pub fn new(
+        uuid: Uuid,
         name: String,
         kind: WeaponKind,
         is_sharp: bool,
@@ -59,6 +76,7 @@ impl Weapon {
         rupture: Option<u8>,
     ) -> Self {
         Self {
+            uuid,
             name,
             kind,
             is_sharp,
@@ -73,6 +91,7 @@ impl Weapon {
     pub fn from_kind(kind: WeaponKind) -> Self {
         match kind {
             WeaponKind::Sword => Self {
+                uuid: Uuid::new_v4(),
                 name: String::from("Shitty Sword"),
                 kind,
                 is_sharp: true,
@@ -85,6 +104,7 @@ impl Weapon {
             },
             WeaponKind::Axe => Self {
                 name: String::from("Rusty Axe"),
+                uuid: Uuid::new_v4(),
                 kind,
                 is_sharp: true,
                 is_two_handed: false,
@@ -96,6 +116,7 @@ impl Weapon {
             },
             WeaponKind::BattleAxe => Self {
                 name: String::from("Coarse Battle Axe"),
+                uuid: Uuid::new_v4(),
                 kind,
                 is_sharp: true,
                 is_two_handed: true,
@@ -106,6 +127,7 @@ impl Weapon {
                 rupture: Some(3),
             },
             WeaponKind::GreatSword => Self {
+                uuid: Uuid::new_v4(),
                 name: String::from("Basic Great Sword"),
                 kind,
                 is_sharp: true,
@@ -117,6 +139,7 @@ impl Weapon {
                 rupture: Some(4),
             },
             WeaponKind::Hammer => Self {
+                uuid: Uuid::new_v4(),
                 name: String::from("Shitty Hammer"),
                 kind,
                 is_sharp: false,
@@ -128,6 +151,7 @@ impl Weapon {
                 rupture: Some(4),
             },
             WeaponKind::WarHammer => Self {
+                uuid: Uuid::new_v4(),
                 name: String::from("Coarse War Hammer"),
                 kind,
                 is_sharp: false,
@@ -151,6 +175,9 @@ impl Weapon {
 
     pub fn additional_damages(&self) -> u8 {
         self.add_dmg
+    }
+    pub fn kind(&self) -> &WeaponKind {
+        &self.kind
     }
 }
 
@@ -199,5 +226,10 @@ impl StatModifier for Weapon {
 impl Name for Weapon {
     fn name(&self) -> &str {
         &self.name
+    }
+}
+impl UniqueEntity for Weapon {
+    fn uuid(&self) -> &Uuid {
+        &self.uuid
     }
 }

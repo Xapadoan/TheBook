@@ -1,6 +1,7 @@
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
-use crate::{assault::common_traits::ReduceDamages, name::Name, stats::{StatKind, StatModifier}};
+use crate::{assault::common_traits::ReduceDamages, name::Name, stats::{StatKind, StatModifier}, unique_entity::UniqueEntity};
 
 use super::rupture::Rupture;
 
@@ -15,9 +16,24 @@ pub enum ProtectionKind {
     Greaves,
     Helm,
 }
+impl ProtectionKind {
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            Self::Armlets => "Armlets",
+            Self::Boots => "Boots",
+            Self::Breastplate => "Breastplate",
+            Self::ChainMail => "ChainMail",
+            Self::Gambeson => "Gambeson",
+            Self::Gloves => "Gloves",
+            Self::Greaves => "Greaves",
+            Self::Helm => "Helm",
+        }
+    }
+}
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Protection {
+    uuid: Uuid,
     kind: ProtectionKind,
     amount: u8,
     rupture: Option<u8>,
@@ -34,8 +50,8 @@ impl Protection {
     pub fn amount(&self) -> u8 {
         self.amount
     }
-
     pub fn new(
+        uuid: Uuid,
         name: String,
         kind: ProtectionKind,
         amount: u8,
@@ -44,6 +60,7 @@ impl Protection {
         courage_mod: i8,
     ) -> Self {
         Self {
+            uuid,
             name,
             kind,
             amount,
@@ -56,6 +73,7 @@ impl Protection {
     pub fn from_kind(kind: ProtectionKind) -> Self {
         match kind {
             ProtectionKind::Armlets => Self {
+                uuid: Uuid::new_v4(),
                 kind,
                 amount: 1,
                 rupture: Some(5),
@@ -64,6 +82,7 @@ impl Protection {
                 name: "Heavy coarse metal armlet".to_string(),
             },
             ProtectionKind::Boots => Self {
+                uuid: Uuid::new_v4(),
                 kind,
                 amount: 0,
                 rupture: Some(5),
@@ -72,6 +91,7 @@ impl Protection {
                 name: "Shabby leather boots".to_string(),
             },
             ProtectionKind::Breastplate => Self {
+                uuid: Uuid::new_v4(),
                 kind,
                 amount: 3,
                 rupture: Some(4),
@@ -80,6 +100,7 @@ impl Protection {
                 name: "Basic leather breastplate".to_string(),
             },
             ProtectionKind::ChainMail => Self {
+                uuid: Uuid::new_v4(),
                 kind,
                 amount: 3,
                 rupture: Some(4),
@@ -88,6 +109,7 @@ impl Protection {
                 name: "Rusty chain mail".to_string(),
             },
             ProtectionKind::Gambeson => Self {
+                uuid: Uuid::new_v4(),
                 kind,
                 amount: 2,
                 rupture: Some(4),
@@ -96,6 +118,7 @@ impl Protection {
                 name: "Basic gambeson".to_string(),
             },
             ProtectionKind::Gloves => Self {
+                uuid: Uuid::new_v4(),
                 kind,
                 amount: 0,
                 rupture: Some(5),
@@ -104,6 +127,7 @@ impl Protection {
                 name: "Leather Gloves".to_string(),
             },
             ProtectionKind::Greaves => Self {
+                uuid: Uuid::new_v4(),
                 kind,
                 amount: 1,
                 rupture: Some(5),
@@ -112,6 +136,7 @@ impl Protection {
                 name: "Heavy coarse greaves".to_string(),
             },
             ProtectionKind::Helm => Self {
+                uuid: Uuid::new_v4(),
                 kind,
                 amount: 0,
                 rupture: Some(5),
@@ -165,5 +190,10 @@ impl StatModifier for Protection {
             &StatKind::Dexterity => self.dexterity_mod,
             _ => 0,
         }
+    }
+}
+impl UniqueEntity for Protection {
+    fn uuid(&self) -> &Uuid {
+        &self.uuid
     }
 }

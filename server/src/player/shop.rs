@@ -3,7 +3,7 @@ use shared::{
 };
 use uuid::Uuid;
 
-use crate::{repository::{PlayerRepository, Repository}, shop::ShopManager};
+use crate::{repository::{Repository}, shop::ShopManager};
 
 use super::PlayerAPIError;
 
@@ -14,11 +14,12 @@ pub async fn buy_item(shop_manager: &ShopManager<'_>, player: &mut Player, slot_
         Some(item) => if player.inventory().gold() < item.gold_value() {
             Ok(None)
         } else {
-            player.inventory_mut().remove_gold(item.gold_value());
-            player.inventory_mut().add_item(item.clone());
-            let repo = PlayerRepository::build()?;
-            repo.update(player.uuid(), &player)?;
-            Ok(Some(item))
+            panic!("Not implemented")
+            // player.inventory_mut().remove_gold(item.gold_value());
+            // player.inventory_mut().add_item(item.clone());
+            // let repo = PlayerRepository::build()?;
+            // repo.update(player.uuid(), &player)?;
+            // Ok(Some(item))
         }
     }
 }
@@ -27,13 +28,14 @@ pub fn sell_item(player: &mut Player, slot_uuid: &Uuid) -> Result<Option<u32>, P
     match player.inventory_mut().remove_item(slot_uuid) {
         None => Ok(None),
         Some(item) => {
-            let value = item.gold_value() * 2 / 3;
-            dbg!(&value);
-            player.inventory_mut().add_gold(value);
-            dbg!(player.inventory().gold());
-            let repo = PlayerRepository::build()?;
-            repo.update(player.uuid(), &player)?;
-            Ok(Some(value))
+            panic!("Not implemented")
+            // let value = item.gold_value() * 2 / 3;
+            // dbg!(&value);
+            // player.inventory_mut().add_gold(value);
+            // dbg!(player.inventory().gold());
+            // let repo = PlayerRepository::build()?;
+            // repo.update(player.uuid(), &player)?;
+            // Ok(Some(value))
         },
     }
 }

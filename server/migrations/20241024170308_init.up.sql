@@ -14,6 +14,16 @@ CREATE TABLE new_weapons (
     courage_stat_modifier TINYINT NOT NULL
 );
 
+INSERT INTO new_weapons
+    (name, kind, is_sharp, is_two_handed, rupture, additional_damages, attack_stat_modifier, parry_stat_modifier, courage_stat_modifier)
+VALUES
+    ("Shitty Sword", "Sword", 1, 0, 4, 3, 0, -1, -1),
+    ("Basic Great Sword", "GreatSword", 1, 1, 4, 5, -3, -4, 0),
+    ("Rusty Axe", "Axe", 1, 0, 3, 3, 0, -2, 0),
+    ("Coarse Battle Axe", "BattleAxe", 1, 1, 3, 5, -3, -4, 0),
+    ("Shitty Hammer", "Hammer", 0, 0, 4, 3, 0, -2, 0),
+    ("Coarse War Hammer", "WarHammer", 0, 1, 4, 5, -3, -4, 0);
+
 -- Static Table with brand new protections (shopping)
 CREATE TABLE new_protections (
     id INT UNSIGNED PRIMARY KEY AUTO_INCREMENT NOT NULL,
@@ -24,6 +34,18 @@ CREATE TABLE new_protections (
     dexterity_stat_modifier TINYINT NOT NULL,
     courage_stat_modifier TINYINT NOT NULL
 );
+
+INSERT INTO new_protections
+    (name, kind, rupture, damage_reduction, courage_stat_modifier, dexterity_stat_modifier)
+VALUES
+    ("Shabby leather boots", "Boots", 5, 0, 0, 0),
+    ("Basic leather breastplate", "Breastplate", 4, 3, 0, 0),
+    ("Rusty chain mail", "ChainMail", 4, 3, 0, -1),
+    ("Basic gambeson", "Gambeson", 4, 2, 0, 0),
+    ("Leather Gloves", "Gloves", 5, 0, 0, 0),
+    ("Heavy coarse greaves", "Greaves", 5, 1, 0, -2),
+    ("Shabby leather helmet", "Helm", 5, 0, 0, 0),
+    ("Heavy coarse metal armlet", "Armlets", 5, 1, 0, -2);
 
 -- Unique, mutable weapons
 CREATE TABLE weapons (
@@ -54,7 +76,9 @@ CREATE TABLE protections (
 -- OWNS MANY warriors
 CREATE TABLE players (
     uuid CHAR(36) PRIMARY KEY NOT NULL,
-    username VARCHAR(255) NOT NULL
+    username VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
 -- Players inventories
@@ -93,12 +117,12 @@ CREATE TABLE warriors (
     nat_courage TINYINT UNSIGNED NOT NULL,
     nat_dexterity TINYINT UNSIGNED NOT NULL,
     nat_strength TINYINT UNSIGNED NOT NULL,
-    last_passive_heal DATETIME DEFAULT CURRENT_TIMESTAMP,
-    experience INT UNSIGNED DEFAULT 0,
-    level TINYINT UNSIGNED DEFAULT 1,
+    last_passive_heal TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    experience BIGINT UNSIGNED NOT NULL DEFAULT 0,
+    level TINYINT UNSIGNED NOT NULL DEFAULT 1,
     weapon_uuid CHAR(36),
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     CONSTRAINT FK_players_warriors FOREIGN KEY (player_uuid) REFERENCES players(uuid) ON DELETE CASCADE
 );
 
@@ -106,33 +130,34 @@ CREATE TABLE warriors (
 -- BELONGS TO ONE warrior
 -- Optionally OWNS ONE protection
 CREATE TABLE body_parts (
+    uuid CHAR(36) PRIMARY KEY NOT NULL,
     warrior_uuid CHAR(36) NOT NULL,
     kind ENUM(
         'Head',
-        'LeftEye',
-        'RightEye',
+        'Left Eye',
+        'Right Eye',
         'Torso',
-        'LeftHand',
-        'RightHand',
-        'LeftArm',
-        'RightArm',
-        'LeftFoot',
-        'RightFoot',
-        'LeftKnee',
-        'RightKnee',
-        'LeftLeg',
-        'RightLeg',
+        'Left Hand',
+        'Right Hand',
+        'Left Arm',
+        'Right Arm',
+        'Left Foot',
+        'Right Foot',
+        'Left Knee',
+        'Right Knee',
+        'Left Leg',
+        'Right Leg',
         'Genitals',
-        'LeftThumb',
-        'RightThumb',
-        'LeftPointerFinger',
-        'RightPointerFinger',
-        'LeftMiddleFinger',
-        'RightMiddleFinger',
-        'LeftRingFinger',
-        'RightRingFinger',
-        'LeftPinkyFinger',
-        'RightPinkyFinger'
+        'Left Thumb',
+        'Right Thumb',
+        'Left Pointer Finger',
+        'Right Pointer Finger',
+        'Left Middle Finger',
+        'Right Middle Finger',
+        'Left Ring Finger',
+        'Right Ring Finger',
+        'Left Pinky Finger',
+        'Right Pinky Finger'
     ) NOT NULL,
     is_broken BOOLEAN NOT NULL DEFAULT false,
     protection_uuid CHAR(36),
@@ -144,26 +169,17 @@ CREATE TABLE body_parts (
 CREATE TABLE tournaments (
     uuid CHAR(36) NOT NULL PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
-    max_contestants TINYINT NOT NULL,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    started_at DATETIME
+    max_contestants TINYINT UNSIGNED NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    started_at TIMESTAMP
 );
 
--- Players ids that have registered warrior for a tournament
--- BELONGS TO ONE tournament
--- OWNS MANY tournaments warriors
-CREATE TABLE tournaments_players (
+CREATE TABLE tournaments_warriors (
     uuid CHAR(36) NOT NULL PRIMARY KEY,
     tournament_uuid CHAR(36) NOT NULL,
-    player_uuid CHAR(36),
-    CONSTRAINT FK_tournaments_tournaments_players FOREIGN KEY (tournament_uuid) REFERENCES tournaments(uuid) ON DELETE CASCADE
-);
-
--- Warriors ids that have been registered to a tournament
--- BELONGS TO ONE tournament_player
--- OWNS MANY WARRIORS
-CREATE TABLE tournaments_warriors (
-    tournament_player_uuid CHAR(36) NOT NULL,
+    player_uuid CHAR(36) NOT NULL,
     warrior_uuid CHAR(36) NOT NULL,
-    CONSTRAINT FK_tournaments_players_tournaments_warriors FOREIGN KEY (tournament_player_uuid) REFERENCES tournaments_players(uuid) ON DELETE CASCADE
+    CONSTRAINT FK_tournaments_warriors_tournament_uuid FOREIGN KEY (tournament_uuid) REFERENCES tournaments(uuid) ON DELETE CASCADE,
+    CONSTRAINT FK_tournaments_warriors_player_uuid FOREIGN KEY (player_uuid) REFERENCES players(uuid) ON DELETE CASCADE,
+    CONSTRAINT FK_tournaments_warriors_warrior_uuid FOREIGN KEY (warrior_uuid) REFERENCES warriors(uuid) ON DELETE CASCADE
 );

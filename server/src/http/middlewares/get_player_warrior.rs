@@ -1,5 +1,5 @@
 use axum::{extract::{Path, Request}, http::StatusCode, middleware::Next, response::Response, Extension};
-use shared::player::Player;
+use shared::{player::Player, unique_entity::UniqueEntity};
 use uuid::Uuid;
 
 use crate::player::PlayerManager;
@@ -10,6 +10,11 @@ pub async fn get_player_warrior(
     mut req: Request,
     next: Next
 ) -> Result<Response, StatusCode> {
+    eprintln!(
+        "[DEBUG] reading warrior {} for player {}",
+        warrior_uuid,
+        player.uuid().to_string(),
+    );
     let manager = PlayerManager::new(&player);
     match manager.read_warrior(&warrior_uuid) {
         None => Err(StatusCode::NOT_FOUND),

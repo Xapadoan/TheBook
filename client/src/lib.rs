@@ -81,6 +81,7 @@ mod auth {
 
 pub fn run() -> Result<(), view::ViewError> {
     let mut session = view::authenticate_player()?;
+    eprintln!("[DEBUG] Session OK");
     view::main_view(&mut session)?;
     Ok(())
 }

@@ -2,6 +2,7 @@
 name = "server"
 version = "0.1.0"
 edition = "2021"
+resolver = "2"
 
 [dependencies]
 rand = "0.8.5"
@@ -13,3 +14,7 @@ axum = { version = "0.7.7", features = ["macros"] }
 tokio = { version = "1.40.0", features = ["macros", "rt-multi-thread", "net"] }
 chrono = { version = "0.4.38", features = ["serde"] }
 sqlx = { version = "0.8.2", features = ["runtime-async-std-native-tls", "mysql", "chrono", "uuid"] }
+futures = "0.3"
+
+[dev-dependencies]
+ureq = { version = "2.10", features = ["json"] }

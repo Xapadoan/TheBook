@@ -4,10 +4,12 @@ use shared::{
 };
 use sqlx::MySqlPool;
 
-use super::{ShopManagerError, ShopManagerErrorKind};
+use crate::repository::sql_repository::{
+    protections::NewProtectionModel,
+    weapons::NewWeaponModel,
+};
 
-use crate::repository::sql_repository::models::NewWeaponModel;
-use crate::repository::sql_repository::models::NewProtectionModel;
+use super::{ShopManagerError, ShopManagerErrorKind};
 
 pub struct ShopManager<'a> {
     db_pool: &'a MySqlPool

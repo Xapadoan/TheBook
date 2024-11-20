@@ -11,17 +11,18 @@ use crate::repository::{FileRepository, Repository, RepositoryError};
 
 use super::manager::REPLAY_ROOT_DIR;
 
-pub struct FightReplayBuilder<T: Repository<Warrior>> {
+pub struct FightReplayBuilder<T: Repository> {
     replay_uuid: Uuid,
     turn_summaries: Vec<TurnSummary>,
     warriors_repo: T,
 }
 
-impl<T: Repository<Warrior>> FightReplayBuilder<T> {
-    pub fn record_warriors_init_state(&self, blue: &Warrior, red: &Warrior) -> Result<(), FightReplayBuilderError> {
-        self.warriors_repo.create(blue)?;
-        self.warriors_repo.create(red)?;
-        Ok(())
+impl<T: Repository> FightReplayBuilder<T> {
+    pub async fn record_warriors_init_state(&self, blue: &Warrior, red: &Warrior) -> Result<(), FightReplayBuilderError> {
+        panic!("Not implemented")
+        // self.warriors_repo.create(blue).await?;
+        // self.warriors_repo.create(red).await?;
+        // Ok(())
     }
 
     pub fn push_turn_summary(&mut self, turn_summary: TurnSummary) {

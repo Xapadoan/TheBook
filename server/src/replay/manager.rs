@@ -13,7 +13,8 @@ use shared::unique_entity::UniqueEntity;
 use shared::warrior::{Warrior, WarriorCollection};
 use uuid::Uuid;
 
-use crate::repository::{FileRepository, Repository, RepositoryError};
+use crate::repository::sql_repository::tournaments::CreateTournamentSchema;
+use crate::repository::{FileRepository, Repository, RepositoryCreate, RepositoryError, RepositoryList, RepositoryRead};
 use crate::tournament::manager::{TournamentManager, TournamentManagerError};
 
 pub const REPLAY_ROOT_DIR: &'static str = "data/replays";
@@ -65,13 +66,13 @@ impl ReplayManager {
         ))
     }
 
-    pub fn get_fight_warriors(&self, fight_summary: &FightReplaySummary) -> Result<(Warrior, Warrior), ReplayManagerError> {
+    pub async fn get_fight_warriors(&self, fight_summary: &FightReplaySummary) -> Result<(Warrior, Warrior), ReplayManagerError> {
         let mut path = PathBuf::from(REPLAY_ROOT_DIR);
         path.push(self.tournament_uuid.to_string());
         path.push(fight_summary.replay_uuid().to_string());
         let warriors_repo: FileRepository<Warrior> = FileRepository::build(path)?;
-        let blue_corner = warriors_repo.get_by_uuid(fight_summary.blue_corner_uuid())?;
-        let red_corner = warriors_repo.get_by_uuid(fight_summary.red_corner_uuid())?;
+        let blue_corner = warriors_repo.read(fight_summary.blue_corner_uuid()).await?;
+        let red_corner = warriors_repo.read(fight_summary.red_corner_uuid()).await?;
         Ok((blue_corner, red_corner))
     }
 
@@ -85,13 +86,18 @@ impl ReplayManager {
         return Err(ReplayManagerError::new(format!("Warrior with uuid {} was not found in round {}", warrior_uuid, round_index)))
     }
 
-    pub fn map_warriors_to_replays(player: &Player) -> Result<HashMap<Uuid, Vec<Uuid>>, ReplayManagerError> {
+    pub async fn map_warriors_to_replays<T>(tournament_manager: &TournamentManager<T>, player: &Player) -> Result<HashMap<Uuid, Vec<Uuid>>, ReplayManagerError>
+    where 
+        T: RepositoryCreate<Tournament, CreateTournamentSchema> +
+            RepositoryRead<Tournament> +
+            RepositoryList<Tournament>
+    {
         let mut map: HashMap<Uuid, Vec<Uuid>> = HashMap::new();
         for warrior in player.warriors() {
             if warrior.current_tournament().is_some() {
                 let tournament_uuid = warrior.current_tournament().as_ref().unwrap();
-                let tournament_manager = TournamentManager::build()?;
-                if !tournament_manager.is_tournament_available(tournament_uuid) {
+                // let tournament_manager = TournamentManager::build()?;
+                if !tournament_manager.is_tournament_available(tournament_uuid).await {
                     match map.get_mut(tournament_uuid) {
                         Some(vec) => { vec.push(warrior.uuid().clone()); },
                         None => { map.insert(tournament_uuid.clone(), vec![warrior.uuid().clone()]); },

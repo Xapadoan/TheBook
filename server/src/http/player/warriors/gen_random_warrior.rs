@@ -1,30 +1,25 @@
+use std::sync::Arc;
+
+use axum::extract::State;
 use axum::http::StatusCode;
 use axum::{Extension, Json};
 use serde_json::{json, Value};
 use shared::player::Player;
 use shared::unique_entity::UniqueEntity;
-use shared::{random::Random, warrior::MutableWarriorCollection};
-use shared::warrior::Warrior;
 
-use crate::repository::{PlayerRepository, Repository};
-use crate::warrior::WarriorManager;
+use crate::http::app::AppState;
+use crate::repository::sql_repository::warriors::WarriorsRepository;
 
 pub async fn gen_random_warrior(
-    Extension(mut player): Extension<Player>,
+    Extension(player): Extension<Player>,
+    State(state): State<Arc<AppState>>,
 ) -> Result<Json<Value>, StatusCode> {
-    let warrior = Warrior::random();
-    let warrior_manager = WarriorManager::build();
-    if warrior_manager.is_err() { return Err(StatusCode::INTERNAL_SERVER_ERROR); }
-    let warrior_manager = warrior_manager.unwrap();
-    if warrior_manager.create(&warrior).is_err() {
+    let repo = WarriorsRepository::new(state.db_pool());
+    let created_warrior = repo.create_random(player.uuid()).await;
+    if let Err(err) = created_warrior {
+        eprintln!("[ERROR] Failed to gen random warrior:\n{err:?}");
         return Err(StatusCode::INTERNAL_SERVER_ERROR);
     }
-    player.warriors_mut().push(warrior.clone());
-    let player_repo = PlayerRepository::build();
-    if player_repo.is_err() { return Err(StatusCode::INTERNAL_SERVER_ERROR); }
-    let player_repo = player_repo.unwrap();
-    if player_repo.update(player.uuid(), &player).is_err() {
-        return Err(StatusCode::INTERNAL_SERVER_ERROR);
-    }
-    Ok(Json(json!(warrior)))
+
+    Ok(Json(json!(created_warrior.unwrap())))
 }

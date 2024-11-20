@@ -1,6 +1,6 @@
 mod auth {
     mod signup;
-    pub use signup::signup;
+    pub use signup::SignUp;
     mod session {
         pub mod manager;
     }
@@ -18,10 +18,8 @@ mod player {
     }
     mod error;
     pub use error::PlayerAPIError;
-    mod read;
-    pub use read::read_player;
     mod tournaments;
-    pub use tournaments::register_contestant;
+    // pub use tournaments::register_contestant;
     mod shop;
     pub use shop::{buy_item, sell_item};
     mod manager;
@@ -103,9 +101,13 @@ mod tournament {
     pub mod auto_tournament;
     mod fight;
     pub mod manager;
+    mod contestants_registerer;
+    pub use contestants_registerer::ContestantsRegisterer;
     pub mod public;
     mod bot_player_builder;
     mod fight_reward;
+    mod run_tournaments;
+    pub use run_tournaments::run_tournaments;
 }
 
 mod warrior {
@@ -115,22 +117,85 @@ mod warrior {
 
 pub mod repository {
     mod main;
-    pub use main::{Repository, RepositoryError};
+    pub use main::{Repository, RepositoryError, RepositoryCreate, RepositoryRead, RepositoryList, RepositoryUpdate, RepositoryDelete};
     mod file_repository;
     pub use file_repository::FileRepository;
-    mod player_repository;
-    pub use player_repository::{PlayerRepository, PlayerDTOFile};
     pub mod sql_repository {
-        pub mod models {
+        mod trx_repository;
+        pub use trx_repository::TrxRepository;
+        // Should remove and expose only top level repos
+        mod query_builder;
+        pub use query_builder::QueryBuilder;
+        pub mod weapons {
             mod weapon_model;
-            pub use weapon_model::{NewWeaponModel, WeaponModel};
-            mod protection_model;
-            pub use protection_model::{NewProtectionModel, ProtectionModel};
-            mod model;
-            pub use model::Model;
-        }
-        mod schemas {
+            pub use weapon_model::{NewWeaponModel, WeaponKindColumnData, WeaponModel};
             mod weapon_schemas;
+            pub use weapon_schemas::{CreateWeaponSchema, UpdateWeaponSchema};
+            mod weapons_repository;
+            pub use weapons_repository::{WeaponsPoolRepository, WeaponsQueryBuilder};
+        }
+        pub mod protections {
+            mod protection_model;
+            pub use protection_model::{NewProtectionModel, ProtectionKindColumnData, ProtectionModel};
+            mod protection_schemas;
+            pub use protection_schemas::{CreateProtectionSchema, UpdateProtectionSchema};
+            mod protections_repository;
+        }
+        pub mod body_parts {
+            mod body_part_model;
+            pub use body_part_model::{BodyPartKindColumnData, BodyPartModel, BodyPartFinalModel};
+            mod body_part_schemas;
+            pub use body_part_schemas::{CreateBodyPartSchema, UpdateBodyPartSchema};
+            mod body_parts_repository;
+            pub use body_parts_repository::{BodyPartsRepository, BodyPartsQueryBuilder};
+        }
+        pub mod warriors {
+            mod warrior_model;
+            pub use warrior_model::{WarriorModel, WarriorFinalModel};
+            mod warrior_schemas;
+            pub use warrior_schemas::{CreateWarriorSchema, UpdateWarriorSchema};
+            mod warriors_repository;
+            pub use warriors_repository::{WarriorsRepository, WarriorsQueryBuilder};
+        }
+        pub mod players {
+            mod player_model;
+            pub use player_model::{PlayerModel, PlayerFinalModel};
+            mod player_schemas;
+            pub use player_schemas::{CreatePlayerSchema, UpdatePlayerSchema};
+            mod players_repository;
+            pub use players_repository::{PlayersQueryBuilder, PlayersRepository};
+        }
+        pub mod tournaments {
+            mod tournament_model;
+            pub use tournament_model::{TournamentModel, TournamentFinalModel};
+            mod tournament_schemas;
+            pub use tournament_schemas::{CreateTournamentSchema, UpdateTournamentSchema};
+            mod tournaments_repository;
+            pub use tournaments_repository::TournamentsRepository;
+        }
+        pub mod tournaments_warriors {
+            mod tournament_warrior_model;
+            pub use tournament_warrior_model::TournamentWarriorModel;
+            mod tournament_warrior_schemas;
+            pub use tournament_warrior_schemas::CreateTournamentWarriorSchema;
+            mod tournaments_warriors_repository;
+            pub use tournaments_warriors_repository::{TournamentsWarriorsQueryBuilder, TournamentsWarriorsRepository};
+        }
+        pub mod players_inventories {
+            mod player_inventory_model;
+            pub use player_inventory_model::{
+                PlayerInventoryModel,
+                PlayerInventoryFinalModel,
+                PlayerInventoryJoinedSlotModel,
+            };
+            mod player_inventory_schemas;
+            pub use player_inventory_schemas::{
+                CreatePlayerInventorySchema,
+                CreatePlayerInventorySlotSchema,
+                UpdatePlayerInventorySchema,
+            };
+            mod players_inventories_repository;
+            pub use players_inventories_repository::PlayersInventoriesRepository;
         }
         mod pool;
         pub use pool::gen_pool;
@@ -147,24 +212,41 @@ mod shop {
 use std::error::Error;
 
 use http::run_server;
-use tournament::manager::TournamentManager;
+use repository::sql_repository::{gen_pool, players::PlayersRepository, players_inventories::PlayersInventoriesRepository, tournaments::TournamentsRepository, warriors::WarriorsRepository};
+use tournament::{manager::TournamentManager, run_tournaments};
 
-pub fn run(config: &Config) -> Result<(), Box<dyn Error>> {
+pub async fn run(config: &Config) -> Result<(), Box<dyn Error>> {
     if config.run_tournaments {
-        run_tournaments()?;
+        let db_pool = gen_pool().await;
+        let tournaments_repository = TournamentsRepository::new(&db_pool);
+        println!("Running tournaments");
+        run_tournaments(
+            &TournamentsRepository::new(&db_pool),
+            &WarriorsRepository::new(&db_pool),
+            &PlayersRepository::new(&db_pool),
+            &PlayersInventoriesRepository::new(&db_pool),
+        ).await?;
+        eprintln!("[DEBUG] Tournaments run OK");
     }
     if config.start_server {
-        run_server();
+        run_server().await;
     }
     Ok(())
 }
 
-fn run_tournaments() -> Result<(), Box<dyn Error>> {
-    let tournament_manager = TournamentManager::build()?;
-    tournament_manager.run_tournaments()?;
-    println!("Running tournaments");
-    Ok(())
-}
+// async fn run_tournaments() -> Result<(), Box<dyn Error>> {
+//     let db_pool = gen_pool().await;
+//     let tournaments_repository = TournamentsRepository::new(&db_pool);
+//     println!("Running tournaments");
+//     run_tournaments(
+//         TournamentsRepository::new(&db_pool),
+//         WarriorsRepository::new(&db_pool),
+//         PlayersRepository::new(&db_pool),
+//         PlayersInventoriesRepository::new(&db_pool),
+//     ).await?;
+//     eprintln!("[DEBUG] Tournaments run OK");
+//     Ok(())
+// }
 
 pub struct Config {
     run_tournaments: bool,

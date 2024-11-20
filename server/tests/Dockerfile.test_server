@@ -1,0 +1,4 @@
+# syntax = edrevo/dockerfile-plus
+INCLUDE+ ./server/Dockerfile.server
+
+COPY ./server/tests/sessions ./server/sessions

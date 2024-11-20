@@ -1,0 +1,4 @@
+# syntax = edrevo/dockerfile-plus
+INCLUDE+ ./server/Dockerfile.db
+
+COPY ./server/tests/migrations/* /docker-entrypoint-initdb.d/

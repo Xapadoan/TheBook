@@ -172,6 +172,17 @@ pub enum FingerName {
     RingFinger,
     PinkyFinger,
 }
+impl FingerName {
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            Self::MiddleFinger => "Middle Finger",
+            Self::PinkyFinger => "Pinky Finger",
+            Self::PointerFinger => "Pointer Finger",
+            Self::RingFinger => "Ring Finger",
+            Self::Thumb => "Thumb",
+        }
+    }
+}
 
 impl PartialEq for FingerName {
     fn eq(&self, other: &Self) -> bool {
@@ -218,6 +229,12 @@ impl BodySide {
         match self {
             BodySide::Left => BodySide::Right,
             BodySide::Right => BodySide::Left,
+        }
+    }
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            Self::Left => "Left",
+            Self::Right => "Right",
         }
     }
 }
@@ -289,4 +306,30 @@ pub const ALL_FINGERS: [FingerName; 5] = [
     FingerName::MiddleFinger,
     FingerName::RingFinger,
     FingerName::PinkyFinger,
+];
+
+pub const ALL_BODY_PARTS: [BodyPartKind; 23] = [
+    BodyPartKind::Head,
+    BodyPartKind::Eye(BodySide::Left),
+    BodyPartKind::Eye(BodySide::Right),
+    BodyPartKind::Torso,
+    BodyPartKind::Genitals,
+    BodyPartKind::Arm(BodySide::Left),
+    BodyPartKind::Arm(BodySide::Right),
+    BodyPartKind::Hand(BodySide::Left),
+    BodyPartKind::Hand(BodySide::Right),
+    BodyPartKind::Leg(BodySide::Left),
+    BodyPartKind::Leg(BodySide::Right),
+    BodyPartKind::Foot(BodySide::Left),
+    BodyPartKind::Foot(BodySide::Right),
+    BodyPartKind::Finger(BodySide::Left, FingerName::MiddleFinger),
+    BodyPartKind::Finger(BodySide::Left, FingerName::PinkyFinger),
+    BodyPartKind::Finger(BodySide::Left, FingerName::PointerFinger),
+    BodyPartKind::Finger(BodySide::Left, FingerName::RingFinger),
+    BodyPartKind::Finger(BodySide::Left, FingerName::Thumb),
+    BodyPartKind::Finger(BodySide::Right, FingerName::MiddleFinger),
+    BodyPartKind::Finger(BodySide::Right, FingerName::PinkyFinger),
+    BodyPartKind::Finger(BodySide::Right, FingerName::PointerFinger),
+    BodyPartKind::Finger(BodySide::Right, FingerName::RingFinger),
+    BodyPartKind::Finger(BodySide::Right, FingerName::Thumb),
 ];

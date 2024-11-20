@@ -40,13 +40,19 @@ impl Tournament {
     }
 
     // server only
-    fn new(name: String, max_contestants: usize) -> Self {
+    pub fn new(
+        uuid: Uuid,
+        name: String,
+        max_contestants: usize,
+        contestants: HashMap<Uuid, Vec<Uuid>>,
+        contestants_inventories: HashMap<Uuid, Inventory>
+    ) -> Self {
         Self {
-            uuid: Uuid::new_v4(),
+            uuid,
             name,
             max_contestants,
-            contestants: HashMap::new(),
-            contestants_inventories: HashMap::new(),
+            contestants,
+            contestants_inventories,
         }
     }
 
@@ -131,8 +137,11 @@ impl Random for Tournament {
             i += 1;
         }
         Self::new(
+            Uuid::new_v4(),
             String::from(TournamentNameDictionary::random_item()),
-            max_contestants
+            max_contestants,
+            HashMap::new(),
+            HashMap::new(),
         )
     }
 }

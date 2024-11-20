@@ -15,7 +15,8 @@ use crate::replay::{
     TournamentReplayBuilder,
     TournamentReplayBuilderError,
 };
-use crate::repository::{FileRepository, Repository, RepositoryError};
+use crate::repository::sql_repository::warriors::UpdateWarriorSchema;
+use crate::repository::{FileRepository, Repository, RepositoryError, RepositoryRead, RepositoryUpdate};
 
 use super::fight::{Fight, FightError};
 use super::fight_reward::FightReward;
@@ -53,7 +54,8 @@ impl From<TournamentReplayBuilderError> for TournamentError {
 
 pub trait AutoTournament {
     fn gen_random_pairs(&mut self, remaining_contestants_ids: &mut Vec<Uuid>) -> Vec<(Uuid, Uuid)>;
-    fn auto(&mut self) -> Result<(), TournamentError>;
+    async fn auto<W>(&mut self, warriors_repo: &W) -> Result<(), TournamentError>
+    where W: RepositoryRead<Warrior> + RepositoryUpdate<Warrior, UpdateWarriorSchema>;
 }
 
 impl AutoTournament for Tournament {
@@ -76,10 +78,14 @@ impl AutoTournament for Tournament {
         pairs
     }
 
-    fn auto(&mut self) -> Result<(), TournamentError> {
+    async fn auto<W>(&mut self, warriors_repo: &W) -> Result<(), TournamentError>
+    where
+        W: RepositoryRead<Warrior> +
+            RepositoryUpdate<Warrior, UpdateWarriorSchema>,
+    {
         let tournament_replay_builder = TournamentReplayBuilder::build(self.uuid())?;
         tournament_replay_builder.write_tournament_init_state(&self)?;
-        let repo: FileRepository<Warrior> = FileRepository::build(PathBuf::from("saves/warriors"))?;
+        // let repo: FileRepository<Warrior> = FileRepository::build(PathBuf::from("saves/warriors"))?;
         let mut round_index = 0;
         let mut remaining_contestants_ids = self.contestants_ids();
         while remaining_contestants_ids.len() > 1 {
@@ -90,9 +96,9 @@ impl AutoTournament for Tournament {
             let pairs = self.gen_random_pairs(&mut remaining_contestants_ids);
             for pair in pairs {
                 let mut fight_replay_builder = FightReplayBuilder::build(self.uuid())?;
-                let mut warrior1 = repo.get_by_uuid(&pair.0)?;
-                let mut warrior2 = repo.get_by_uuid(&pair.1)?;
-                fight_replay_builder.record_warriors_init_state(&warrior1, &warrior2)?;
+                let mut warrior1 = warriors_repo.read(&pair.0).await?;
+                let mut warrior2 = warriors_repo.read(&pair.1).await?;
+                fight_replay_builder.record_warriors_init_state(&warrior1, &warrior2).await?;
                 let mut fighter1 = Fighter::from(&warrior1);
                 let mut fighter2 = Fighter::from(&warrior2);
                 let result = Fight::auto(
@@ -117,8 +123,8 @@ impl AutoTournament for Tournament {
                 }
                 self.add_to_contestant_inventory(warrior1.uuid(), inventory1);
                 self.add_to_contestant_inventory(warrior2.uuid(), inventory2);
-                repo.update(warrior1.uuid(), &warrior1)?;
-                repo.update(warrior2.uuid(), &warrior2)?;
+                warriors_repo.update(&warrior1.uuid().clone(), &UpdateWarriorSchema::from(warrior1)).await?;
+                warriors_repo.update(&warrior2.uuid().clone(), &UpdateWarriorSchema::from(warrior2)).await?;
                 round_replay_builder.push_summary(result);
             }
             round_replay_builder.write_summaries()?;

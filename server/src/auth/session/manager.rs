@@ -9,9 +9,10 @@ use shared::random::Random;
 use shared::unique_entity::UniqueEntity;
 use uuid::Uuid;
 
-use crate::repository::{FileRepository, PlayerRepository, Repository, RepositoryError};
+use crate::repository::{FileRepository, Repository, RepositoryCreate, RepositoryError, RepositoryRead};
 
 pub struct SessionManager {
+    // This will be redis
     repo: FileRepository<SessionContents>
 }
 
@@ -21,21 +22,20 @@ impl SessionManager {
         Ok(Self { repo })
     }
 
-    pub fn read_player(&self, uuid: &Uuid) -> Result<Player, SessionManagerError> {
-        let session = self.repo.get_by_uuid(uuid)?;
-        let repo = PlayerRepository::build()?;
-        let player = repo.get_by_uuid(&session.player_uuid)?;
-        Ok(player)
-    }
-
-    pub fn create_session(&self, player_uuid: &Uuid) -> Result<Session, SessionManagerError> {
-        let session = Session::random();
-        let content = SessionContents { session_uuid: session.uuid().clone(), player_uuid: player_uuid.clone() };
-        self.repo.create(&content)?;
+    pub async fn read_session(&self, uuid: &Uuid) -> Result<SessionContents, SessionManagerError> {
+        let session = self.repo.read(uuid).await?;
         Ok(session)
     }
 
-
+    pub async fn create_session(&self, player_uuid: &Uuid) -> Result<Session, SessionManagerError> {
+        let session = Session::random();
+        let content = SessionContents {
+            session_uuid: session.uuid().clone(),
+            player_uuid: player_uuid.clone(),
+        };
+        self.repo.create(&content).await?;
+        Ok(session)
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -43,7 +43,11 @@ pub struct SessionContents {
     session_uuid: Uuid,
     player_uuid: Uuid,
 }
-
+impl SessionContents {
+    pub fn player_uuid(&self) -> &Uuid {
+        &self.player_uuid
+    }
+}
 impl UniqueEntity for SessionContents {
     fn uuid(&self) -> &Uuid {
         &self.session_uuid

@@ -3,10 +3,8 @@ use shared::equipment::weapon::{Weapon, WeaponKind};
 use sqlx::prelude::FromRow;
 use uuid::Uuid;
 
-use super::Model;
-
 #[derive(Debug, Serialize, Deserialize, FromRow)]
-pub struct WeaponKindColumnData(WeaponKind);
+pub struct WeaponKindColumnData(pub WeaponKind);
 impl From<String> for WeaponKindColumnData {
     fn from(value: String) -> Self {
         if value == "Sword" {
@@ -27,6 +25,12 @@ impl From<String> for WeaponKindColumnData {
     }
 }
 
+impl WeaponKindColumnData {
+    pub fn as_str(&self) -> &'static str {
+        self.0.as_str()
+    }
+}
+
 #[derive(Debug, Serialize, Deserialize,  FromRow)]
 pub struct NewWeaponModel {
     pub id: u32,
@@ -40,14 +44,10 @@ pub struct NewWeaponModel {
     pub parry_stat_modifier: i8,
     pub courage_stat_modifier: i8,
 }
-impl Model for NewWeaponModel {
-    fn table_name() -> &'static str {
-        "new_weapons"
-    }
-}
 impl From<NewWeaponModel> for Weapon {
     fn from(value: NewWeaponModel) -> Self {
         Self::new(
+            Uuid::new_v4(),
             value.name,
             value.kind.0,
             value.is_sharp == 1,
@@ -63,9 +63,9 @@ impl From<NewWeaponModel> for Weapon {
 
 #[derive(Debug, Serialize, Deserialize, FromRow)]
 pub struct WeaponModel {
-    pub uuid: Uuid,
+    pub uuid: String,
     pub name: String,
-    pub kind: WeaponKind,
+    pub kind: WeaponKindColumnData,
     pub is_sharp: i8,
     pub is_two_handed: i8,
     pub rupture: Option<u8>,
@@ -74,8 +74,21 @@ pub struct WeaponModel {
     pub parry_stat_modifier: i8,
     pub courage_stat_modifier: i8,
 }
-impl Model for WeaponModel {
-    fn table_name() -> &'static str {
-        "weapons"
+impl TryFrom<WeaponModel> for Weapon {
+    type Error = uuid::Error;
+    fn try_from(value: WeaponModel) -> Result<Self, Self::Error> {
+        let weapon = Self::new(
+            Uuid::parse_str(&value.uuid)?,
+            value.name,
+            value.kind.0,
+            value.is_sharp == 1,
+            value.is_two_handed == 1,
+            value.additional_damages,
+            value.attack_stat_modifier,
+            value.parry_stat_modifier,
+            value.courage_stat_modifier,
+            value.rupture,
+        );
+        Ok(weapon)
     }
 }

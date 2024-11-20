@@ -55,3 +55,15 @@ impl From<WarriorManagerError> for PlayerAPIError {
         Self::new(&format!("Warrior Manager Error:\n{value}"))
     }
 }
+
+impl From<sqlx::Error> for PlayerAPIError {
+    fn from(value: sqlx::Error) -> Self {
+        Self::new(&format!("SQLX Error:\n{:?}", value))
+    }
+}
+
+impl From<uuid::Error> for PlayerAPIError {
+    fn from(value: uuid::Error) -> Self {
+        Self::new(&format!("Uuid Error:\n{:?}", value))
+    }
+}

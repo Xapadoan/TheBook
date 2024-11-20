@@ -16,7 +16,7 @@ pub async fn read_fight_replay(
     if replay.is_err() {
         return Err(StatusCode::INTERNAL_SERVER_ERROR);
     }
-    let warriors = manager.get_fight_warriors(&fight_summary);
+    let warriors = manager.get_fight_warriors(&fight_summary).await;
     if warriors.is_err() {
         return Err(StatusCode::INTERNAL_SERVER_ERROR);
     }

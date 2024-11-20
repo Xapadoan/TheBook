@@ -1,0 +1,51 @@
+services:
+  the_book_test_server:
+    container_name: the_book_test_server
+    build:
+      context: ../..
+      dockerfile: ./server/tests/Dockerfile.test_server
+    ports:
+      - 7879:7879
+    environment:
+      - PORT=7879
+      - DB_NAME=the_book_test
+      - DB_HOST=the_book_test_db
+      - DB_USER=the_book_test
+      - DB_PASS=the_book_test
+      - DATABASE_URL=mysql://the_book_test:the_book_test@the_book_test_db:3306/the_book_test
+    healthcheck:
+      test: wget --no-verbose --tries=1 --spider "http://localhost:7879/ping" || exit 1
+      interval: 10s
+      timeout: 20s
+      retries: 20
+    restart: always
+    depends_on:
+      the_book_test_db:
+        condition: service_healthy
+  the_book_test_db:
+    container_name: the_book_test_db
+    build:
+      context: ../..
+      dockerfile: ./server/tests/Dockerfile.test_db
+    environment:
+      - MYSQL_DATABASE=the_book_test
+      - MYSQL_USER=the_book_test
+      - MYSQL_PASSWORD=the_book_test
+      - MYSQL_RANDOM_ROOT_PASSWORD=yes
+    healthcheck:
+      test: /usr/bin/mysql -h 127.0.0.1 --user=$$MYSQL_USER --password=$$MYSQL_PASSWORD $$MYSQL_DATABASE --execute "SHOW TABLES;"
+      interval: 5s
+      timeout: 20s
+      retries: 10
+    restart: always
+  the_book_test_runner:
+    container_name: the_book_test_runner
+    build:
+      context: ../..
+      dockerfile: ./server/tests/Dockerfile.test_runner
+    environment:
+      - API_HOST=the_book_test_server
+      - API_PORT=7879
+    depends_on:
+      the_book_test_server:
+        condition: service_healthy

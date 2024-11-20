@@ -3,19 +3,22 @@ use std::{collections::HashMap, u32};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
+use crate::unique_entity::UniqueEntity;
+
 use super::item::{Item, MutableItems};
 
 const INVENTORY_MAX_SLOTS: usize = 32;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Inventory {
+    uuid: Uuid,
     gold: u32,
     items: HashMap<Uuid, Item>
 }
 
 impl Inventory {
     pub fn new() -> Self {
-        Self { gold: 0, items: HashMap::new() }
+        Self { uuid: Uuid::new_v4(), gold: 0, items: HashMap::new() }
     }
 
     pub fn items(&self) -> &HashMap<Uuid, Item> {
@@ -73,6 +76,11 @@ impl MutableItems for Inventory {
 
     fn remove_item(&mut self, id: &Uuid) -> Option<Item> {
         self.items.remove(id)
+    }
+}
+impl UniqueEntity for Inventory {
+    fn uuid(&self) -> &Uuid {
+        &self.uuid
     }
 }
 

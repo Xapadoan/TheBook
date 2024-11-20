@@ -10,7 +10,7 @@ use shared::{
 use uuid::Uuid;
 
 use crate::{
-    repository::{PlayerRepository, Repository},
+    repository::{Repository},
     warrior::WarriorManager,
 };
 
@@ -19,30 +19,31 @@ pub async fn replace_weapon(
     Extension(mut warrior): Extension<Warrior>,
     Json(inventory_slot): Json<Uuid>,
 ) -> Result<Json<Value>, StatusCode> {
-    let new_weapon = take_weapon_from_player(&mut player, &inventory_slot);
-    if let None = new_weapon { return Err(StatusCode::NOT_FOUND); }
-    let new_weapon = new_weapon.unwrap();
-    let old_weapon = warrior.replace_weapon(new_weapon);
-    if let Some(weapon) = old_weapon {
-        player.inventory_mut().add_item(Item::Weapon(weapon));
-    }
-    let player_repo = PlayerRepository::build();
-    if player_repo.is_err() {
-        return Err(StatusCode::INTERNAL_SERVER_ERROR);
-    }
-    let player_repo = player_repo.unwrap();
-    if player_repo.update(player.uuid(), &player).is_err() {
-        return Err(StatusCode::INTERNAL_SERVER_ERROR);
-    }
-    let warrior_manager = WarriorManager::build();
-    if warrior_manager.is_err() {
-        return Err(StatusCode::INTERNAL_SERVER_ERROR);
-    }
-    let warrior_manager = warrior_manager.unwrap();
-    if warrior_manager.save(&warrior).is_err() {
-        return Err(StatusCode::INTERNAL_SERVER_ERROR);
-    }
-    Ok(Json(json!(())))
+    panic!("Not implemented")
+    // let new_weapon = take_weapon_from_player(&mut player, &inventory_slot);
+    // if let None = new_weapon { return Err(StatusCode::NOT_FOUND); }
+    // let new_weapon = new_weapon.unwrap();
+    // let old_weapon = warrior.replace_weapon(new_weapon);
+    // if let Some(weapon) = old_weapon {
+    //     player.inventory_mut().add_item(Item::Weapon(weapon));
+    // }
+    // let player_repo = PlayersRepository::build();
+    // if player_repo.is_err() {
+    //     return Err(StatusCode::INTERNAL_SERVER_ERROR);
+    // }
+    // let player_repo = player_repo.unwrap();
+    // if player_repo.update(player.uuid(), &player).is_err() {
+    //     return Err(StatusCode::INTERNAL_SERVER_ERROR);
+    // }
+    // let warrior_manager = WarriorManager::build();
+    // if warrior_manager.is_err() {
+    //     return Err(StatusCode::INTERNAL_SERVER_ERROR);
+    // }
+    // let warrior_manager = warrior_manager.unwrap();
+    // if warrior_manager.save(&warrior).await.is_err() {
+    //     return Err(StatusCode::INTERNAL_SERVER_ERROR);
+    // }
+    // Ok(Json(json!(())))
 }
 
 fn take_weapon_from_player(player: &mut Player, inventory_slot: &Uuid) -> Option<Weapon> {

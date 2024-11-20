@@ -8,7 +8,6 @@ use shared::replay::turn_summary::TurnSummary;
 use shared::replay::FightReplaySummary;
 use shared::tournament::Fighter;
 use shared::unique_entity::UniqueEntity;
-use shared::warrior::Warrior;
 
 use crate::repository::Repository;
 use crate::replay::{FightReplayBuilder, FightReplayBuilderError};
@@ -17,7 +16,7 @@ use crate::replay::{FightReplayBuilder, FightReplayBuilderError};
 pub struct Fight {}
 
 impl Fight {
-    pub fn auto<T: Repository<Warrior>>(
+    pub fn auto<T: Repository>(
         replay_builder: &mut FightReplayBuilder<T>,
         blue_corner: &mut Fighter,
         red_corner: &mut Fighter,

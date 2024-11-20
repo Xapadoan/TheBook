@@ -77,6 +77,21 @@ pub struct StatsManager {
 }
 
 impl StatsManager {
+    pub fn new(
+        nat_attack: u8,
+        nat_parry: u8,
+        nat_strength: u8,
+        nat_dexterity: u8,
+        nat_courage: u8,
+    ) -> Self {
+        Self {
+            nat_attack: Stat::Attack(nat_attack),
+            nat_courage: Stat::Courage(nat_courage),
+            nat_dexterity: Stat::Dexterity(nat_dexterity),
+            nat_parry: Stat::Parry(nat_parry),
+            nat_strength: Stat::Strength(nat_strength),
+        }
+    }
     pub fn nat_stat(&self, stat: &StatKind) -> &Stat {
         match stat {
             StatKind::Attack => &self.nat_attack,

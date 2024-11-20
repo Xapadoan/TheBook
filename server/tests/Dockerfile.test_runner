@@ -1,0 +1,9 @@
+FROM rust:bullseye
+
+COPY ../shared ./shared
+COPY ../server/tests ./server/tests
+COPY ../server/Cargo.toml ./server/Cargo.toml
+
+WORKDIR ./server
+
+CMD ["cargo", "test"]

@@ -27,7 +27,7 @@ impl<'a> PlayerBuilder for BotPlayerBuilder<'a> {
     fn build_display_name(&mut self) -> Result<(), PlayerBuildError> {
         Ok(())
     }
-    fn build_warriors(&mut self) -> Result<(), PlayerBuildError> {
+    async fn build_warriors(&mut self) -> Result<(), PlayerBuildError> {
         let warriors_missing = self.tournament.max_contestants() - self.tournament.number_of_contestants();
         let mut i = 0;
         while i < warriors_missing {

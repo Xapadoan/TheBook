@@ -45,6 +45,38 @@ pub struct Warrior {
     experience: u64,
     level: u8,
 }
+impl Warrior {
+    // server only ?
+    pub fn new(
+        uuid: Uuid,
+        name: String,
+        health: Health,
+        weapon: Option<Weapon>,
+        current_tournament: Option<Uuid>,
+        body: Body,
+        duration_damages: Vec<DurationDamages>,
+        stats: StatsManager,
+        is_unconscious: bool,
+        last_passive_heal: i64,
+        experience: u64,
+        level: u8,
+    ) -> Self {
+        Self {
+            uuid,
+            name,
+            health,
+            weapon,
+            current_tournament,
+            body,
+            duration_damages,
+            stats,
+            is_unconscious,
+            last_passive_heal,
+            experience,
+            level,
+        }
+    }
+}
 
 impl UniqueEntity for Warrior {
     fn uuid(&self) -> &Uuid {

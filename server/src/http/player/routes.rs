@@ -12,12 +12,12 @@ use super::{
     sell_item::sell_item,
 };
 
-pub fn player_routes() -> Router<Arc<AppState>> {
+pub fn player_routes(app_state: Arc<AppState>) -> Router<Arc<AppState>> {
     Router::new()
         .route("/", get(read_player))
         .route("/buy-item/:slot_uuid", patch(buy_item))
         .route("/sell-item/:slot_uuid", patch(sell_item))
-        .nest("/tournaments", player_tournaments_routes())
+        .nest("/tournaments", player_tournaments_routes(app_state.clone()))
         .nest("/warriors", player_warriors_routes())
-        .layer(axum::middleware::from_fn(session_auth))
+        .layer(axum::middleware::from_fn_with_state(app_state, session_auth))
 }

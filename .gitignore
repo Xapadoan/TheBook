@@ -10,6 +10,7 @@ server/saves
 server/data
 server/local
 server/sessions
+client/local
 .env*
 !.env*.example
 .sqlx
