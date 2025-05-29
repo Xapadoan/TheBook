@@ -53,7 +53,7 @@ pub fn shop_view(session: &Session) -> Result<(), ViewError> {
 fn buy_items_view(session: &Session) -> Result<(), ViewError> {
     let fetcher = ApiFetcher::new(session);
     let mut player: Player = fetcher.get("/player")?;
-    let shop: Shop = ApiFetcher::new(session).get("/shop")?;
+    let shop: Shop = fetcher.get("/shop")?;
     let options: Vec<(&Uuid, &Item)> = shop.inventory().items()
         .iter()
         .collect();

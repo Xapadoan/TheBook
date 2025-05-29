@@ -1,0 +1,8 @@
+[env]
+PORT = { value = "7878", force = true }
+DB_NAME = "the_book"
+DB_HOST = "localhost"
+DB_PORT = "3306"
+DB_USER = "the_book"
+DB_PASS = "the_book"
+DATABASE_URL = "mysql://the_book:the_book@localhost:3306/the_book"

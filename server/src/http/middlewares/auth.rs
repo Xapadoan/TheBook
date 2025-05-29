@@ -43,7 +43,7 @@ pub async fn session_auth(
                     Ok(next.run(req).await)
                 },
                 Err(err) => {
-                    eprintln!("[ERROR] Repository Error:\n{err}");
+                    eprintln!("[ERROR] Session Error:\n{err}");
                     Err(StatusCode::NOT_FOUND)
                 },
             }

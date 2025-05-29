@@ -135,6 +135,7 @@ impl<'a> RepositoryCreate<TournamentWarriorModel, CreateTournamentWarriorSchema>
             }
         };
 
+        trx.commit().await?;
         Ok(returned_entry)
     }
 }

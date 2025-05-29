@@ -32,7 +32,8 @@ where
             player_uuid.clone(),
             warrior.uuid().clone(),
         );
-        self.repo.create(&create_schema).await?;
+        let registration = self.repo.create(&create_schema).await?;
+        eprintln!("[DEBUG] Registered warrior {} to tournament {}", registration.warrior_uuid, registration.tournament_uuid);
         warrior.set_current_tournament(Some(tournament.uuid().clone()));
         Ok(())
     }
