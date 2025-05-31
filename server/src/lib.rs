@@ -132,7 +132,7 @@ pub mod repository {
             mod weapon_schemas;
             pub use weapon_schemas::{CreateWeaponSchema, UpdateWeaponSchema};
             mod weapons_repository;
-            pub use weapons_repository::{WeaponsPoolRepository, WeaponsQueryBuilder};
+            pub use weapons_repository::{WeaponsRepository, WeaponsQueryBuilder};
         }
         pub mod protections {
             mod protection_model;
@@ -212,19 +212,28 @@ mod shop {
 use std::error::Error;
 
 use http::run_server;
-use repository::sql_repository::{gen_pool, players::PlayersRepository, players_inventories::PlayersInventoriesRepository, tournaments::TournamentsRepository, warriors::WarriorsRepository};
-use tournament::{manager::TournamentManager, run_tournaments};
+use repository::sql_repository::{
+    gen_pool,
+    players::PlayersRepository,
+    players_inventories::PlayersInventoriesRepository,
+    tournaments::TournamentsRepository,
+    tournaments_warriors::TournamentsWarriorsRepository,
+    warriors::WarriorsRepository,
+    weapons::WeaponsRepository
+};
+use tournament::run_tournaments;
 
 pub async fn run(config: &Config) -> Result<(), Box<dyn Error>> {
     if config.run_tournaments {
         let db_pool = gen_pool().await;
-        let tournaments_repository = TournamentsRepository::new(&db_pool);
         println!("Running tournaments");
         run_tournaments(
             &TournamentsRepository::new(&db_pool),
             &WarriorsRepository::new(&db_pool),
             &PlayersRepository::new(&db_pool),
             &PlayersInventoriesRepository::new(&db_pool),
+            &TournamentsWarriorsRepository::new(&db_pool),
+            &WeaponsRepository::new(&db_pool),
         ).await?;
         eprintln!("[DEBUG] Tournaments run OK");
     }
@@ -233,20 +242,6 @@ pub async fn run(config: &Config) -> Result<(), Box<dyn Error>> {
     }
     Ok(())
 }
-
-// async fn run_tournaments() -> Result<(), Box<dyn Error>> {
-//     let db_pool = gen_pool().await;
-//     let tournaments_repository = TournamentsRepository::new(&db_pool);
-//     println!("Running tournaments");
-//     run_tournaments(
-//         TournamentsRepository::new(&db_pool),
-//         WarriorsRepository::new(&db_pool),
-//         PlayersRepository::new(&db_pool),
-//         PlayersInventoriesRepository::new(&db_pool),
-//     ).await?;
-//     eprintln!("[DEBUG] Tournaments run OK");
-//     Ok(())
-// }
 
 pub struct Config {
     run_tournaments: bool,

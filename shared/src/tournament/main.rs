@@ -35,6 +35,15 @@ impl Tournament {
         Ok(())
     }
 
+    pub fn set_contestants(&mut self, contestants: HashMap<Uuid, Vec<Uuid>>) -> Result<(), TournamentError> {
+        self.contestants = contestants;
+        if self.number_of_contestants() > self.max_contestants {
+            return Err(TournamentError { message: format!("Too much contestants for tournament {}, max: {}, received {}", self.uuid, self.max_contestants, self.number_of_contestants()) })
+        }
+
+        Ok(())
+    }
+
     pub fn max_contestants(&self) -> usize {
         self.max_contestants
     }

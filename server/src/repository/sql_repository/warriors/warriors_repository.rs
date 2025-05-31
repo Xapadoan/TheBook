@@ -1,5 +1,5 @@
-use shared::{equipment::weapon::OptionalMutableWeapon, random::Random, unique_entity::UniqueEntity, warrior::{self, Warrior}};
-use sqlx::{mysql::MySqlArguments, query::{Map, Query}, MySql, Pool, Transaction};
+use shared::{equipment::weapon::OptionalMutableWeapon, random::Random, unique_entity::UniqueEntity, warrior::Warrior};
+use sqlx::{mysql::MySqlArguments, query::{Map, Query}, MySql, Pool};
 use uuid::Uuid;
 
 use crate::repository::{
@@ -170,12 +170,13 @@ impl<'a> WarriorsRepository<'a> {
 impl<'a> RepositoryCreate<Warrior, CreateWarriorSchema> for WarriorsRepository<'a> {
     async fn create(&self, item: &CreateWarriorSchema) -> Result<Warrior, RepositoryError> {
         let mut trx = self.db_pool.begin().await?;
-        BodyPartsQueryBuilder::create_entire_body_query(&item.uuid)
-            .execute(&mut *trx)
-            .await?;
         WarriorsQueryBuilder::create_query(item)
             .execute(&mut *trx)
             .await?;
+        BodyPartsQueryBuilder::create_entire_body_query(&item.uuid)
+            .execute(&mut *trx)
+            .await?;
+        trx.commit().await?;
         let created_warrior = self.read(&item.uuid).await?;
 
         Ok(created_warrior)

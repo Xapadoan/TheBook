@@ -5,7 +5,6 @@ use shared::tournament::{Fighter, Tournament, TournamentError};
 use shared::unique_entity::UniqueEntity;
 use shared::warrior::Warrior;
 use uuid::Uuid;
-use std::path::PathBuf;
 
 use crate::replay::{
     FightReplayBuilder,
@@ -16,7 +15,7 @@ use crate::replay::{
     TournamentReplayBuilderError,
 };
 use crate::repository::sql_repository::warriors::UpdateWarriorSchema;
-use crate::repository::{FileRepository, Repository, RepositoryError, RepositoryRead, RepositoryUpdate};
+use crate::repository::{RepositoryError, RepositoryRead, RepositoryUpdate};
 
 use super::fight::{Fight, FightError};
 use super::fight_reward::FightReward;
@@ -83,9 +82,9 @@ impl AutoTournament for Tournament {
         W: RepositoryRead<Warrior> +
             RepositoryUpdate<Warrior, UpdateWarriorSchema>,
     {
+        eprintln!("[DEBUG] Starting tournament {}", self.uuid());
         let tournament_replay_builder = TournamentReplayBuilder::build(self.uuid())?;
         tournament_replay_builder.write_tournament_init_state(&self)?;
-        // let repo: FileRepository<Warrior> = FileRepository::build(PathBuf::from("saves/warriors"))?;
         let mut round_index = 0;
         let mut remaining_contestants_ids = self.contestants_ids();
         while remaining_contestants_ids.len() > 1 {
@@ -101,6 +100,7 @@ impl AutoTournament for Tournament {
                 fight_replay_builder.record_warriors_init_state(&warrior1, &warrior2).await?;
                 let mut fighter1 = Fighter::from(&warrior1);
                 let mut fighter2 = Fighter::from(&warrior2);
+                eprintln!("[DEBUG] Starting fight {}", fight_replay_builder.replay_uuid());
                 let result = Fight::auto(
                     &mut fight_replay_builder,
                     &mut fighter1,

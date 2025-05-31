@@ -25,8 +25,6 @@ pub async fn register_warriors(
     let manager = PlayerManager::new(&player);
     let repo = TournamentsWarriorsRepository::new(state.db_pool());
     let registerer = ContestantsRegisterer::new(repo);
-    // let repo = TournamentsRepository::new(state.db_pool());
-    // let tournament_manager = TournamentManager::new(repo);
     for warrior_uuid in warriors_uuids {
         if let Some(warrior) = manager.read_warrior(&warrior_uuid) {
             let mut warrior = warrior.clone();

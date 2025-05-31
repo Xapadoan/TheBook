@@ -2,6 +2,7 @@ use chrono::{DateTime, Utc};
 use shared::{equipment::weapon::OptionalMutableWeapon, experience::Experience, health::{MutableHealth, PassiveHealing}, name::Name, stats::{StatKind, Stats}, tournament::contestant::TournamentContestant, unique_entity::UniqueEntity, warrior::Warrior};
 use uuid::Uuid;
 
+#[derive(Debug)]
 pub struct CreateWarriorSchema {
     pub uuid: Uuid,
     pub player_uuid: Uuid,

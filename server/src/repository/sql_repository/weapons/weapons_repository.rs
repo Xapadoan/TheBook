@@ -1,3 +1,4 @@
+use shared::equipment::weapon::Weapon;
 use sqlx::{
     mysql::MySqlArguments,
     query::Query,
@@ -6,7 +7,7 @@ use sqlx::{
 };
 use uuid::Uuid;
 
-use crate::repository::{main::{RepositoryDelete, RepositoryUpdate}, sql_repository::query_builder::QueryBuilder, Repository, RepositoryCreate, RepositoryError, RepositoryList, RepositoryRead};
+use crate::repository::{main::{RepositoryDelete, RepositoryUpdate}, sql_repository::query_builder::QueryBuilder, RepositoryCreate, RepositoryError, RepositoryList, RepositoryRead};
 
 use super::{weapon_model::WeaponModel, weapon_schemas::{CreateWeaponSchema, UpdateWeaponSchema}};
 
@@ -81,25 +82,24 @@ impl QueryBuilder for WeaponsQueryBuilder {
     }
 }
 
-pub struct WeaponsPoolRepository<'a> {
+pub struct WeaponsRepository<'a> {
     pool: &'a Pool<MySql>,
-    query_builder: WeaponsQueryBuilder,
 }
 
-impl<'a> WeaponsPoolRepository<'a> {
+impl<'a> WeaponsRepository<'a> {
     pub fn new(pool: &'a Pool<MySql>) -> Self {
-        Self { pool, query_builder: WeaponsQueryBuilder {} }
+        Self { pool }
     }
 }
 
 impl<'a> RepositoryCreate<
-    <WeaponsQueryBuilder as QueryBuilder>::Model,
-    <WeaponsQueryBuilder as QueryBuilder>::CreateSchema
-> for WeaponsPoolRepository<'a> {
+    Weapon,
+    CreateWeaponSchema
+> for WeaponsRepository<'a> {
     async fn create(
         &self,
-        item: &<WeaponsQueryBuilder as QueryBuilder>::CreateSchema,
-    ) -> Result<<WeaponsQueryBuilder as QueryBuilder>::Model, RepositoryError> {
+        item: &CreateWeaponSchema,
+    ) -> Result<Weapon, RepositoryError> {
         WeaponsQueryBuilder::create_query(item)
             .execute(self.pool)
             .await?;
@@ -107,15 +107,15 @@ impl<'a> RepositoryCreate<
         Ok(res)
     }
 }
-impl<'a> RepositoryRead<<WeaponsQueryBuilder as QueryBuilder>::Model> for WeaponsPoolRepository<'a> {
-    async fn read(&self, uuid: &uuid::Uuid) -> Result<<WeaponsQueryBuilder as QueryBuilder>::Model, RepositoryError> {
+impl<'a> RepositoryRead<Weapon> for WeaponsRepository<'a> {
+    async fn read(&self, uuid: &uuid::Uuid) -> Result<Weapon, RepositoryError> {
         let res = WeaponsQueryBuilder::read_query(uuid)
             .fetch_one(self.pool)
             .await?;
-        Ok(res)
+        Ok(Weapon::try_from(res)?)
     }
 }
-impl<'a> RepositoryList<<WeaponsQueryBuilder as QueryBuilder>::Model> for WeaponsPoolRepository<'a> {
+impl<'a> RepositoryList<<WeaponsQueryBuilder as QueryBuilder>::Model> for WeaponsRepository<'a> {
     async fn list(&self) -> Result<Vec<<WeaponsQueryBuilder as QueryBuilder>::Model>, RepositoryError> {
         let res = WeaponsQueryBuilder::list_query()
             .fetch_all(self.pool)
@@ -124,14 +124,14 @@ impl<'a> RepositoryList<<WeaponsQueryBuilder as QueryBuilder>::Model> for Weapon
     }
 }
 impl<'a> RepositoryUpdate<
-    <WeaponsQueryBuilder as QueryBuilder>::Model,
-    <WeaponsQueryBuilder as QueryBuilder>::UpdateSchema
-> for WeaponsPoolRepository<'a> {
+    Weapon,
+    UpdateWeaponSchema
+> for WeaponsRepository<'a> {
     async fn update(
         &self,
         uuid: &Uuid,
-        item: &<WeaponsQueryBuilder as QueryBuilder>::UpdateSchema,
-    ) -> Result<<WeaponsQueryBuilder as QueryBuilder>::Model, RepositoryError> {
+        item: &UpdateWeaponSchema,
+    ) -> Result<Weapon, RepositoryError> {
         WeaponsQueryBuilder::update_query(uuid, item)
             .execute(self.pool)
             .await?;
@@ -140,7 +140,7 @@ impl<'a> RepositoryUpdate<
         Ok(res)
     }
 }
-impl<'a> RepositoryDelete for WeaponsPoolRepository<'a> {
+impl<'a> RepositoryDelete for WeaponsRepository<'a> {
     async fn delete(&self, uuid: &Uuid) -> Result<(), RepositoryError> {
         WeaponsQueryBuilder::delete_query(uuid)
             .execute(self.pool)
@@ -149,10 +149,10 @@ impl<'a> RepositoryDelete for WeaponsPoolRepository<'a> {
     }
 }
 
-impl<'a> Repository for WeaponsPoolRepository<'a> {
-    type Model = <WeaponsQueryBuilder as QueryBuilder>::Model;
-    type CreateSchema = <WeaponsQueryBuilder as QueryBuilder>::CreateSchema;
-    type UpdateSchema = <WeaponsQueryBuilder as QueryBuilder>::UpdateSchema;
+// impl<'a> Repository for WeaponsPoolRepository<'a> {
+//     type Model = Weapon;
+//     type CreateSchema = CreateWeaponSchema;
+//     type UpdateSchema = UpdateWeaponSchema;
 
     // async fn create(&self, item: &Self::CreateSchema) -> Result<Self::Model, RepositoryError> {
     //     WeaponsQueryBuilder::create_query(item)
@@ -191,7 +191,7 @@ impl<'a> Repository for WeaponsPoolRepository<'a> {
     //         .await?;
     //     Ok(())
     // }
-}
+// }
 
 // impl<'a> TrxRepository for WeaponsPoolRepository<'a> {
 //     type Model = <WeaponsQueryBuilder as QueryBuilder>::Model;

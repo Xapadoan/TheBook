@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use sqlx::{mysql::MySqlArguments, query::{Map, Query}, MySql, Pool};
 use uuid::Uuid;
 
@@ -27,6 +29,19 @@ impl TournamentsWarriorsQueryBuilder {
             tournament_uuid.to_string(),
             player_uuid.to_string(),
             warrior_uuid.to_string(),
+        )
+    }
+
+    fn list_contestants_query(tournament_uuid: &Uuid) -> Map<
+        'static,
+        MySql,
+        impl FnMut(sqlx::mysql::MySqlRow) -> Result<TournamentWarriorModel, sqlx::Error>,
+        MySqlArguments
+    > {
+        sqlx::query_as!(
+            TournamentWarriorModel,
+            "SELECT * FROM tournaments_warriors WHERE tournament_uuid = ?",
+            tournament_uuid.to_string()
         )
     }
 }
@@ -86,6 +101,35 @@ pub struct TournamentsWarriorsRepository<'a> {
 impl<'a> TournamentsWarriorsRepository<'a> {
     pub fn new(db_pool: &'a Pool<MySql>) -> Self {
         Self { db_pool }
+    }
+
+    pub async fn list_contestants(&self, tournament_uuid: &Uuid) -> Result<HashMap<Uuid, Vec<Uuid>>, RepositoryError> {
+        let contestants = TournamentsWarriorsQueryBuilder::list_contestants_query(tournament_uuid)
+            .fetch_all(self.db_pool)
+            .await?;
+
+        let mut map = HashMap::new();
+        for contestant in contestants {
+            let player_uuid = Uuid::parse_str(&contestant.player_uuid);
+            if let Err (e) = player_uuid {
+                return Err(RepositoryError::from(e))
+            }
+            let player_uuid = player_uuid?;
+
+            let warrior_uuid = Uuid::parse_str(&contestant.warrior_uuid);
+            if let Err (e) = warrior_uuid {
+                return Err(RepositoryError::from(e))
+            }
+            let warrior_uuid = warrior_uuid?;
+
+            if !map.contains_key(&player_uuid) {
+                map.insert(player_uuid, vec![warrior_uuid]);
+            } else {
+                map.get_mut(&player_uuid).unwrap().push(warrior_uuid);
+            }
+        }
+
+        Ok(map)
     }
 }
 impl<'a> RepositoryCreate<TournamentWarriorModel, CreateTournamentWarriorSchema> for TournamentsWarriorsRepository<'a> {

@@ -6,6 +6,14 @@ use shared::tournament::Tournament;
 use sqlx::FromRow;
 use uuid::Uuid;
 
+#[derive(Debug)]
+pub struct TournamentWarriorModel {
+    pub uuid: String,
+    pub player_uuid: String,
+    pub tournament_uuid: String,
+    pub warrior_uuid: String,
+}
+
 #[derive(Debug, Serialize, Deserialize,  FromRow)]
 pub struct TournamentModel {
     pub uuid: String,
@@ -15,6 +23,7 @@ pub struct TournamentModel {
     pub started_at: Option<DateTime<Utc>>,
 }
 
+#[derive(Debug)]
 pub struct TournamentFinalModel {
     tournament_model: TournamentModel,
     contestants: HashMap<Uuid, Vec<Uuid>>,

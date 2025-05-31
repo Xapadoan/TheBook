@@ -27,8 +27,9 @@ impl<'a> PlayerBuilder for BotPlayerBuilder<'a> {
     fn build_display_name(&mut self) -> Result<(), PlayerBuildError> {
         Ok(())
     }
-    async fn build_warriors(&mut self) -> Result<(), PlayerBuildError> {
+    fn build_warriors(&mut self) -> Result<(), PlayerBuildError> {
         let warriors_missing = self.tournament.max_contestants() - self.tournament.number_of_contestants();
+        eprintln!("[DEBUG] Creating {} bot warriors", warriors_missing);
         let mut i = 0;
         while i < warriors_missing {
             let warrior = Warrior::random();
